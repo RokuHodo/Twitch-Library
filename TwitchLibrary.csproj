@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A76129E2-4586-4BB4-9E80-12720CC24FFC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TwitchLibrary</RootNamespace>
+    <AssemblyName>TwitchLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\TwitchApi.cs" />
+    <Compile Include="API\TwitchApiOAuth.cs" />
+    <Compile Include="Clients\TwitchClient.cs" />
+    <Compile Include="Debug\LibraryDebug.cs" />
+    <Compile Include="Debug\LibraryDebugError.cs" />
+    <Compile Include="Enums\Debug\LibraryDebugMethod.cs" />
+    <Compile Include="Enums\Debug\TimeStamp.cs" />
+    <Compile Include="Enums\Extensions\Padding.cs" />
+    <Compile Include="Enums\Helpers\Paging\CommercialLength.cs" />
+    <Compile Include="Enums\Helpers\Paging\Period.cs" />
+    <Compile Include="Enums\Helpers\Paging\StreamLanguage.cs" />
+    <Compile Include="Enums\Helpers\Paging\BroadcasterLanguage.cs" />
+    <Compile Include="Enums\Helpers\Paging\BroadcastType.cs" />
+    <Compile Include="Enums\Helpers\Paging\Direction.cs" />
+    <Compile Include="Enums\Helpers\Paging\Sort.cs" />
+    <Compile Include="Enums\Helpers\Paging\SortBy.cs" />
+    <Compile Include="Enums\Messages\MessageType.cs" />
+    <Compile Include="Enums\Messages\UserType.cs" />
+    <Compile Include="Events\Clients\OnReSubscriberArgs.cs" />
+    <Compile Include="Events\Clients\OnNullIrcMessageReceivedArgs.cs" />
+    <Compile Include="Events\Clients\OnPingReceivedArgs.cs" />
+    <Compile Include="Events\Clients\OnNewSubscriberArgs.cs" />
+    <Compile Include="Events\Clients\OnWhisperMessageReceivedArgs.cs" />
+    <Compile Include="Events\Clients\OnPrivateMessageReceivedArgs.cs" />
+    <Compile Include="Events\Clients\OnIrcMessageReceivedArgs.cs" />
+    <Compile Include="Extensions\Events\EventExtensions.cs" />
+    <Compile Include="Extensions\UniversalExtensions.cs" />
+    <Compile Include="Helpers\Json\CustomJsonDeserializer.cs" />
+    <Compile Include="Helpers\Paging\Users\PagingBlockedUsers.cs" />
+    <Compile Include="Helpers\Paging\Videos\PagingUserFollowsVideos.cs" />
+    <Compile Include="Helpers\Paging\Videos\PagingTopVideos.cs" />
+    <Compile Include="Helpers\Paging\Teams\PagingTeams.cs" />
+    <Compile Include="Helpers\Paging\Feed\PagingChannelFeedPostComments.cs" />
+    <Compile Include="Helpers\Paging\Streams\PagingFeaturedStreams.cs" />
+    <Compile Include="Helpers\Paging\Search\PagingSearchStreams.cs" />
+    <Compile Include="Helpers\Paging\Search\PagingSearchChannels.cs" />
+    <Compile Include="Helpers\Paging\Streams\PagingStreamFollows.cs" />
+    <Compile Include="Helpers\Paging\Streams\PagingStreams.cs" />
+    <Compile Include="Helpers\Paging\Games\PagingTopGames.cs" />
+    <Compile Include="Helpers\Paging\Feed\PagingChannelFeedPosts.cs" />
+    <Compile Include="Helpers\Paging\Channels\PagingChannelFollowers.cs" />
+    <Compile Include="Helpers\Paging\Users\PagingUserFollows.cs" />
+    <Compile Include="Helpers\Paging\Channels\PagingChannelSubscribers.cs" />
+    <Compile Include="Helpers\Paging\Channels\PagingChannelVideos.cs" />
+    <Compile Include="Enums\Helpers\Paging\StreamType.cs" />
+    <Compile Include="Interfaces\API\ITwitchRequest.cs" />
+    <Compile Include="Interfaces\Helpers\Paging\ITwitchPaging.cs" />
+    <Compile Include="Models\Messages\IRC\IrcMessage.cs" />
+    <Compile Include="Models\Messages\Message.cs" />
+    <Compile Include="Models\Messages\Sender.cs" />
+    <Compile Include="Models\Messages\Subscriber\NewSubcriberMessage.cs" />
+    <Compile Include="Models\Messages\Subscriber\NewSubcriberSender.cs" />
+    <Compile Include="Models\Messages\Subscriber\ReSubscriberMessage.cs" />
+    <Compile Include="Models\Messages\Subscriber\ReSubcriberSender.cs" />
+    <Compile Include="Models\Messages\Whisper\WhisperMessage.cs" />
+    <Compile Include="Models\Messages\Whisper\WhisperSender.cs" />
+    <Compile Include="Models\Messages\Emotes\MessageEmoteRange.cs" />
+    <Compile Include="Models\Messages\Emotes\MessageEmotes.cs" />
+    <Compile Include="Models\Messages\Emotes\MessageEmote.cs" />
+    <Compile Include="Helpers\Messages\TagConverter.cs" />
+    <Compile Include="Models\Messages\Private\PrivateMessage.cs" />
+    <Compile Include="Models\API\Channels\Channel.cs" />
+    <Compile Include="Models\API\Channels\ChannelOAuth.cs" />
+    <Compile Include="Models\API\Channels\ChannelSubscriber.cs" />
+    <Compile Include="Models\API\Channels\ChannelSubscribersPage.cs" />
+    <Compile Include="Models\API\Channels\CommercialResponse.cs" />
+    <Compile Include="Models\API\Channels\Follower.cs" />
+    <Compile Include="Models\API\Channels\FollowerPage.cs" />
+    <Compile Include="Models\Messages\Private\PrivateSender.cs" />
+    <Compile Include="Models\API\Teams\TeamBase.cs" />
+    <Compile Include="Models\API\Channels\ChannelTeams.cs" />
+    <Compile Include="Models\API\Videos\Thumbnail.cs" />
+    <Compile Include="Models\API\Videos\Thumbnails.cs" />
+    <Compile Include="Models\API\Feed\CreatedPost.cs" />
+    <Compile Include="Models\API\Videos\Video.cs" />
+    <Compile Include="Models\API\Videos\VideosFollowsPage.cs" />
+    <Compile Include="Models\API\Videos\TopVideosPage.cs" />
+    <Compile Include="Models\API\Videos\VideosPage.cs" />
+    <Compile Include="Models\API\Chat\EmoteImages.cs" />
+    <Compile Include="Models\API\Chat\EmoteImage.cs" />
+    <Compile Include="Models\API\Chat\Emotes.cs" />
+    <Compile Include="Models\API\Chat\Emote.cs" />
+    <Compile Include="Models\API\Chat\EmoteSet.cs" />
+    <Compile Include="Models\API\Chat\Badges.cs" />
+    <Compile Include="Models\API\Chat\Badge.cs" />
+    <Compile Include="Models\API\Chat\Image.cs" />
+    <Compile Include="Models\API\Feed\Comment.cs" />
+    <Compile Include="Models\API\Feed\CreateReactionResponse.cs" />
+    <Compile Include="Models\API\Feed\DeleteReactionResponse.cs" />
+    <Compile Include="Models\API\Feed\FeedEmote.cs" />
+    <Compile Include="Models\API\Feed\Permissions.cs" />
+    <Compile Include="Models\API\Feed\Post.cs" />
+    <Compile Include="Models\API\Feed\PostCommentsPage.cs" />
+    <Compile Include="Models\API\Feed\PostsPage.cs" />
+    <Compile Include="Models\API\Feed\Reaction.cs" />
+    <Compile Include="Models\API\Games\TopGamesPage.cs" />
+    <Compile Include="Models\API\Games\TopGame.cs" />
+    <Compile Include="Models\API\Games\Logo.cs" />
+    <Compile Include="Models\API\Games\Box.cs" />
+    <Compile Include="Models\API\Games\Game.cs" />
+    <Compile Include="Models\API\HTTP\HttpStatus.cs" />
+    <Compile Include="Models\API\Ingests\Ingests.cs" />
+    <Compile Include="Models\API\Ingests\Ingest.cs" />
+    <Compile Include="Models\API\Notifications.cs" />
+    <Compile Include="Models\API\Preview.cs" />
+    <Compile Include="Models\API\Search\SearchGames.cs" />
+    <Compile Include="Models\API\Search\SearchStreamsPage.cs" />
+    <Compile Include="Models\API\Search\SearchChannelsPage.cs" />
+    <Compile Include="Models\API\Streams\FeaturedStreamsPage.cs" />
+    <Compile Include="Models\API\Streams\FeaturedStream.cs" />
+    <Compile Include="Models\API\Streams\StreamSummary.cs" />
+    <Compile Include="Models\API\Streams\StreamsPage.cs" />
+    <Compile Include="Models\API\Streams\Stream.cs" />
+    <Compile Include="Models\API\Streams\StreamResult.cs" />
+    <Compile Include="Models\API\Teams\TeamsPage.cs" />
+    <Compile Include="Models\API\Teams\Team.cs" />
+    <Compile Include="Models\API\Users\BlockedUser.cs" />
+    <Compile Include="Models\API\Users\BlockedUsersPage.cs" />
+    <Compile Include="Models\API\Chat\EmoteBase.cs" />
+    <Compile Include="Models\API\Channels\Editors.cs" />
+    <Compile Include="Models\API\Users\Follow.cs" />
+    <Compile Include="Models\API\Users\FollowsPage.cs" />
+    <Compile Include="Models\API\Users\User.cs" />
+    <Compile Include="Models\API\Users\UserOAuth.cs" />
+    <Compile Include="Models\API\Users\UserSubscriber.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
