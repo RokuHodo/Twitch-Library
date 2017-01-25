@@ -9,8 +9,8 @@ namespace TwitchLibrary.Helpers.Paging.Teams
 {   
     public class PagingTeams : ITwitchPaging
     {
-        public int limit,      //max = 100      default = 25
-                   offset;   
+        public int limit,       //max = 100         default = 25
+                   offset;      //max = 1000        default = 0   
 
         public PagingTeams()
         {
@@ -30,7 +30,7 @@ namespace TwitchLibrary.Helpers.Paging.Teams
         public RestRequest Add(RestRequest request)
         {
             request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset);            
+            request.AddParameter("offset", offset.Clamp(0, 1000, 0));            
 
             return request;
         }

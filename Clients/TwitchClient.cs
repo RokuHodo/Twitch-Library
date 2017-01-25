@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-
 
 //project namespaces
 using TwitchLibrary.API;
@@ -11,286 +11,281 @@ using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Events.Clients;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
+using TwitchLibrary.Helpers;
+using TwitchLibrary.Helpers.Paging.Channels;
+using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.Messages.IRC;
 using TwitchLibrary.Models.Messages.Subscriber;
 using TwitchLibrary.Models.Messages.Private;
 using TwitchLibrary.Models.Messages.Whisper;
 
+//imported .dll's
+using ChatSharp;
+using ChatSharp.Events;
+
+/*
+ * TODO: (Client) Master todo list
+ *      -   Finish adding all Twitch IRC commands
+ *      -   Add events for each Twitch IRC command
+ *      -   Test to see if ChatSharp handles ping and disconnects and address them accordingly
+ *      -   Re-implement detecting new followers, possibly as it's own stand alone service but automatically included in the client 
+ */
+
 namespace TwitchLibrary.Clients
 {
     public class TwitchClient
     {
-        readonly int G_PORT = 6667;
+        //private
+        private readonly int PORT = 6667;
 
-        readonly string G_IP_ADRESS = "irc.chat.twitch.tv";
+        private readonly string IP_ADRESS = "irc.chat.twitch.tv";
+        private string OAUTH_TOKEN;
 
-        private bool g_reading;
+        private User user;
+        private TwitchApiOAuth twitch_api;
 
-        private string G_OAUTH_TOKEN;
+        private IrcUser irc_user;
+        private IrcClient irc_client;
 
-        private TcpClient g_tcp_Client;
+        //public
+        public string _id;
+        public string name;
+        public string display_name;
 
-        private StreamReader g_reader;
-        private StreamWriter g_writer;
+        public event EventHandler<OnSuccessfulConnectionEventArgs> OnSuccessfulConnection;
 
-        private Thread MonitorIrcMessages_Thread;
+        //TODO: reimplement new follower service
+        public event EventHandler<OnNewFollowerEventArgs> OnNewFollower;
 
-        public int _id;
+        public event EventHandler<OnReSubscriberEventArgs> OnReSubscriber;
+        public event EventHandler<OnNewSubscriberEventArgs> OnNewSubscriber;
 
-        public string name,
-                      display_name;
-
-        public event EventHandler<OnReSubscriberArgs> OnReSubscriber;
-        public event EventHandler<OnNewSubscriberArgs> OnNewSubscriber;
-        public event EventHandler<OnPingReceivedArgs> OnPingReceived;
-        public event EventHandler<OnIrcMessageReceivedArgs> OnIrcMessageReceived;
-        public event EventHandler<OnNullIrcMessageReceivedArgs> OnNullIrcMessageReceived;
-        public event EventHandler<OnPrivateMessageReceivedArgs> OnPrivateMessageReceived;
-        public event EventHandler<OnWhisperMessageReceivedArgs> OnWhisperMessageReceived;
+        public event EventHandler<OnPrivateMessageReceivedEventArgs> OnPrivateMessageReceived;
+        public event EventHandler<OnWhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
 
         public TwitchClient(string oauth_token)
         {
-            G_OAUTH_TOKEN = oauth_token;
-            User user = new TwitchApiOAuth(G_OAUTH_TOKEN).GetUser();
+            OAUTH_TOKEN = oauth_token;
+            twitch_api = new TwitchApiOAuth(OAUTH_TOKEN);
+            user = twitch_api.GetUser();
 
             _id = user._id;
             name = user.name;
             display_name = user.display_name;
 
-            MonitorIrcMessages_Thread = new Thread(new ThreadStart(MonitorIrcMessages));
+            irc_user = new IrcUser(name, name, "oauth:" + oauth_token);
+            irc_client = new IrcClient(IP_ADRESS + ":" + PORT, irc_user);            
+            irc_client.ConnectionComplete += new EventHandler<EventArgs>(OnConnectionComplete);
+            irc_client.RawMessageRecieved += new EventHandler<RawMessageEventArgs>(OnIrcMessageReceived);            
+            irc_client.ConnectAsync();              
+        }
 
-            Connect();
+        private void OnConnectionComplete(object sender, EventArgs e)
+        {   
+            //request message tags, memberhip, and enable custom commands
+            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/tags");
+            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/membership");
+            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/commands");
+
+            OnSuccessfulConnection.RaiseAsync(this, new OnSuccessfulConnectionEventArgs { });
+        }
+
+        private void OnIrcMessageReceived(object sender, RawMessageEventArgs e)
+        {
+            //use our IrcMessage because ChatSharp can't successfully parse the raw message, Twitch never sent '005' while logging in
+            //TODO: OnIrcMessageReceived
+            Models.Messages.IRC.IrcMessage irc_message = new Models.Messages.IRC.IrcMessage(e.Message);
+
+            switch (irc_message.command)
+            {
+                case "PRIVMSG":
+                    {
+                        Models.Messages.Private.PrivateMessage private_message = new Models.Messages.Private.PrivateMessage(irc_message, OAUTH_TOKEN);
+
+                        if (private_message.sender.name == "twitchnotify")
+                        {
+                            if (private_message.body.IndexOf("just subscribed") != -1)
+                            {
+                                NewSubcriberMessage subscriber_message = new NewSubcriberMessage(private_message);
+                                OnNewSubscriber.RaiseAsync(this, new OnNewSubscriberEventArgs { subscriber_message = subscriber_message });
+                            }
+                        }
+                        else
+                        {
+                            OnPrivateMessageReceived.RaiseAsync(this, new OnPrivateMessageReceivedEventArgs { private_message = private_message });
+                        }
+                    }
+                    break;
+                case "WHISPER":
+                    {
+                        WhisperMessage whisper_message = new WhisperMessage(irc_message, OAUTH_TOKEN);
+                        OnWhisperMessageReceived.RaiseAsync(this, new OnWhisperMessageReceivedEventArgs { whisper_message = whisper_message });
+                    }
+                    break;
+                case "USERNOTICE":
+                    {
+                        ReSubscriberMessage subscriber_message = new ReSubscriberMessage(irc_message, OAUTH_TOKEN);
+                        OnReSubscriber.RaiseAsync(this, new OnReSubscriberEventArgs { subscriber_message = subscriber_message });
+                    }
+                    break;
+            }
         }
 
         #region Threads
 
-        /// <summary>
-        /// Reads messages sent from the IRC and passes them to the event handler.
-        /// </summary>
-        private void MonitorIrcMessages()
+        /*
+        private void MonitorNewFollowers()
         {
-            try
+            //TODO: make this in it's own separate async function, and just make this less hacky in general
+            List<Follower> launch_followers = twitch_api.GetChannelFollowers(user._id);
+
+            Trie follower_cache = new Trie();
+            foreach(Follower follower in launch_followers)
             {
-                while (isConnected() && g_reading)
+                follower_cache.Insert(follower.user.name);
+                LibraryDebug.PrintLine(follower.user.name);
+            }
+
+            DateTime updated_at_limit = launch_followers.isValidList() ? launch_followers[0].created_at : DateTime.Now;
+
+            DateTime last_check = DateTime.Now;
+
+            while(isConnected())
+            {
+                //get new followers once every 5 seconds 
+                if(DateTime.Now - last_check < TimeSpan.FromMilliseconds(1000))
                 {
-                    string message = g_reader.ReadLine();
+                    Thread.Sleep(50);
 
-                    //probably got disconnected by the server, reconnect
-                    if (!message.isValidString())
-                    {                        
-                        LibraryDebug.Error(name.Wrap("[ ", " ]") + " null message recieved from the IRC connection. Auto-reconnecting...", TimeStamp.TimeLong);
-                        Reconnect();                      
-
-                        OnNullIrcMessageReceived.Raise(this, new OnNullIrcMessageReceivedArgs { time = DateTime.Now });
-
-                        continue;
-                    }
-
-                    if (message.StartsWith("PING"))
-                    {
-                        LibraryDebug.Notify(name.Wrap("[ ", " ]") + " " + message.Wrap("\"", "\"") + " recieved from the IRC connection, Auto-responded with \"PONG\"", TimeStamp.TimeLong);
-                        SendPong();                     
-
-                        OnPingReceived.Raise(this, new OnPingReceivedArgs { ping_message = message });
-
-                        continue;
-                    }
-
-                    LibraryDebug.PrintLine(message);                                        
- 
-                    IrcMessage irc_message = new IrcMessage(message);
-                    OnIrcMessageReceived.Raise(this, new OnIrcMessageReceivedArgs { irc_message = irc_message });     
-                    
-                    switch(irc_message.command)
-                    {
-                        case "PRIVMSG":
-                            {
-                                PrivateMessage private_message = new PrivateMessage(irc_message, G_OAUTH_TOKEN);
-                                if (private_message.sender.name == "twitchnotify")
-                                {
-                                    if (private_message.body.IndexOf("just subscribed") != -1)
-                                    {
-                                        NewSubcriberMessage subscriber_message = new NewSubcriberMessage(private_message);
-                                        OnNewSubscriber.Raise(this, new OnNewSubscriberArgs { subscriber_message = subscriber_message });
-                                    }
-                                }
-                                else
-                                {                                    
-                                    OnPrivateMessageReceived.Raise(this, new OnPrivateMessageReceivedArgs { private_message = private_message });
-                                }                                    
-                            }
-                            break;
-                        case "WHISPER":
-                            {
-                                WhisperMessage whisper_message = new WhisperMessage(irc_message, G_OAUTH_TOKEN);
-                                OnWhisperMessageReceived.Raise(this, new OnWhisperMessageReceivedArgs { whisper_message = whisper_message });
-                            }
-                            break;
-                        case "USERNOTICE":
-                            {
-                                ReSubscriberMessage subscriber_message = new ReSubscriberMessage(irc_message, G_OAUTH_TOKEN);
-                                OnReSubscriber.Raise(this, new OnReSubscriberArgs { subscriber_message = subscriber_message });
-                            }
-                            break;
-                    }
+                    continue;
                 }
+
+                last_check = DateTime.Now;
+
+                List<Follower> followers = GetNewFollowers(twitch_api, ref updated_at_limit, ref follower_cache);
+
+                if (!followers.isValidList())
+                {
+                    continue;
+                }
+
+                foreach(Follower follower in followers)
+                {
+                    OnNewFollower.Raise(this, new OnNewFollowerArgs { follower = follower });
+                }
+
+                Thread.Sleep(50);
             }
-            catch(ThreadAbortException exception)
-            {
-                LibraryDebug.Warning(nameof(MonitorIrcMessages_Thread) + " abort called.");
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);                
-            }
-
-            Disconnect();
         }
-
-        #endregion
-
-        #region Connect, disconnect, reconnect, and connection handling
-
-        /// <summary>
-        /// Connect to the IRC server
-        /// </summary>
-        public void Connect()
-        {
-            LibraryDebug.BlankLine();
-            LibraryDebug.Notify(name.Wrap("[ ", " ]") + " Connecting to Twitch...", TimeStamp.TimeLong);
-
-            g_tcp_Client = new TcpClient(G_IP_ADRESS, G_PORT);            
-
-            //create the reader/wrtier to communicate with the irc
-            g_reader = new StreamReader(g_tcp_Client.GetStream());
-            g_writer = new StreamWriter(g_tcp_Client.GetStream());
-
-            if(MonitorIrcMessages_Thread.ThreadState != ThreadState.Running)
-            {
-                g_reading = true;
-                MonitorIrcMessages_Thread.Start();
-            }            
-
-            g_writer.AutoFlush = true;
-
-            //log into the irc
-            g_writer.WriteLine("PASS oauth:" + G_OAUTH_TOKEN);
-            g_writer.WriteLine("NICK " + name);
-            g_writer.WriteLine("USER " + name + " 8 * :" + name);
-
-            //request to recieve notices and user information through the irc
-            g_writer.WriteLine("CAP REQ :twitch.tv/tags");
-            g_writer.WriteLine("CAP REQ :twitch.tv/membership");
-            g_writer.WriteLine("CAP REQ :twitch.tv/commands");
-
-            g_writer.Flush();
-        }
-
-        /// <summary>
-        /// Disconnect from the IRC server
-        /// </summary>
-        public void Disconnect()
-        {
-            LibraryDebug.Notify(name.Wrap("[ ", " ]") + " Disconnecting from Twitch...", TimeStamp.TimeLong);
-
-            g_tcp_Client.Close();
-            
-            g_reader.DiscardBufferedData();
-            g_reader.Dispose();
-            g_reader.Close();
-
-            if(MonitorIrcMessages_Thread.ThreadState != ThreadState.Aborted || MonitorIrcMessages_Thread.ThreadState != ThreadState.AbortRequested)
-            {
-                MonitorIrcMessages_Thread.Abort();
-            }            
-
-            g_writer.Flush();
-            g_writer.Dispose();
-            g_writer.Close();
-        }
-
-        /// <summary>
-        /// Reconnect to the IRC server
-        /// </summary>
-        public void Reconnect()
-        {
-            LibraryDebug.Notify(name.Wrap("[ ", " ]") + " Reconnecting to Twitch...", TimeStamp.TimeLong);
-
-            Disconnect();
-            Connect();
-        }
-
-        /// <summary>
-        /// Determines if the <see cref="TcpClient"/> is connected to the server
-        /// /// </summary>
-        public bool isConnected()
-        {
-            return g_tcp_Client.Connected;
-        }        
-
-        /// <summary>
-        /// Sends "pong" to the irc connection when to stay connected.
-        /// </summary>
-        public void SendPong()
-        {
-            if(!isConnected())
-            {
-                return;
-            }
-
-            g_writer.WriteLine("PONG");
-            g_writer.Flush();
-        }
+        */
 
         #endregion
 
         #region Commands
-
+        
         /// <summary>
-        /// Purges a user for 1 second.
+        /// Purges a user in the client's room for 1 second with an optional reason.
         /// </summary>
         public void Purge(string user, string reason = "")
         {
-            Timeout(user, 1, reason);
+            Timeout(name, user, 1, reason);
         }
 
         /// <summary>
-        /// Times out a user for a specified amount of time with an optional reason.
+        /// Purges a user in a specific room for 1 second with an optional reason.
         /// </summary>
-        public void Timeout(string user, int seconds, string reason = "")
+        public void Purge(string room_name, string user_name, string reason = "")
         {
-            g_writer.WriteLine("PRIVMSG #{0} :{1}", name, ".timeout " + user.ToLower() + " " + seconds.ToString() + " " + reason);
+            //TODO: OnPurge
+            Timeout(room_name, user_name, 1, reason);
         }
 
         /// <summary>
-        /// Bans a user.
+        /// Times out a user in the client's room for a specified amount of time with an optional reason.
         /// </summary>
-        public void Ban(string user, string reason = "")
+        public void Timeout(string user_name, int seconds, string reason = "")
         {
-            g_writer.WriteLine("PRIVMSG #{0} :{1}", name, "/ban " + user.ToLower() + " " + reason);
+            //TODO: OnTimeout
+            Timeout(name, user_name, seconds, reason);
         }
 
         /// <summary>
-        /// Unbans a user.
+        /// Times out a user in a specific room for a specified amount of time with an optional reason.
         /// </summary>
-        public void Unban(string user)
+        public void Timeout(string room_name, string user_name, int seconds, string reason = "")
         {
-            g_writer.WriteLine("PRIVMSG #{0} :{1}", name, "/unban " + user.ToLower());
+            //TODO: OnTimeout
+            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2} {3} {4}", room_name.ToLower(), ".timeout", user_name.ToLower(), seconds, reason);
         }
 
         /// <summary>
-        /// Mods a user.
+        /// Bans a user in the client's room with an optional reason.
         /// </summary>
-        public void Mod(string user)
+        public void Ban(string user_name, string reason = "")
         {
-            g_writer.WriteLine("PRIVMSG #{0} :{1}", name, "/mod " + user.ToLower());
+            Ban(name, user_name, reason);
         }
 
         /// <summary>
-        /// Unmods a user.
+        /// Bans a user in a specific room with an optional reason
         /// </summary>
-        public void Unmod(string user)
+        public void Ban(string room_name, string user_name, string reason = "")
         {
-            g_writer.WriteLine("PRIVMSG #{0} :{1}", name, "/unmod " + user.ToLower());
-        }        
+            //TODO: OnBan
+            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2} {3}", room_name.ToLower(), ".ban", user_name.ToLower(), reason);
+        }
+
+        /// <summary>
+        /// Unbans a user in the client's room.
+        /// </summary>
+        public void Unban(string user_name)
+        {
+            Unban(name, user_name);
+        }
+
+        /// <summary>
+        /// Unbans a user in a specific room.
+        /// </summary>
+        public void Unban(string room_name, string user_name)
+        {
+            //TODO: OnUnBan
+            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name.ToLower(), ".unban", user_name.ToLower());
+        }
+
+        /// <summary>
+        /// Mods a user in the client's room.
+        /// </summary>
+        public void Mod(string user_name)
+        {            
+            Mod(name, user_name);
+        }
+
+        /// <summary>
+        /// Mods a user in a specific room.
+        /// </summary>
+        public void Mod(string room_name, string user_name)
+        {
+            //TODO: OnMod
+            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name.ToLower(), ".mod", user_name.ToLower());
+        }
+
+        /// <summary>
+        /// Unmods a user in the client's room.
+        /// </summary>
+        public void Unmod(string user_name)
+        {
+            Unmod(name, user_name); 
+        }
+
+        /// <summary>
+        /// Unmods a user in a specific room.
+        /// </summary>
+        public void Unmod(string room_name, string user_name)
+        {
+            //TODO: OnUnmod            
+            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name, ".unmod", user_name.ToLower());
+        }
 
         /// <summary>
         /// Join a channel's room.
@@ -299,31 +294,31 @@ namespace TwitchLibrary.Clients
         {
             channel = channel.ToLower();
 
+            //TODO: OnJoinedChannel
+            irc_client.JoinChannel("#" + channel);            
+
             LibraryDebug.BlankLine();
             LibraryDebug.Notify("Joining room: " + channel, TimeStamp.TimeLong);
-
-            g_writer.WriteLine("JOIN #" + channel);
-            g_writer.Flush();
         }
 
         /// <summary>
         /// Leave a channel's room.
         /// </summary>        
-        public void Leave(string channel)
+        public void Part(string channel)
         {
             channel = channel.ToLower();
 
+            //TODO: OnPartChannel
+            irc_client.PartChannel("#" + channel);
+
             LibraryDebug.BlankLine();
             LibraryDebug.Notify("Leaving room: " + channel, TimeStamp.TimeLong);
-
-            g_writer.WriteLine("PART #" + channel);
-            g_writer.Flush();
         }
-
+        
         #endregion
 
         #region Send messages and whispers
-
+        /*
         /// <summary>
         /// Sends a message to the current chat room.
         /// </summary>
@@ -334,8 +329,8 @@ namespace TwitchLibrary.Clients
                 return;
             }
 
-            g_writer.WriteLine(":{0}!{0}@{0}.tmi.twitch.tv PRIVMSG #{1} :{2}", name, room.ToLower(), message);
-            g_writer.Flush();
+            writer.WriteLine(":{0}!{0}@{0}.tmi.twitch.tv PRIVMSG #{1} :{2}", name, room.ToLower(), message);
+            writer.Flush();
         }
 
         /// <summary>
@@ -348,10 +343,68 @@ namespace TwitchLibrary.Clients
                 return;
             }
 
-            g_writer.WriteLine("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message);
-            g_writer.Flush();
+            writer.WriteLine("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message);
+            writer.Flush();
         }
-
+        */
         #endregion
+
+        /// <summary>
+        /// Gets all of the new followers up until a certain <see cref="DateTime"/>.
+        /// </summary>
+        private List<Follower> GetNewFollowers(TwitchApiOAuth twitch_api_oauth, ref DateTime updated_at_limit, ref Trie followers_cache)
+        {
+            bool searching = true;
+
+            List<Follower> followers = new List<Follower>();
+
+            PagingChannelFollowers paging = new PagingChannelFollowers();
+            paging.limit = 100;
+
+            FollowerPage follower_page = twitch_api_oauth.GetChannelFollowersPage(user._id, paging);
+
+            do
+            {
+                foreach (Follower follower in follower_page.follows)
+                {
+                    //the date followed is equal to or earlier than the date of the most recent recorded follower, guaranteed no new followers passed this point 
+                    if (DateTime.Compare(follower.created_at, updated_at_limit) <= 0)
+                    {
+                        updated_at_limit = follower.created_at;
+                        searching = false;
+
+                        break;
+                    }
+
+                    if (followers_cache.Insert(follower.user.display_name))
+                    {
+                        followers.Add(follower);
+                    }
+                }
+
+                if (follower_page._cursor.isValidString())
+                {
+                    if (searching)
+                    {
+                        paging.cursor = follower_page._cursor;
+
+                        follower_page = twitch_api_oauth.GetChannelFollowersPage(user._id, paging);
+                    }
+                }
+                else
+                {
+                    searching = false;
+                }
+            }
+            while (searching);
+
+            //update the new updated_at limit to check to the newest user that followed 
+            if (followers.isValidList())
+            {
+                updated_at_limit = followers[0].created_at;
+            }
+
+            return followers;
+        }
     }
 }

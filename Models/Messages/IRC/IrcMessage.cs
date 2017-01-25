@@ -9,6 +9,7 @@ using TwitchLibrary.Extensions;
 
 namespace TwitchLibrary.Models.Messages.IRC
 {
+    //[Obsolete("Class is depricated. ChatSharp.IrcMessage is now used")]
     public class IrcMessage
     {
         public bool contains_tags { get; private set; }

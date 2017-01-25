@@ -6,13 +6,13 @@ namespace TwitchLibrary.Models.API.Games
     public class Game
     {
         [JsonProperty("_id")]
-        public int _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("box")]
         public Box box { get; protected set; }
 
         [JsonProperty("giantbomb_id")]
-        public int giantbomb_id { get; protected set; }
+        public string giantbomb_id { get; protected set; }
 
         [JsonProperty("logo")]
         public Logo logo { get; protected set; }

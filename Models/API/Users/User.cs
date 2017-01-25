@@ -8,7 +8,7 @@ namespace TwitchLibrary.Models.API.Users
     public class User
     {
         [JsonProperty("_id")]
-        public int _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("bio")]
         public string bio { get; protected set; }

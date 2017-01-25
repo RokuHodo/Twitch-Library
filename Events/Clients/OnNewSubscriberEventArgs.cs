@@ -4,8 +4,8 @@ using TwitchLibrary.Models.Messages.Subscriber;
 
 namespace TwitchLibrary.Events.Clients
 {
-    public class OnReSubscriberArgs : EventArgs
+    public class OnNewSubscriberEventArgs : EventArgs
     {
-        public ReSubscriberMessage subscriber_message { get; set; }
+        public NewSubcriberMessage subscriber_message { get; set; }
     }
 }

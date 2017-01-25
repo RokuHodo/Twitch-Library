@@ -9,8 +9,8 @@ namespace TwitchLibrary.Helpers.Paging.Games
 {   
     public class PagingTopGames : ITwitchPaging
     {
-        public long limit,      //max = 100     default = 10
-                    offset;   
+        public long limit,      //max = 100         default = 10
+                    offset;     //max = 1000        default = 0
 
         public PagingTopGames()
         {
@@ -30,7 +30,7 @@ namespace TwitchLibrary.Helpers.Paging.Games
         public RestRequest Add(RestRequest request)
         {
             request.AddParameter("limit", limit.Clamp(1, 100, 10));
-            request.AddParameter("offset", offset);            
+            request.AddParameter("offset", offset.Clamp(0, 1000, 0));            
 
             return request;
         }

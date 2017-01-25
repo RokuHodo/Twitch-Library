@@ -10,8 +10,8 @@ namespace TwitchLibrary.Helpers.Paging.Videos
 {
     public class PagingUserFollowsVideos : ITwitchPaging
     {
-        public int limit,      //max = 100      default = 10
-                   offset;
+        public int limit,       //max = 100         default = 10
+                   offset;      //max = 1000        default = 0
 
         public BroadcastType[] broadcast_type;
 

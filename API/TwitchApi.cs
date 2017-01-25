@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 
 //project namespaces
+using TwitchLibrary.Enums.API;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Json;
 using TwitchLibrary.Helpers.Paging.Channels;
+using TwitchLibrary.Helpers.Paging.Clips;
 using TwitchLibrary.Helpers.Paging.Games;
 using TwitchLibrary.Helpers.Paging.Search;
 using TwitchLibrary.Helpers.Paging.Streams;
@@ -15,6 +17,7 @@ using TwitchLibrary.Helpers.Paging.Videos;
 using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
+using TwitchLibrary.Models.API.Clips;
 using TwitchLibrary.Models.API.Games;
 using TwitchLibrary.Models.API.Ingests;
 using TwitchLibrary.Models.API.Search;
@@ -26,19 +29,27 @@ using TwitchLibrary.Models.API.Videos;
 //imported .dll's
 using RestSharp;
 
+/*
+ * TODO: (API) Master todo list
+ *      -   Convert all id's to string from their current type (including models like emotes, stream, etc?)
+ *      -   Add in video upload endpoints and methods
+ *      -   Implement custom exceptions for each failure case
+ *      
+ */
+
 namespace TwitchLibrary.API
 {
     public class TwitchApi : ITwitchRequest
     {
-        protected string g_client_id,
-                         g_oauth_token;
+        protected string client_id,
+                         oauth_token;
 
         protected RestClient client;
 
         public TwitchApi(string client_id, string oauth_token = "")
         {
-            g_client_id = client_id;
-            g_oauth_token = oauth_token;
+            this.client_id = client_id;
+            this.oauth_token = oauth_token;
                   
             client = new RestClient("https://api.twitch.tv/kraken");                                    
             client.AddHandler("application/json", new CustomJsonDeserializer());
@@ -51,10 +62,10 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets the <see cref="Channel"/> object of a channel.
         /// </summary>
-        public Channel GetChannel(int channel_id)
+        public Channel GetChannel(string channel_id)
         {
             RestRequest request = Request("channels/{channel_id}", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
 
             IRestResponse<Channel> response = client.Execute<Channel>(request);
 
@@ -64,7 +75,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Checks to see if the channel associated with the chanel_id is partnered.
         /// </summary>
-        public bool isPartner(int channel_id)
+        public bool isPartner(string channel_id)
         {
             return GetChannel(channel_id).partner;
         }
@@ -73,7 +84,7 @@ namespace TwitchLibrary.API
         /// Gets a single paged list of followers for a channel.
         /// <see cref="PagingChannelFollowers"/> can be specified to request a custom paged result.
         /// </summary>
-        public FollowerPage GetChannelFollowersPage(int channel_id, PagingChannelFollowers paging = null)
+        public FollowerPage GetChannelFollowersPage(string channel_id, PagingChannelFollowers paging = null)
         {
             if (paging.isNull())
             {
@@ -81,7 +92,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("channels/{channel_id}/follows", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
             request = paging.Add(request);
 
             IRestResponse<FollowerPage> response = client.Execute<FollowerPage>(request);
@@ -92,7 +103,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all followers of a channel in descending order.
         /// </summary>
-        public List<Follower> GetChannelFollowers(int channel_id, Direction direction = Direction.DESC)
+        public List<Follower> GetChannelFollowers(string channel_id, Direction direction = Direction.DESC)
         {
             List<Follower> followers = new List<Follower>();
 
@@ -135,10 +146,10 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all teams that a channel belongs to.
         /// </summary>
-        public ChannelTeams GetChannelTeams(int channel_id)
+        public ChannelTeams GetChannelTeams(string channel_id)
         {   
             RestRequest request = Request("channels/{channel_id}/teams", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
 
             IRestResponse<ChannelTeams> response = client.Execute<ChannelTeams>(request);
 
@@ -149,7 +160,7 @@ namespace TwitchLibrary.API
         /// Gets a single paged list of videos for a channel.
         /// <see cref="PagingChannelVideos"/> can be specified to request a custom paged result.
         /// </summary>
-        public VideosPage GetChannelVideosPage(int channel_id, PagingChannelVideos paging = null)
+        public VideosPage GetChannelVideosPage(string channel_id, PagingChannelVideos paging = null)
         {
             if (paging.isNull())
             {
@@ -157,7 +168,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("channels/{channel_id}/videos", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
             request = paging.Add(request);
 
             IRestResponse<VideosPage> response = client.Execute<VideosPage>(request);
@@ -168,7 +179,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all the archived broadcasts for a channel from oldest to newest.
         /// </summary>
-        public List<Video> GetChannelArchives(int channel_id, Sort sort = Sort.TIME)
+        public List<Video> GetChannelArchives(string channel_id, Sort sort = Sort.TIME)
         {
             return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE });
         }
@@ -176,7 +187,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all the highlights for a channel from oldest to newest.
         /// </summary>
-        public List<Video> GetChannelHighlights(int channel_id, Sort sort = Sort.TIME)
+        public List<Video> GetChannelHighlights(string channel_id, Sort sort = Sort.TIME)
         {
             return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.HIGHLIGHT });
         }
@@ -184,7 +195,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all the uploads for a channel from oldest to newest.
         /// </summary>
-        public List<Video> GetChannelUploads(int channel_id, Sort sort = Sort.TIME)
+        public List<Video> GetChannelUploads(string channel_id, Sort sort = Sort.TIME)
         {
             return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.UPLOAD });
         }
@@ -192,7 +203,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all the videos (archives, uploads, and highlights) for a channel from oldest to newest.
         /// </summary>
-        public List<Video> GetChannelVideos(int channel_id, Sort sort = Sort.TIME)
+        public List<Video> GetChannelVideos(string channel_id, Sort sort = Sort.TIME)
         {
             return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE, BroadcastType.HIGHLIGHT, BroadcastType.UPLOAD });
         }
@@ -200,7 +211,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of filtered videos for a channel in a specified sort order.
         /// </summary>
-        public List<Video> GetChannelVideos(int channel_id, Sort sort, BroadcastType[] broadcast_type)
+        public List<Video> GetChannelVideos(string channel_id, Sort sort, BroadcastType[] broadcast_type)
         {
             List<Video> videos = new List<Video>();
 
@@ -243,10 +254,10 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets the chat badges that can be used in a channel.
         /// </summary>
-        public Badges GetChatBadges(int channel_id)
+        public Badges GetChatBadges(string channel_id)
         {
             RestRequest request = Request("chat/{channel_id}/badges", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
 
             IRestResponse<Badges> response = client.Execute<Badges>(request);
 
@@ -257,10 +268,10 @@ namespace TwitchLibrary.API
         /// Gets the emotes associated with an emoticon set.
         /// The emote data returned does not include images url's.
         /// </summary>
-        public EmoteSet GetChatEmotes(int set)
+        public EmoteSet GetChatEmotes(string emote_set)
         {
             RestRequest request = Request("chat/emoticon_images", Method.GET);
-            request.AddQueryParameter("emotesets", set.ToString());
+            request.AddQueryParameter("emotesets", emote_set);
 
             IRestResponse<EmoteSet> response = client.Execute<EmoteSet>(request);
 
@@ -289,6 +300,90 @@ namespace TwitchLibrary.API
             RestRequest request = Request("chat/emoticons", Method.GET);                        
 
             IRestResponse<EmoteImages> response = client.Execute<EmoteImages>(request);            
+
+            return response.Data;
+        }
+
+        #endregion
+
+        #region Clips
+
+        /// <summary>
+        /// Gets a single paged list of top clips on Twitch from highest to lowest view count.
+        /// <see cref="PagingClips"/> can be specified to request a custom paged result.
+        /// </summary>
+        public ClipsPage GetTopClipsPage(PagingClips paging = null)
+        {
+            if (paging.isNull())
+            {
+                paging = new PagingClips();
+            }
+
+            RestRequest request = Request("clips/top", Method.GET, ApiVersion.v4);
+            request = paging.Add(request);
+
+            IRestResponse<ClipsPage> response = client.Execute<ClipsPage>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Gets a complete list of top clips on Twitch from highest to lowest view count.     
+        /// <see cref="PagingClips"/> can be specified to request a custom list.
+        /// </summary>  
+        public List<Clip> GetTopClips(PagingClips paging = null)
+        {
+            List<Clip> clips = new List<Clip>();
+
+            if (paging.isNull())
+            {
+                paging = new PagingClips();
+                paging.limit = 100;
+                paging.period = PeriodClips.ALL;
+            }
+
+            ClipsPage clips_page = GetTopClipsPage(paging);
+
+            if (!clips_page.clips.isValidList())
+            {
+                return clips;
+            }
+
+            bool searching = true;
+
+            do
+            {
+                foreach (Clip clip in clips_page.clips)
+                {
+                    clips.Add(clip);
+                }
+
+                if (clips_page._cursor.isValidString())
+                {
+                    paging.cursor = clips_page._cursor;
+
+                    clips_page = GetTopClipsPage(paging);
+                }
+                else
+                {
+                    searching = false;
+                }
+            }
+            while (searching);
+
+            return clips;
+        }
+
+        /// <summary>
+        /// Gets the information of a specified clip for a specific channel
+        /// </summary>
+        public Clip GetClip(string channel_name, string slug)
+        {
+            RestRequest request = Request("clips/{channel_name}/{slug}", Method.GET, ApiVersion.v4);
+            request.AddUrlSegment("channel_name", channel_name);
+            request.AddUrlSegment("slug", slug);
+
+            IRestResponse<Clip> response = client.Execute<Clip>(request);
 
             return response.Data;
         }
@@ -380,7 +475,7 @@ namespace TwitchLibrary.API
         /// <see cref="PagingSearchChannels"/> can be specified to request a custom paged result.
         /// Returns status '503' if the list cannot be retrieved.
         /// </summary>        
-        public SearchChannelsPage SearchChannelsPage(string name, PagingSearchChannels paging = null)
+        public SearchChannelsPage SearchChannelsPage(string channel_name, PagingSearchChannels paging = null)
         {            
             if (paging.isNull())
             {
@@ -388,7 +483,7 @@ namespace TwitchLibrary.API
             }            
 
             RestRequest request = Request("search/channels", Method.GET);
-            request.AddQueryParameter("query", name.ToLower());
+            request.AddQueryParameter("query", channel_name.ToLower());
             request = paging.Add(request);
 
             IRestResponse<SearchChannelsPage> response = client.Execute<SearchChannelsPage>(request);
@@ -400,14 +495,14 @@ namespace TwitchLibrary.API
         /// Gets a complete list of channels  based on the name query.
         /// <see cref="PagingSearchChannels"/> can be specified to request a custom paged result.        
         /// </summary>        
-        public List<Channel> SearchChannels(string name)
+        public List<Channel> SearchChannels(string channel_name)
         {
             List<Channel> search_channels = new List<Channel>();
 
             PagingSearchChannels paging = new PagingSearchChannels();
             paging.limit = 100;
 
-            SearchChannelsPage search_channels_page = SearchChannelsPage(name, paging);
+            SearchChannelsPage search_channels_page = SearchChannelsPage(channel_name, paging);
 
             if (search_channels_page._total == 0)
             {
@@ -423,7 +518,7 @@ namespace TwitchLibrary.API
                 if (page != 0)
                 {
                     paging.offset = paging.limit * page - 1;
-                    search_channels_page = SearchChannelsPage(name, paging);
+                    search_channels_page = SearchChannelsPage(channel_name, paging);
                 }
 
                 foreach (Channel channel in search_channels_page.channels)
@@ -500,10 +595,10 @@ namespace TwitchLibrary.API
         /// When 'live' is set to 'true', only games that are live on at least one channel are returned. 
         /// Returns status '503' if the list cannot be retrieved.
         /// </summary>
-        public SearchGames SearchGames(string game, bool live = false)
+        public SearchGames SearchGames(string game_name, bool live = false)
         {
             RestRequest request = Request("search/games", Method.GET);
-            request.AddQueryParameter("query", game);
+            request.AddQueryParameter("query", game_name);
             request.AddQueryParameter("live", live.ToString().ToLower());
 
             IRestResponse<SearchGames> response = client.Execute<SearchGames>(request);
@@ -518,10 +613,10 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a stream object of the specified channel.
         /// </summary>
-        public StreamResult GetStream(int channel_id, StreamType stream_type = StreamType.LIVE)
+        public StreamResult GetStream(string channel_id, StreamType stream_type = StreamType.LIVE)
         {
             RestRequest request = Request("streams/{channel_id}", Method.GET);
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("channel_id", channel_id);
             request.AddQueryParameter("stream_type", stream_type.ToString().ToLower());
 
             IRestResponse<StreamResult> response = client.Execute<StreamResult>(request);
@@ -532,7 +627,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Checks to see if the channel associated with the chanel_id is live.
         /// </summary>
-        public bool isLive(int channel_id)
+        public bool isLive(string channel_id)
         {
             return !GetStream(channel_id).stream.isNull();
         }
@@ -541,7 +636,7 @@ namespace TwitchLibrary.API
         /// Gets how long the channel associated with the chanel_id has been live.
         /// Returns <see cref="TimeSpan.Zero"/> if the channel is offline.
         /// </summary>
-        public TimeSpan GetUpTime(int channel_id)
+        public TimeSpan GetUpTime(string channel_id)
         {
             StreamResult stream = GetStream(channel_id);
 
@@ -670,13 +765,13 @@ namespace TwitchLibrary.API
         /// Gets the how many channels are streaming and how many viewers are watching.
         /// If a game is specified, only results for that game will be returned.
         /// </summary>
-        public StreamSummary GetStreamsSummary(string game = null)
+        public StreamSummary GetStreamsSummary(string game_name = null)
         {
             RestRequest request = Request("streams/summary", Method.GET); 
             
-            if(game.isValidString())
+            if(game_name.isValidString())
             {
-                request.AddQueryParameter("game", game);
+                request.AddQueryParameter("game", game_name);
             }
 
             IRestResponse<StreamSummary> response = client.Execute<StreamSummary>(request);
@@ -692,10 +787,10 @@ namespace TwitchLibrary.API
         /// Gets the <see cref="Team"/> object for a specified team name.
         /// NOTE: the team name is not always the same as the display name.
         /// </summary>        
-        public Team GetTeam(string name)
+        public Team GetTeam(string team_name)
         {
             RestRequest request = Request("teams/{team}", Method.GET);
-            request.AddUrlSegment("team", name);
+            request.AddUrlSegment("team", team_name);
 
             IRestResponse<Team> response = client.Execute<Team>(request);
 
@@ -783,7 +878,7 @@ namespace TwitchLibrary.API
         /// Gets a single paged list of channels a user is following.
         /// <see cref="PagingUserFollows"/> can be specified to request a custom paged result.
         /// </summary>
-        public FollowsPage GetUserFollowsPage(int user_id, PagingUserFollows paging = null)
+        public FollowsPage GetUserFollowsPage(string user_id, PagingUserFollows paging = null)
         {
             if (paging.isNull())
             {
@@ -792,7 +887,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("users/{user_id}/follows/channels", Method.GET);
-            request.AddUrlSegment("user_id", user_id.ToString());
+            request.AddUrlSegment("user_id", user_id);
             request = paging.Add(request);
 
             IRestResponse<FollowsPage> response = client.Execute<FollowsPage>(request);
@@ -803,7 +898,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a complete list of all channels a user is following sorted from newest oldest.
         /// </summary>
-        public List<Follow> GetUserFollows(int user_id, PagingUserFollows paging = null)
+        public List<Follow> GetUserFollows(string user_id, PagingUserFollows paging = null)
         {
             List<Follow> following = new List<Follow>();
 
@@ -845,11 +940,11 @@ namespace TwitchLibrary.API
         /// Gets the follower relationship between a user and a channel.
         /// Returns status '404' error message if the user is not following the channel.
         /// </summary>
-        private Follow GetUserFollowerRelationship(int user_id, int channel_id)
+        private Follow GetUserFollowerRelationship(string user_id, string channel_id)
         {
             RestRequest request = Request("users/{user_id}/follows/channels/{channel_id}", Method.GET);
-            request.AddUrlSegment("user_id", user_id.ToString());
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("user_id", user_id);
+            request.AddUrlSegment("channel_id", channel_id);
 
             IRestResponse<Follow> response = client.Execute<Follow>(request);
 
@@ -859,7 +954,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Checks if a user is following a channel.
         /// </summary>
-        public bool isUserFollowing(int user_id, int channel_id)
+        public bool isUserFollowing(string user_id, string channel_id)
         {
             return GetUserFollowerRelationship(user_id, channel_id).http_status != 404;
         }
@@ -869,7 +964,7 @@ namespace TwitchLibrary.API
         /// The date is converted to the broadcaster's local time zone.
         /// Returns <see cref="DateTime.MinValue"/> if the user is not following the channel.
         /// </summary>
-        public DateTime GetHowlong(int user_id, int channel_id)
+        public DateTime GetHowlong(string user_id, string channel_id)
         {
             Follow follower = GetUserFollowerRelationship(user_id, channel_id);
 
@@ -962,21 +1057,20 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Send the endpoint requests to the api.
         /// </summary>
-        public RestRequest Request(string endpoint, Method method)
+        public RestRequest Request(string endpoint, Method method, ApiVersion api_version = ApiVersion.v5)
         {
             RestRequest request = new RestRequest(endpoint, method);            
 
-            if (g_oauth_token.isValidString())
+            if (oauth_token.isValidString())
             {
-                request.AddHeader("Authorization", "OAuth " + g_oauth_token);
+                request.AddHeader("Authorization", "OAuth " + oauth_token);
             }
             else
             {
-                request.AddHeader("Client-ID", g_client_id);
+                request.AddHeader("Client-ID", client_id);
             }
 
-            request.AddQueryParameter("api_version", "5");
-            request.AddQueryParameter("no_cache", DateTime.Now.Ticks.ToString());            
+            request.AddQueryParameter("api_version", api_version.ToString().TextAfter("v"));                      
 
             return request;
         }

@@ -12,8 +12,8 @@ namespace TwitchLibrary.Helpers.Paging.Channels
 {
     public class PagingChannelVideos : ITwitchPaging
     {
-        public int limit,      //max = 100      default = 10
-                   offset;
+        public int limit,       //max = 100         default = 10
+                   offset;      //max = 1000        default = 0
 
         public BroadcastType[] broadcast_type;
         public BroadcasterLanguage[] language;
@@ -43,7 +43,7 @@ namespace TwitchLibrary.Helpers.Paging.Channels
         public RestRequest Add(RestRequest request)
         {
             request.AddParameter("limit", limit.Clamp(1, 100, 10));
-            request.AddParameter("offset", offset);
+            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
             request.AddParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
             request.AddParameter("language", string.Join(",", language).ToLower());
             request.AddParameter("sort", sort.ToString().ToLower());

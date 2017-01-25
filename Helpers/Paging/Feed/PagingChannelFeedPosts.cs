@@ -9,8 +9,8 @@ namespace TwitchLibrary.Helpers.Paging.Feed
 {   
     public class PagingChannelFeedPosts : ITwitchPaging
     {
-        public long limit,      //max = 100     default = 10
-                    comments;   //max = 5       default = 5
+        public long limit,          //max = 100         default = 10
+                    comments;       //max = 5           default = 5
 
         public string cursor;
 

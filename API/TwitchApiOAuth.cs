@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Net;
 
 //project namespaces
+using TwitchLibrary.Enums.API;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Paging.Channels;
+using TwitchLibrary.Helpers.Paging.Clips;
 using TwitchLibrary.Helpers.Paging.Feed;
 using TwitchLibrary.Helpers.Paging.Streams;
 using TwitchLibrary.Helpers.Paging.Users;
 using TwitchLibrary.Helpers.Paging.Videos;
 using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
+using TwitchLibrary.Models.API.Clips;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Feed;
 using TwitchLibrary.Models.API.Streams;
@@ -25,11 +28,11 @@ namespace TwitchLibrary.API
 {
     public class TwitchApiOAuth : TwitchApi, ITwitchRequest
     {
-        int api_id;                              
+        private string api_id;                              
                 
         public TwitchApiOAuth(string oauth_token, string client_id = "") : base(client_id, oauth_token)
         {
-            g_oauth_token = oauth_token;
+            base.oauth_token = oauth_token;
 
             api_id = GetUser()._id;
         }
@@ -56,7 +59,7 @@ namespace TwitchLibrary.API
         public ChannelOAuth SetTitle(string status)
         {
             RestRequest request = Request("channels/{channel_id}", Method.PUT);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { status } });
 
@@ -72,7 +75,7 @@ namespace TwitchLibrary.API
         public ChannelOAuth SetGame(string game)
         {
             RestRequest request = Request("channels/{channel_id}", Method.PUT);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { game } });
 
@@ -88,7 +91,7 @@ namespace TwitchLibrary.API
         public ChannelOAuth SetDelay(int delay)
         {
             RestRequest request = Request("channels/{channel_id}", Method.PUT);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { delay } });
 
@@ -104,7 +107,7 @@ namespace TwitchLibrary.API
         public ChannelOAuth EnableChannelFeed(bool channel_feed_enabled)
         {
             RestRequest request = Request("channels/{channel_id}", Method.PUT);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { channel_feed_enabled } });
 
@@ -120,7 +123,7 @@ namespace TwitchLibrary.API
         public Editors GetChannelEditors()
         {
             RestRequest request = Request("channels/{channel_id}/editors", Method.GET);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
 
             IRestResponse<Editors> response = client.Execute<Editors>(request);
 
@@ -141,7 +144,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("channels/{channel_id}/subscriptions", Method.GET);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request = paging.Add(request);
 
             IRestResponse<ChannelSubscribersPage> response = client.Execute<ChannelSubscribersPage>(request);
@@ -196,11 +199,11 @@ namespace TwitchLibrary.API
         /// Required scope: 'channel_check_subscription'
         /// NOTE: Works in theory, can't test because I'm not a partner.
         /// </summary>
-        private ChannelSubscriber GetChannelSubscriberRelationship(int user_id)
+        private ChannelSubscriber GetChannelSubscriberRelationship(string user_id)
         {
             RestRequest request = Request("channels/{channel_id}/subscriptions/{user_id}", Method.GET);
-            request.AddUrlSegment("user_id", user_id.ToString());
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("user_id", user_id);
+            request.AddUrlSegment("channel_id", api_id);
 
             IRestResponse<ChannelSubscriber> response = client.Execute<ChannelSubscriber>(request);
 
@@ -213,7 +216,7 @@ namespace TwitchLibrary.API
         /// Required scope: 'channel_check_subscription'
         /// NOTE: Works in theory, can't test because I'm not a partner.
         /// </summary>        
-        public bool isUserSubscribed(int user_id)
+        public bool isUserSubscribed(string user_id)
         {
             return GetChannelSubscriberRelationship(user_id).http_status != 404;
         }
@@ -230,7 +233,7 @@ namespace TwitchLibrary.API
             string duration = length.ToString().TextAfter("_");
 
             RestRequest request = Request("channels/{channel_id}/commercial", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { duration } });
 
@@ -246,11 +249,82 @@ namespace TwitchLibrary.API
         public ChannelOAuth ResetStreamKey()
         {
             RestRequest request = Request("channels/{channel_id}/stream_key", Method.DELETE);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
 
             IRestResponse<ChannelOAuth> response = client.Execute<ChannelOAuth>(request);
 
             return response.Data;
+        }
+
+        #endregion
+
+        #region Clips
+
+        /// <summary>
+        /// Gets a single paged list of clips from the games the user associated with the client's authentication token is following highest to lowest view count.
+        /// <see cref="PagingClips"/> can be specified to request a custom paged result.
+        /// Required scope: 'user_read'
+        /// </summary>
+        public ClipsPage GetUserGamesFollowedClipsPage(PagingClipsGamesFollowed paging = null)
+        {
+            if (paging.isNull())
+            {
+                paging = new PagingClips();
+            }
+
+            RestRequest request = Request("clips/followed", Method.GET, ApiVersion.v4);
+            request = paging.Add(request);
+
+            IRestResponse<ClipsPage> response = client.Execute<ClipsPage>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Gets a complete list of clips from the games the user associated with the client's authentication token is following highest to lowest view count.
+        /// <see cref="PagingClips"/> can be specified to request a custom paged result.
+        /// Required scope: 'user_read'
+        /// </summary>
+        public List<Clip> GetUserGamesFollowedClips(PagingClipsGamesFollowed paging = null)
+        {
+            List<Clip> clips = new List<Clip>();
+
+            if (paging.isNull())
+            {
+                paging = new PagingClipsGamesFollowed();
+                paging.limit = 100;                
+            }
+
+            ClipsPage clips_page = GetUserGamesFollowedClipsPage(paging);
+
+            if (!clips_page.clips.isValidList())
+            {
+                return clips;
+            }
+
+            bool searching = true;
+
+            do
+            {
+                foreach (Clip clip in clips_page.clips)
+                {
+                    clips.Add(clip);
+                }
+
+                if (clips_page._cursor.isValidString())
+                {
+                    paging.cursor = clips_page._cursor;
+
+                    clips_page = GetUserGamesFollowedClipsPage(paging);
+                }
+                else
+                {
+                    searching = false;
+                }
+            }
+            while (searching);
+
+            return clips;
         }
 
         #endregion
@@ -270,7 +344,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("feed/{channel_id}/posts", Method.GET);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request = paging.Add(request);
 
             IRestResponse<PostsPage> response = client.Execute<PostsPage>(request);
@@ -328,7 +402,7 @@ namespace TwitchLibrary.API
         public Post GetChannelFeedPost(string post_id, long comments = 5)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}", Method.GET);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
             request.AddParameter("comments", comments.Clamp(0, 5, 5));
 
@@ -346,7 +420,7 @@ namespace TwitchLibrary.API
         public CreatedPost CreateChannelFeedPost(string content, bool share = false)
         {
             RestRequest request = Request("feed/{channel_id}/posts", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddQueryParameter("share", share.ToString().ToLower());
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { content });
@@ -364,7 +438,7 @@ namespace TwitchLibrary.API
         public Post DeleteChannelFeedPost(string post_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}", Method.DELETE);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
 
             IRestResponse<Post> response = client.Execute<Post>(request);
@@ -377,12 +451,12 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="CreateReactionResponse"/> object is returned;. 
         /// Required scope: 'channel_feed_edit'
         /// </summary>
-        public CreateReactionResponse CreateChannelFeedPostReaction(string post_id, int emote_id)
+        public CreateReactionResponse CreateChannelFeedPostReaction(string post_id, string emote_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/reactions", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
-            request.AddUrlSegment("post_id", post_id.ToString());            
-            request.AddQueryParameter("emote_id", emote_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
+            request.AddUrlSegment("post_id", post_id);            
+            request.AddQueryParameter("emote_id", emote_id);
 
             IRestResponse<CreateReactionResponse> response = client.Execute<CreateReactionResponse>(request);
 
@@ -397,7 +471,7 @@ namespace TwitchLibrary.API
         public CreateReactionResponse CreateChannelFeedPostReaction(string post_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/reactions", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
             request.AddQueryParameter("emote_id", "endorse");
 
@@ -411,12 +485,12 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="DeleteReactionResponse"/> object is returned with "deleted" = true. 
         /// Required scope: 'channel_feed_edit'
         /// </summary>
-        public DeleteReactionResponse DeleteChannelFeedPostReaction(string post_id, int emote_id)
+        public DeleteReactionResponse DeleteChannelFeedPostReaction(string post_id, string emote_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/reactions", Method.DELETE);
-            request.AddUrlSegment("channel_id", api_id.ToString());
-            request.AddUrlSegment("post_id", post_id.ToString());
-            request.AddQueryParameter("emote_id", emote_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
+            request.AddUrlSegment("post_id", post_id);
+            request.AddQueryParameter("emote_id", emote_id);
 
             IRestResponse<DeleteReactionResponse> response = client.Execute<DeleteReactionResponse>(request);
 
@@ -436,7 +510,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments", Method.GET);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
             request = paging.Add(request);
 
@@ -496,7 +570,7 @@ namespace TwitchLibrary.API
         public Comment CreateChannelFeedPostComment(string post_id, string content)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { content });
@@ -514,7 +588,7 @@ namespace TwitchLibrary.API
         public Comment DeleteChannelFeedPostComment(string post_id, string comment_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments/{comment_id}", Method.DELETE);
-            request.AddUrlSegment("channel_id", api_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
             request.AddUrlSegment("comment_id", comment_id.ToString());
 
@@ -528,13 +602,13 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="CreateReactionResponse"/> object is returned. 
         /// Required scope: 'channel_feed_edit'
         /// </summary>
-        public CreateReactionResponse CreateChannelFeedPostCommentReaction(string post_id, string comment_id, int emote_id)
+        public CreateReactionResponse CreateChannelFeedPostCommentReaction(string post_id, string comment_id, string emote_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments/{comment_id}/reactions", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
-            request.AddUrlSegment("post_id", post_id.ToString());
-            request.AddUrlSegment("comment_id", comment_id.ToString());
-            request.AddQueryParameter("emote_id", emote_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
+            request.AddUrlSegment("post_id", post_id);
+            request.AddUrlSegment("comment_id", comment_id);
+            request.AddQueryParameter("emote_id", emote_id);
 
             IRestResponse<CreateReactionResponse> response = client.Execute<CreateReactionResponse>(request);
 
@@ -549,9 +623,9 @@ namespace TwitchLibrary.API
         public CreateReactionResponse CreateChannelFeedPostCommentReaction(string post_id, string comment_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments/{comment_id}/reactions", Method.POST);
-            request.AddUrlSegment("channel_id", api_id.ToString());
-            request.AddUrlSegment("post_id", post_id.ToString());
-            request.AddUrlSegment("comment_id", comment_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
+            request.AddUrlSegment("post_id", post_id);
+            request.AddUrlSegment("comment_id", comment_id);
             request.AddQueryParameter("emote_id", "endorse");
 
             IRestResponse<CreateReactionResponse> response = client.Execute<CreateReactionResponse>(request);
@@ -564,13 +638,13 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="DeleteReactionResponse"/> object is returned with "deleted" = true. 
         /// Required scope: 'channel_feed_edit'
         /// </summary>
-        public DeleteReactionResponse DeleteChannelFeedPostCommentReaction(string post_id, string comment_id, int emote_id)
+        public DeleteReactionResponse DeleteChannelFeedPostCommentReaction(string post_id, string comment_id, string emote_id)
         {
             RestRequest request = Request("feed/{channel_id}/posts/{post_id}/comments/{comment_id}/reactions", Method.DELETE);
-            request.AddUrlSegment("channel_id", api_id.ToString());
-            request.AddUrlSegment("post_id", post_id.ToString());
-            request.AddUrlSegment("comment_id", comment_id.ToString());
-            request.AddQueryParameter("emote_id", emote_id.ToString());
+            request.AddUrlSegment("channel_id", api_id);
+            request.AddUrlSegment("post_id", post_id);
+            request.AddUrlSegment("comment_id", comment_id);
+            request.AddQueryParameter("emote_id", emote_id);
 
             IRestResponse<DeleteReactionResponse> response = client.Execute<DeleteReactionResponse>(request);
 
@@ -665,7 +739,7 @@ namespace TwitchLibrary.API
         public EmoteSet GetUserEmotes()
         {
             RestRequest request = Request("users/{user_id}/emotes", Method.GET);
-            request.AddUrlSegment("user_id", api_id.ToString());
+            request.AddUrlSegment("user_id", api_id);
 
             IRestResponse<EmoteSet> response = client.Execute<EmoteSet>(request);
 
@@ -679,11 +753,11 @@ namespace TwitchLibrary.API
         /// Returns status '422' if the channel does not have a subscription program.
         /// Required scope: 'user_subscriptions'    
         /// </summary>
-        private UserSubscriber GetUserSubscriberRelationship(int user_id, int channel_id)
+        private UserSubscriber GetUserSubscriberRelationship(string user_id, string channel_id)
         {
             RestRequest request = Request("users/{user_id}/subscriptions/{channel_id}", Method.GET);
-            request.AddUrlSegment("user_id", user_id.ToString());
-            request.AddUrlSegment("channel_id", channel_id.ToString());
+            request.AddUrlSegment("user_id", user_id);
+            request.AddUrlSegment("channel_id", channel_id);
 
             IRestResponse<UserSubscriber> response = client.Execute<UserSubscriber>(request);
 
@@ -696,7 +770,7 @@ namespace TwitchLibrary.API
         /// If the client's authentication token does not have the authorization permission to make the request, the method will return "false" even if the user is actually subscribed to the channel.                 
         /// Required scope: 'user_subscriptions'
         /// </summary>
-        public bool isUserSubscribed(int user_id, int channel_id)
+        public bool isUserSubscribed(string user_id, string channel_id)
         {
             UserSubscriber relationship = GetUserSubscriberRelationship(user_id, channel_id);
             
@@ -709,11 +783,11 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="Models.Users.Follow"/> object is returned;. 
         /// Required scope: 'user_follows_edit' 
         /// </summary>
-        public Follow Follow(int user_id, bool notifications = false)
+        public Follow Follow(string user_id, bool notifications = false)
         {
             RestRequest request = Request("users/{user_id}/follows/channels/{channel_id}", Method.PUT);
-            request.AddUrlSegment("user_id", api_id.ToString());
-            request.AddUrlSegment("channel_id", user_id.ToString());            
+            request.AddUrlSegment("user_id", api_id);
+            request.AddUrlSegment("channel_id", user_id);            
             request.AddParameter("notifications", notifications);
 
             IRestResponse<Follow> response = client.Execute<Follow>(request);
@@ -726,11 +800,11 @@ namespace TwitchLibrary.API
         /// Returns status '204' if the client successfully unfollowed the user.
         /// Required scope: 'user_follows_edit' 
         /// </summary>
-        public HttpStatusCode Unfollow(int user_id)
+        public HttpStatusCode Unfollow(string user_id)
         {
             RestRequest request = Request("users/{user_id}/follows/channels/{channel_id}", Method.DELETE);
-            request.AddUrlSegment("user_id", api_id.ToString());
-            request.AddUrlSegment("channel_id", user_id.ToString());
+            request.AddUrlSegment("user_id", api_id);
+            request.AddUrlSegment("channel_id", user_id);
 
             IRestResponse<object> response = client.Execute<object>(request);
 
@@ -750,7 +824,7 @@ namespace TwitchLibrary.API
             }
 
             RestRequest request = Request("users/{user_id}/blocks", Method.GET);
-            request.AddUrlSegment("user_id", api_id.ToString());
+            request.AddUrlSegment("user_id", api_id);
             request = paging.Add(request);
 
             IRestResponse<BlockedUsersPage> response = client.Execute<BlockedUsersPage>(request);
@@ -802,11 +876,11 @@ namespace TwitchLibrary.API
         /// If the operation was sucessful, the <see cref="BlockedUser"/> object is returned;. 
         /// Required scope: 'user_blocks_edit'
         /// </summary>
-        public BlockedUser Block(int user_id)
+        public BlockedUser Block(string user_id)
         {
             RestRequest request = Request("users/{user_id}/blocks/{channel_id}", Method.PUT);
-            request.AddUrlSegment("user_id", api_id.ToString());
-            request.AddUrlSegment("channel_id", user_id.ToString());
+            request.AddUrlSegment("user_id", api_id);
+            request.AddUrlSegment("channel_id", user_id);
 
             IRestResponse<BlockedUser> response = client.Execute<BlockedUser>(request);
 
@@ -820,11 +894,11 @@ namespace TwitchLibrary.API
         /// Returns status '422' if the user could not be unblocked.
         /// Required scope: 'user_blocks_edit'
         /// </summary>
-        public HttpStatusCode Unblock(int user_id)
+        public HttpStatusCode Unblock(string user_id)
         {
             RestRequest request = Request("users/{user_id}/blocks/{channel_id}", Method.DELETE);
-            request.AddUrlSegment("user_id", api_id.ToString());
-            request.AddUrlSegment("channel_id", user_id.ToString());
+            request.AddUrlSegment("user_id", api_id);
+            request.AddUrlSegment("channel_id", user_id);
 
             IRestResponse<object> response = client.Execute<object>(request);
 
@@ -934,18 +1008,17 @@ namespace TwitchLibrary.API
         /// Send the request to the api.
         /// Requires the authentication token of the broadcaster and the client id of the application from Twitch.
         /// </summary>
-        public new RestRequest Request(string endpoint, Method method)
+        public new RestRequest Request(string endpoint, Method method, ApiVersion api_version = ApiVersion.v5)
         {
             RestRequest request = new RestRequest(endpoint, method);
 
-            if (g_client_id.isValidString())
+            if (client_id.isValidString())
             {
-                request.AddHeader("Client-ID", g_client_id);
+                request.AddHeader("Client-ID", client_id);
             }
             
-            request.AddHeader("Authorization", "OAuth " + g_oauth_token);
-            request.AddQueryParameter("api_version", "5");
-            request.AddQueryParameter("no_ache", DateTime.Now.Ticks.ToString());            
+            request.AddHeader("Authorization", "OAuth " + oauth_token);
+            request.AddQueryParameter("api_version", api_version.ToString().TextAfter("v"));                    
 
             return request;
         }

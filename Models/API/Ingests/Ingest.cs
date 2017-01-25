@@ -6,7 +6,7 @@ namespace TwitchLibrary.Models.API.Ingests
     public class Ingest
     {
         [JsonProperty("_id")]
-        public int _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("availability")]
         public decimal availability { get; protected set; }

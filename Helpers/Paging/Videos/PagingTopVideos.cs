@@ -10,12 +10,12 @@ namespace TwitchLibrary.Helpers.Paging.Videos
 {
     public class PagingTopVideos : ITwitchPaging
     {
-        public int limit,      //max = 100      default = 10
-                   offset;
+        public int limit,       //max = 100         default = 10
+                   offset;      //max = 1000        default = 0
 
         public string game;
 
-        public Period period;
+        public PeriodVideos period;
         public BroadcastType[] broadcast_type;
 
         public PagingTopVideos() 
@@ -23,11 +23,11 @@ namespace TwitchLibrary.Helpers.Paging.Videos
             limit = 10;
             offset = 0;
             game = null;
-            period = Period.WEEK;      
+            period = PeriodVideos.WEEK;      
             broadcast_type = new BroadcastType[] { BroadcastType.HIGHLIGHT };            
         }
 
-        public PagingTopVideos(int _limit, int _offset, string _game, Period _period, BroadcastType[] _broadcast_type)
+        public PagingTopVideos(int _limit, int _offset, string _game, PeriodVideos _period, BroadcastType[] _broadcast_type)
         {
             limit = _limit;
             offset = _offset;
@@ -42,7 +42,7 @@ namespace TwitchLibrary.Helpers.Paging.Videos
         public RestRequest Add(RestRequest request)
         {
             request.AddParameter("limit", limit.Clamp(1, 100, 10));
-            request.AddParameter("offset", offset);
+            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
 
             if (game.isValidString())
             {

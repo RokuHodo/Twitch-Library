@@ -1,8 +1,9 @@
 ﻿namespace TwitchLibrary.Enums.Helpers.Paging
 {
-    public enum Period
+    public enum PeriodClips
     {
-        WEEK = 0,
+        DAY = 0,
+        WEEK,        
         MONTH,
         ALL
     }

@@ -4,7 +4,7 @@ using TwitchLibrary.Models.Messages.Whisper;
 
 namespace TwitchLibrary.Events.Clients
 {
-    public class OnWhisperMessageReceivedArgs : EventArgs
+    public class OnWhisperMessageReceivedEventArgs : EventArgs
     {
         public WhisperMessage whisper_message { get; set; }
     }

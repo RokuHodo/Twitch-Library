@@ -12,7 +12,7 @@ namespace TwitchLibrary.Models.API.Streams
     public class Stream : HttpStatus
     {
         [JsonProperty("_id")]
-        public long _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("game")]
         public string game { get; protected set; }

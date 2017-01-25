@@ -10,8 +10,8 @@ namespace TwitchLibrary.Helpers.Paging.Channels
 {
     public class PagingChannelFollowers : ITwitchPaging
     {
-        public int limit,      //max = 100      default = 25
-                   offset;
+        public int limit,       //max = 100         default = 25
+                   offset;      //max = 1000        default = 0
 
         public string cursor;
 
@@ -39,7 +39,7 @@ namespace TwitchLibrary.Helpers.Paging.Channels
         public RestRequest Add(RestRequest request)
         {
             request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset);
+            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
             request.AddParameter("cursor", cursor);
             request.AddParameter("direction", direction.ToString().ToLower());
 

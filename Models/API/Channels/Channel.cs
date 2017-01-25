@@ -11,7 +11,7 @@ namespace TwitchLibrary.Models.API.Channels
     public class Channel : HttpStatus
     {
         [JsonProperty("_id")]
-        public int _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("broadcaster_language")]
         public string broadcaster_language { get; protected set; }

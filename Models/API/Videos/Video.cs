@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 //project namespaces
+using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Models.API.Channels;
 
 //imported .dll's
@@ -15,10 +16,10 @@ namespace TwitchLibrary.Models.API.Videos
         public string _id { get; protected set; }
 
         [JsonProperty("broadcast_id")]
-        public long broadcast_id { get; protected set; }
+        public string broadcast_id { get; protected set; }
 
         [JsonProperty("broadcast_type")]
-        public string broadcast_type { get; protected set; }
+        public BroadcastType broadcast_type { get; protected set; }
 
         [JsonProperty("channel")]
         public Channel channel { get; protected set; }

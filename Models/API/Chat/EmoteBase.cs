@@ -9,6 +9,6 @@ namespace TwitchLibrary.Models.API.Chat
         public string code { get; protected set; }
 
         [JsonProperty("id")]
-        public int id { get; protected set; }
+        public string id { get; protected set; }
     }
 }

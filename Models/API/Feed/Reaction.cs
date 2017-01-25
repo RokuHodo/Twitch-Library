@@ -14,6 +14,6 @@ namespace TwitchLibrary.Models.API.Feed
         public string emote { get; protected set; }
 
         [JsonProperty("user_ids")]
-        public List<int> user_ids { get; protected set; }
+        public List<string> user_ids { get; protected set; }
     }
 }

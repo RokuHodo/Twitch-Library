@@ -1,6 +1,7 @@
 ﻿using System;
 
 //project namespaces
+using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Models.API.HTTP;
 
 //imported .dll's
@@ -11,7 +12,7 @@ namespace TwitchLibrary.Models.API.Teams
     public class TeamBase : HttpStatus
     {
         [JsonProperty("_id")]
-        public int _id { get; protected set; }
+        public string _id { get; protected set; }
 
         [JsonProperty("background")]
         public string background { get; protected set; }
