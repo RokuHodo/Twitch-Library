@@ -69,8 +69,6 @@ namespace TwitchLibrary.API
         /// </summary>
         public List<Follower> GetChannelFollowers(string channel_id, Direction direction = Direction.DESC)
         {
-            //List<Follower> list = Task.Run(() => GetChannelFollowersAsync(channel_id, direction)).Result;
-
             return GetChannelFollowersAsync(channel_id, direction).Result;
         }
 

@@ -148,7 +148,9 @@ namespace TwitchLibrary.API
         /// </summary>
         public async Task<List<Video>> GetChannelArchivesAsync(string channel_id, Sort sort = Sort.TIME)
         {
-            return await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE });
+            List<Video> archives = await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE });
+
+            return archives;
         }
 
         /// <summary>
@@ -156,7 +158,9 @@ namespace TwitchLibrary.API
         /// </summary>
         public async Task<List<Video>> GetChannelHighlightsAsync(string channel_id, Sort sort = Sort.TIME)
         {
-            return await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.HIGHLIGHT });
+            List<Video> highlights = await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.HIGHLIGHT });
+
+            return highlights;
         }
 
         /// <summary>
@@ -164,7 +168,9 @@ namespace TwitchLibrary.API
         /// </summary>
         public async Task<List<Video>> GetChannelUploadsAsync(string channel_id, Sort sort = Sort.TIME)
         {
-            return await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.UPLOAD });
+            List<Video> uploads = await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.UPLOAD });
+
+            return uploads;
         }
 
         /// <summary>
@@ -172,7 +178,9 @@ namespace TwitchLibrary.API
         /// </summary>
         public async Task<List<Video>> GetChannelVideosAsync(string channel_id, Sort sort = Sort.TIME)
         {
-            return await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE, BroadcastType.HIGHLIGHT, BroadcastType.UPLOAD });
+            List<Video> videos = await GetChannelVideosAsync(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE, BroadcastType.HIGHLIGHT, BroadcastType.UPLOAD });
+
+            return videos;
         }
 
         /// <summary>
