@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
-using System.Threading;
 
 //project namespaces
 using TwitchLibrary.API;
@@ -15,9 +12,7 @@ using TwitchLibrary.Helpers;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Users;
-using TwitchLibrary.Models.Messages.IRC;
 using TwitchLibrary.Models.Messages.Subscriber;
-using TwitchLibrary.Models.Messages.Private;
 using TwitchLibrary.Models.Messages.Whisper;
 
 //imported .dll's
@@ -88,7 +83,7 @@ namespace TwitchLibrary.Clients
             irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/membership");
             irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/commands");
 
-            OnSuccessfulConnection.RaiseAsync(this, new OnSuccessfulConnectionEventArgs { });
+            OnSuccessfulConnection.RaiseAsync(this, new OnSuccessfulConnectionEventArgs { });            
         }
 
         private void OnIrcMessageReceived(object sender, RawMessageEventArgs e)

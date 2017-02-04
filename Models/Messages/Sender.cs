@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Drawing;
 
 //project namespaces
-using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Messages;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Messages;

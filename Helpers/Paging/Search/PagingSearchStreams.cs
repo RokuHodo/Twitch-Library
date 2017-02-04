@@ -7,21 +7,16 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Search
 {   
-    public class PagingSearchStreams : ITwitchPaging
+    public class PagingSearchStreams : PagingLimitOffset, ITwitchPaging
     {
         public bool? hls;
 
-        public int limit,       //max = 100         default = 25
-                   offset;      //max = 1000        default = 0   
-
-        public PagingSearchStreams()
+        public PagingSearchStreams() : base(25)
         {
-            hls = null;
-            limit = 25;
-            offset = 0;            
+            hls = null;         
         }
 
-        public PagingSearchStreams(bool _hls, int _limit, int _offset)
+        public PagingSearchStreams(bool _hls, int _limit, int _offset) : base(25)
         {
             hls = _hls;
             limit = _limit;
@@ -31,15 +26,15 @@ namespace TwitchLibrary.Helpers.Paging.Search
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
             if (!hls.isNull())
             {
                 request.AddParameter("hls", hls);
             }
                         
-            request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset.Clamp(0, 1000, 0));            
+            request.AddParameter("limit", limit);
+            request.AddParameter("offset", offset);            
 
             return request;
         }

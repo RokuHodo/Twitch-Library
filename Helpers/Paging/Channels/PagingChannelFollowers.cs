@@ -8,24 +8,19 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Channels
 {
-    public class PagingChannelFollowers : ITwitchPaging
+    public class PagingChannelFollowers : PagingLimitOffset, ITwitchPaging
     {
-        public int limit,       //max = 100         default = 25
-                   offset;      //max = 1000        default = 0
-
         public string cursor;
 
         public Direction direction = Direction.DESC;
 
-        public PagingChannelFollowers()
+        public PagingChannelFollowers() : base(25)
         {
-            limit = 25;
-            offset = 0;
             cursor = string.Empty;
             direction = Direction.DESC;
         }
 
-        public PagingChannelFollowers(int _limit, int _offset, string _cursor, Direction _direction)
+        public PagingChannelFollowers(int _limit, int _offset, string _cursor, Direction _direction) : base(25)
         {
             limit = _limit;
             offset = _offset;
@@ -36,11 +31,16 @@ namespace TwitchLibrary.Helpers.Paging.Channels
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
-            request.AddParameter("cursor", cursor);
+            request.AddParameter("limit", limit);
+            request.AddParameter("offset", offset);
+
+            if (cursor.isValidString())
+            {
+                request.AddParameter("cursor", cursor);
+            }
+
             request.AddParameter("direction", direction.ToString().ToLower());
 
             return request;

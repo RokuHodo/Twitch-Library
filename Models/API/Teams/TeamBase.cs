@@ -1,7 +1,6 @@
 ﻿using System;
 
 //project namespaces
-using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Models.API.HTTP;
 
 //imported .dll's

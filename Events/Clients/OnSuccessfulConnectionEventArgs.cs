@@ -1,7 +1,5 @@
 ﻿using System;
 
-using ChatSharp;
-
 
 namespace TwitchLibrary.Events.Clients
 {

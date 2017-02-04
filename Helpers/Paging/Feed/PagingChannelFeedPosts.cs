@@ -7,21 +7,29 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Feed
 {   
-    public class PagingChannelFeedPosts : ITwitchPaging
+    public class PagingChannelFeedPosts : PagingLimit, ITwitchPaging
     {
-        public long limit,          //max = 100         default = 10
-                    comments;       //max = 5           default = 5
+        //private
+        private int _comments;
+        private int comments_default = 5;
+
+        //public
+        public readonly int comments_min = 5;
+        public readonly int comments_max = 5;
+        public int comments
+        {
+            get { return _comments; }
+            set { _comments = value.Clamp(comments_min, comments_max, comments_default); }
+        }
 
         public string cursor;
 
-        public PagingChannelFeedPosts()
+        public PagingChannelFeedPosts() : base(10)
         {
-            limit = 10;     
-            comments = 5;
             cursor = string.Empty;
         }
 
-        public PagingChannelFeedPosts(long _limit, long _comments, string _cursor)
+        public PagingChannelFeedPosts(int _limit, int _comments, string _cursor) : base(10)
         {
             limit = _limit;
             comments = _comments;
@@ -31,11 +39,15 @@ namespace TwitchLibrary.Helpers.Paging.Feed
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit.Clamp(1, 100, 10));
-            request.AddParameter("comments", comments.Clamp(0, 5, 5));
-            request.AddParameter("cursor", cursor);
+            request.AddParameter("limit", limit);
+            request.AddParameter("comments", comments);
+
+            if (cursor.isValidString())
+            {
+                request.AddParameter("cursor", cursor);
+            }            
 
             return request;
         }

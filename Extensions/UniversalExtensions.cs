@@ -100,45 +100,6 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value between a range of numbers.
-        /// If the number is out of range, the default value is returned.
-        /// </summary>
-        public static long Clamp(this long value, long minimum, long maximum, long default_value)
-        {
-            //in case the user is an idiot
-            default_value.Clamp(minimum, maximum);
-
-            if (value < minimum)
-            {
-                value = default_value.isNull() ? minimum : default_value;
-            }
-            else if (value > maximum)
-            {
-                value = default_value.isNull() ? maximum : default_value;
-            }
-
-            return value;
-        }
-
-        /// <summary>
-        /// Clamps the value between a range of numbers.
-        /// If the number is out of range, either the minimum or maximum will be returned depending on an overflow or underflow.
-        /// </summary>
-        public static long Clamp(this long value, long minimum, long maximum)
-        {
-            if (value < minimum)
-            {
-                value = minimum;
-            }
-            else if (value > maximum)
-            {
-                value = maximum;
-            }
-
-            return value;
-        }
-
-        /// <summary>
         /// Gets the text after a certain part of a string.
         /// Returns <see cref="string.Empty"/> if the string index cannot be found.
         /// </summary>

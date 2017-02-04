@@ -1,6 +1,5 @@
 ﻿//project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
-using TwitchLibrary.Extensions;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
 //imported .dll's
@@ -8,23 +7,18 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Users
 {
-    public class PagingUserFollows : ITwitchPaging
+    public class PagingUserFollows : PagingLimitOffset, ITwitchPaging
     {
-        public int limit,       //max = 100         default = 25
-                   offset;      //max = 1000        default = 0
-
         public Direction direction;
         public SortBy sort_by;
 
-        public PagingUserFollows()
+        public PagingUserFollows() : base(25)
         {
-            limit = 25;      
-            offset = 0;
             direction = Direction.DESC;
             sort_by = SortBy.CREATED_AT;
         }
 
-        public PagingUserFollows(int _limit, int _offset, Direction _direction, SortBy _sortby)
+        public PagingUserFollows(int _limit, int _offset, Direction _direction, SortBy _sortby) : base(25)
         {
             limit = _limit;
             offset = _offset;
@@ -35,10 +29,10 @@ namespace TwitchLibrary.Helpers.Paging.Users
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset.Clamp(0, 1000, 0));            
+            request.AddParameter("limit", limit);
+            request.AddParameter("offset", offset);            
             request.AddParameter("direction", direction.ToString().ToLower());
             request.AddParameter("sortby", sort_by.ToString().ToLower());
 

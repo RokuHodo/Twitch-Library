@@ -10,29 +10,24 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Streams
 {   
-    public class PagingStreams : ITwitchPaging
+    public class PagingStreams : PagingLimitOffset, ITwitchPaging
     {
         public int[] channel;
-
-        public int limit,       //max = 100         default = 25
-                   offset;      //max = 1000        default = 0
 
         public string game;                      
 
         public StreamType stream_type;
         public StreamLanguage[] language;                      
 
-        public PagingStreams()
+        public PagingStreams() :base(25)
         {
             channel = null;
-            limit = 25;
-            offset = 0;
             game = null;
             stream_type = StreamType.LIVE;
             language = Enum.GetValues(typeof(StreamLanguage)) as StreamLanguage[];
         }
 
-        public PagingStreams(int[] _channel, int _limit, int _offset, string _game, StreamType _stream_type, StreamLanguage[] _language)
+        public PagingStreams(int[] _channel, int _limit, int _offset, string _game, StreamType _stream_type, StreamLanguage[] _language) : base(25)
         {
             channel = _channel;
             limit = _limit;
@@ -45,15 +40,15 @@ namespace TwitchLibrary.Helpers.Paging.Streams
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
             if (channel.isValidArray())
             {
                 request.AddParameter("channel", string.Join(",", channel));
             }
 
-            request.AddParameter("limit", limit.Clamp(1, 100, 25));
-            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
+            request.AddParameter("limit", limit);
+            request.AddParameter("offset", offset);
 
             if (game.isValidString())
             {

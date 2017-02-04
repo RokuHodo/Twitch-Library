@@ -8,26 +8,21 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Videos
 {
-    public class PagingTopVideos : ITwitchPaging
+    public class PagingTopVideos : PagingLimitOffset, ITwitchPaging
     {
-        public int limit,       //max = 100         default = 10
-                   offset;      //max = 1000        default = 0
-
         public string game;
 
         public PeriodVideos period;
         public BroadcastType[] broadcast_type;
 
-        public PagingTopVideos() 
+        public PagingTopVideos() : base(10)
         {
-            limit = 10;
-            offset = 0;
             game = null;
             period = PeriodVideos.WEEK;      
             broadcast_type = new BroadcastType[] { BroadcastType.HIGHLIGHT };            
         }
 
-        public PagingTopVideos(int _limit, int _offset, string _game, PeriodVideos _period, BroadcastType[] _broadcast_type)
+        public PagingTopVideos(int _limit, int _offset, string _game, PeriodVideos _period, BroadcastType[] _broadcast_type) : base(10)
         {
             limit = _limit;
             offset = _offset;
@@ -39,10 +34,10 @@ namespace TwitchLibrary.Helpers.Paging.Videos
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit.Clamp(1, 100, 10));
-            request.AddParameter("offset", offset.Clamp(0, 1000, 0));
+            request.AddParameter("limit", limit);
+            request.AddParameter("offset", offset);
 
             if (game.isValidString())
             {

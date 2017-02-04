@@ -4,7 +4,6 @@
 using TwitchLibrary.API;
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
-using TwitchLibrary.Enums.Messages;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Messages;
 using TwitchLibrary.Models.Messages.IRC;

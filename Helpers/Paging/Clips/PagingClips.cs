@@ -19,14 +19,13 @@ namespace TwitchLibrary.Helpers.Paging.Clips
         public PagingClips()
         {
             trending = false;
-            limit = 10;
             game = string.Empty;
             cursor = string.Empty;
             channel = new string[0];
             period = PeriodClips.DAY;
         }
 
-        public PagingClips(bool _trending, long _limit, string _cursor, string _game, string[] _channel, PeriodClips _period) : base(_trending, _limit, _cursor)
+        public PagingClips(bool _trending, int _limit, string _cursor, string _game, string[] _channel, PeriodClips _period) : base(_trending, _limit, _cursor)
         {
             trending = _trending;
             limit = _limit;
@@ -42,7 +41,7 @@ namespace TwitchLibrary.Helpers.Paging.Clips
         public new RestRequest Add(RestRequest request)
         {
             request.AddParameter("trending", trending.ToString().ToLower());
-            request.AddParameter("limit", limit.Clamp(1, 100, 10));         
+            request.AddParameter("limit", limit);         
 
             if (game.isValidString())
             {
@@ -60,7 +59,6 @@ namespace TwitchLibrary.Helpers.Paging.Clips
             }
 
             request.AddParameter("period", period.ToString().ToLower());
-
 
             return request;
         }

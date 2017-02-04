@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using TwitchLibrary.Extensions;
-using TwitchLibrary.Models.Messages.Private;
+﻿using TwitchLibrary.Models.Messages.Private;
 
 namespace TwitchLibrary.Models.Messages.Subscriber
 {

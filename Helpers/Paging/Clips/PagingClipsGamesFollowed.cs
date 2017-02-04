@@ -1,29 +1,25 @@
 ﻿//project namespaces
 using TwitchLibrary.Extensions;
-using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
 //imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Clips
-{   
-    public class PagingClipsGamesFollowed : ITwitchPaging
+{
+    public class PagingClipsGamesFollowed : PagingLimit, ITwitchPaging
     {
         public bool trending;
-
-        public long limit;      //max = 100         default = 10                   
         
         public string cursor;
 
-        public PagingClipsGamesFollowed()
+        public PagingClipsGamesFollowed() : base(10)
         {
             trending = false;
-            limit = 10;
             cursor = string.Empty;
         }
 
-        public PagingClipsGamesFollowed(bool _trending, long _limit, string _cursor)
+        public PagingClipsGamesFollowed(bool _trending, int _limit, string _cursor) : base(10)
         {
             trending = _trending;
             limit = _limit;            
@@ -33,10 +29,10 @@ namespace TwitchLibrary.Helpers.Paging.Clips
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
             request.AddParameter("trending", trending.ToString().ToLower());
-            request.AddParameter("limit", limit.Clamp(1, 100, 10));         
+            request.AddParameter("limit", limit);         
 
             if (cursor.isValidString())
             {

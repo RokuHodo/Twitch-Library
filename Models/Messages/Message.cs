@@ -1,6 +1,5 @@
 ﻿
 //project namespaces
-using TwitchLibrary.Enums.Messages;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Messages;
 using TwitchLibrary.Models.Messages.Emotes;

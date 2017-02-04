@@ -7,19 +7,16 @@ using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Feed
 {   
-    public class PagingChannelFeedPostComments : ITwitchPaging
+    public class PagingChannelFeedPostComments : PagingLimit, ITwitchPaging
     {
-        public long limit;      //max = 100         default = 10                   
-
         public string cursor;
 
-        public PagingChannelFeedPostComments()
+        public PagingChannelFeedPostComments() : base(10)
         {
-            limit = 10;
             cursor = string.Empty;
         }
 
-        public PagingChannelFeedPostComments(long _limit, string _cursor)
+        public PagingChannelFeedPostComments(int _limit, string _cursor) : base(10)
         {
             limit = _limit;            
             cursor = _cursor;
@@ -28,10 +25,14 @@ namespace TwitchLibrary.Helpers.Paging.Feed
         /// <summary>
         /// Sets how to recieve the <see cref="RestRequest"/> when getting paged results.
         /// </summary>
-        public RestRequest Add(RestRequest request)
+        public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit.Clamp(1, 100, 10));            
-            request.AddParameter("cursor", cursor);
+            request.AddParameter("limit", limit);  
+            
+            if(cursor.isValidString())
+            {
+                request.AddParameter("cursor", cursor);
+            }            
 
             return request;
         }
