@@ -692,6 +692,39 @@ namespace TwitchLibrary.API
             return response.Data;
         }
 
+        /// <summary>
+        /// Asynchronously gets a single paged list of all streams currently streaming in a community.
+        /// <see cref="PagingCommunityStreams"/> can be specified to request a custom paged result.
+        /// </summary>
+        public async Task<CommunityStreamsPage> GetCommunityStreamsPageAsync(string community_id, PagingCommunityStreams paging = null)
+        {
+            if (paging.isNull())
+            {
+                paging = new PagingCommunityStreams();
+            }
+
+            RestRequest request = Request("streams", Method.GET);
+            request.AddQueryParameter("community_id", community_id);
+            request = paging.Add(request);
+
+            IRestResponse<CommunityStreamsPage> response = await client.ExecuteTaskAsync<CommunityStreamsPage>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a complete list of all streams currently streaming in a community.
+        /// </summary>
+        public async Task<List<Stream>> GetCommunityStreamsAsync(string community_id)
+        {
+            PagingCommunityStreams paging = new PagingCommunityStreams();
+            paging.limit = 100;
+
+            List<Stream> response = await Paging.GetPagesByTotalAsync<Stream, CommunityStreamsPage, PagingCommunityStreams>(GetCommunityStreamsPageAsync, community_id, paging, "streams");
+
+            return response;
+        }
+
         #endregion
 
         #region Teams

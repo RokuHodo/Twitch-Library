@@ -420,6 +420,23 @@ namespace TwitchLibrary.API
             return GetStreamsSummaryAsync(game_name).Result;
         }
 
+        /// <summary>
+        /// Gets a single paged list of all streams currently streaming in a community.
+        /// <see cref="PagingCommunityStreams"/> can be specified to request a custom paged result.
+        /// </summary>
+        public CommunityStreamsPage GetCommunityStreamsPage(string community_id, PagingCommunityStreams paging = null)
+        {
+            return GetCommunityStreamsPageAsync(community_id, paging).Result;
+        }
+
+        /// <summary>
+        /// Gets a complete list of all streams currently streaming in a community.
+        /// </summary>
+        public List<Stream> GetCommunityStreams(string community_id)
+        {
+            return GetCommunityStreamsAsync(community_id).Result;
+        }
+
         #endregion
 
         #region Teams
