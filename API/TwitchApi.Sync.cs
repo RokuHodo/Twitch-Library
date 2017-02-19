@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 //project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;
+using TwitchLibrary.Helpers.Paging.Communities;
 using TwitchLibrary.Helpers.Paging.Games;
 using TwitchLibrary.Helpers.Paging.Search;
 using TwitchLibrary.Helpers.Paging.Streams;
@@ -15,6 +17,7 @@ using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
+using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Games;
 using TwitchLibrary.Models.API.Ingests;
 using TwitchLibrary.Models.API.Search;
@@ -23,13 +26,10 @@ using TwitchLibrary.Models.API.Teams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
 
-//imported .dll's
-
 /*
  * TODO: (API) Master todo list
- *      -   Go through each sync and async method and make sure all optional arguments are passed through (should already be correct, but just to make sure)
- *      -   Double check all GetPages() calls use the correct method (should already be correct, but just to make sure)
- *      -   Add in video upload endpoints and methods
+ *      -   Add wrappers for communities reference
+ *      -   Add in video upload endpoints and methods  
  *      -   Implement custom exceptions for each failure case
  */
 
@@ -37,7 +37,7 @@ namespace TwitchLibrary.API
 {
     public partial class TwitchApi : ITwitchRequest
     {
-        #region Channels                DONE
+        #region Channels
 
         /// <summary>
         /// Gets the <see cref="Channel"/> object of a channel.
@@ -94,7 +94,7 @@ namespace TwitchLibrary.API
         /// </summary>
         public List<Video> GetChannelArchives(string channel_id, Sort sort = Sort.TIME)
         {
-            return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE });
+            return GetChannelVideosAsync(channel_id, sort).Result;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace TwitchLibrary.API
         /// </summary>
         public List<Video> GetChannelHighlights(string channel_id, Sort sort = Sort.TIME)
         {
-            return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.HIGHLIGHT });
+            return GetChannelHighlightsAsync(channel_id, sort).Result;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace TwitchLibrary.API
         /// </summary>
         public List<Video> GetChannelUploads(string channel_id, Sort sort = Sort.TIME)
         {
-            return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.UPLOAD });
+            return GetChannelUploadsAsync(channel_id, sort).Result;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace TwitchLibrary.API
         /// </summary>
         public List<Video> GetChannelVideos(string channel_id, Sort sort = Sort.TIME)
         {
-            return GetChannelVideos(channel_id, sort, new BroadcastType[] { BroadcastType.ARCHIVE, BroadcastType.HIGHLIGHT, BroadcastType.UPLOAD });
+            return GetChannelVideosAsync(channel_id, sort).Result;
         }
 
         /// <summary>
@@ -129,9 +129,17 @@ namespace TwitchLibrary.API
             return GetChannelVideosAsync(channel_id, sort, broadcast_type).Result;
         }
 
+        /// <summary>
+        /// Gets the community that a channel belongs to.
+        /// </summary>
+        public Community GetChannelCommunity(string channel_id)
+        {
+            return GetChannelCommunityAsync(channel_id).Result;
+        }
+
         #endregion
 
-        #region Chat                    DONE
+        #region Chat
 
         /// <summary>
         /// Gets the chat badges that can be used in a channel.
@@ -170,7 +178,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Clips                   DONE
+        #region Clips
 
         /// <summary>
         /// Gets a single paged list of top clips on Twitch from highest to lowest view count.
@@ -200,7 +208,62 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Games                   DONE
+        #region Communities
+
+        /// <summary>
+        /// Gets a <see cref="Community"/> by its name.
+        /// The name must be 3 to 25 characters.
+        /// </summary>
+        public Community GetCommunityByName(string community_name)
+        {
+            return GetCommunityByNameAsync(community_name).Result;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="Community"/> by its ID.
+        /// </summary>
+        public Community GetCommunityByID(string community_id)
+        {
+            return GetCommunityByIDAsync(community_id).Result;
+        }
+
+        /// <summary>
+        /// Gets a single paged list of top communities based on views.
+        /// <see cref="PagingTopCommunities"/> can be specified to request a custom paged result.
+        /// </summary>
+        public TopCommunityPage GetTopCommunitiesPage(PagingTopCommunities paging = null)
+        {
+            return GetTopCommunitiesPageAsync(paging).Result;
+        }
+
+        /// <summary>
+        /// Gets a complete list of top communities based on views.
+        /// </summary>
+        public List<TopCommunity> GetTopCommunities()
+        {
+            return GetTopCommunitiesAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets a complete list of a community's moderators.
+        /// </summary>
+        public CommunityModerators GetCommunityModerators(string community_id)
+        {
+            return GetCommunityModeratorsAsync(community_id).Result;
+        }
+
+        /// <summary>
+        /// Reports a channel for violating community rules.
+        /// Returns status '204' if the operation was successful.
+        /// </summary>
+        public HttpStatusCode ReportCommunityViolation(string community_id, string channel_id)
+        {
+            return ReportCommunityViolationAsync(community_id, channel_id).Result;
+        }       
+
+        #endregion
+
+        #region Games
 
         /// <summary>
         /// Gets a single paged list of top games currently being played on Twitch from highest to lowest view count.
@@ -222,7 +285,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Ingests                 DONE
+        #region Ingests
 
         /// <summary>
         /// Gets a complete list of all Twitch servers to connect to.
@@ -234,7 +297,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Search                  DONE
+        #region Search
 
         /// <summary>
         /// Gets a single paged list of channels based on the name query.
@@ -286,14 +349,14 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Streams                 DONE
+        #region Streams
 
         /// <summary>
         /// Gets a stream object of the specified channel.
         /// </summary>
         public StreamResult GetStream(string channel_id, StreamType stream_type = StreamType.LIVE)
         {
-            return GetStreamAsync(channel_id).Result;
+            return GetStreamAsync(channel_id, stream_type).Result;
         }
 
         /// <summary>
@@ -359,7 +422,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Teams                   DONE
+        #region Teams
 
         /// <summary>
         /// Gets the <see cref="Team"/> object for a specified team name.
@@ -389,7 +452,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Users                   DONE
+        #region Users
 
         /// <summary>
         /// Gets the <see cref="User"/> object for a user.
@@ -446,7 +509,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Videos                  DONE
+        #region Videos
 
         /// <summary>
         /// Gets the <see cref="Video"/> object for a specified video id. 

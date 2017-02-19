@@ -9,6 +9,8 @@ namespace TwitchLibrary.Helpers.Paging
 {
     public static class Paging
     {
+        #region Pages by cursor
+
         /// <summary>
         /// Asynchronously gets a complete list of objects using the passed request method, requested page cursor, paging, and property to iterate through.
         /// </summary>
@@ -141,6 +143,10 @@ namespace TwitchLibrary.Helpers.Paging
 
             return list;
         }
+
+        #endregion
+
+        #region Pages by total
 
         /// <summary>
         /// Asynchronously gets a complete list of objects using the passed request method, the requested page total, paging offset, and property to iterate through.
@@ -293,6 +299,10 @@ namespace TwitchLibrary.Helpers.Paging
             return list;
         }
 
+        #endregion
+
+        #region Pages by offset
+
         public static async Task<List<Model>> GetPagesByOffsetAsync<Model, PageResult, Paging>(Func<Paging, Task<PageResult>> GetPage, Paging paging, string property) where Paging : new()
         {
             List<Model> list = new List<Model>();
@@ -362,5 +372,7 @@ namespace TwitchLibrary.Helpers.Paging
 
             return list;
         }
+
+        #endregion
     }
 }

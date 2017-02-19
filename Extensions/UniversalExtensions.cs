@@ -61,6 +61,66 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
+        /// Clamps the value to a minum with no maximum.
+        /// If the number is less than the minimum, the default value is returned.
+        /// </summary>
+        public static int ClampMin(this int value, int minimum, int default_value)
+        {
+            //in case the user is an idiot
+            default_value.ClampMin(minimum);
+
+            if (value < minimum)
+            {
+                value = default_value.isNull() ? minimum : default_value;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Clamps the value to a minum with no maximum.
+        /// </summary>
+        public static int ClampMin(this int value, int minimum)
+        {
+            if (value < minimum)
+            {
+                value = minimum;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Clamps the value to a maximum with no minimum.
+        /// If the number is greater than the maximum, the default value is returned.
+        /// </summary>
+        public static int ClampMax(this int value, int maximum, int default_value)
+        {
+            //in case the user is an idiot
+            default_value.ClampMin(maximum);
+
+            if (value > maximum)
+            {
+                value = default_value.isNull() ? maximum : default_value;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Clamps the value to a maximum with no minimum.
+        /// </summary>
+        public static int ClampMax(this int value, int maximum)
+        {
+            if (value > maximum)
+            {
+                value = maximum;
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Clamps the value between a range of numbers.
         /// If the number is out of range, the default value is returned.
         /// </summary>
@@ -69,14 +129,8 @@ namespace TwitchLibrary.Extensions
             //in case the user is an idiot
             default_value.Clamp(minimum, maximum);
 
-            if(value < minimum)
-            {
-                value = default_value.isNull() ? minimum : default_value;
-            }
-            else if (value > maximum)
-            {
-                value = default_value.isNull() ? maximum : default_value;
-            }
+            value = value.ClampMin(minimum, default_value);
+            value = value.ClampMax(maximum, default_value);
 
             return value;
         }
@@ -87,14 +141,8 @@ namespace TwitchLibrary.Extensions
         /// </summary>
         public static int Clamp(this int value, int minimum, int maximum)
         {
-            if (value < minimum)
-            {
-                value = minimum;
-            }
-            else if (value > maximum)
-            {
-                value = maximum;
-            }
+            value = value.ClampMin(minimum);
+            value = value.ClampMax(maximum);
 
             return value;
         }

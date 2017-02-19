@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 //project namespaces
@@ -10,6 +11,7 @@ using TwitchLibrary.Helpers.Json;
 using TwitchLibrary.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;
+using TwitchLibrary.Helpers.Paging.Communities;
 using TwitchLibrary.Helpers.Paging.Games;
 using TwitchLibrary.Helpers.Paging.Search;
 using TwitchLibrary.Helpers.Paging.Streams;
@@ -20,6 +22,7 @@ using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
+using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Games;
 using TwitchLibrary.Models.API.Ingests;
 using TwitchLibrary.Models.API.Search;
@@ -51,7 +54,7 @@ namespace TwitchLibrary.API
             client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v5+json");
         }
 
-        #region Channels                DONE
+        #region Channels
 
         /// <summary>
         /// Asynchronously gets the <see cref="Channel"/> object of a channel.
@@ -198,9 +201,22 @@ namespace TwitchLibrary.API
             return videos;
         }
 
+        /// <summary>
+        /// Asynchronously gets the community that a channel belongs to.
+        /// </summary>
+        public async Task<Community> GetChannelCommunityAsync(string channel_id)
+        {
+            RestRequest request = Request("channels/{channel_id}/community", Method.GET);
+            request.AddUrlSegment("channel_id", channel_id);
+
+            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+
+            return response.Data;
+        }        
+
         #endregion
 
-        #region Chat                    DONE
+        #region Chat
 
         /// <summary>
         /// Asynchronously gets the chat badges that can be used in a channel.
@@ -257,7 +273,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Clips                   DONE
+        #region Clips
 
         /// <summary>
         /// Asynchronously gets a single paged list of top clips on Twitch from highest to lowest view count.
@@ -312,7 +328,105 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Games                   DONE
+        #region Communities
+
+        /// <summary>
+        /// Asynchronously gets a <see cref="Community"/> by its name.
+        /// The name must be 3 to 25 characters.
+        /// </summary>
+        public async Task<Community> GetCommunityByNameAsync(string community_name)
+        {
+            //string is less than minumim length, return an empty model
+            if(community_name.Length < 3 || community_name.Length > 25)
+            {
+                return default(Community);
+            }
+
+            RestRequest request = Request("communities", Method.GET);
+            request.AddQueryParameter("name", community_name.ToLower());
+
+            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a <see cref="Community"/> by its ID.
+        /// </summary>
+        public async Task<Community> GetCommunityByIDAsync(string community_id)
+        {
+            RestRequest request = Request("communities/{community_id}", Method.GET);
+            request.AddUrlSegment("community_id", community_id);
+
+            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a single paged list of top communities based on views.
+        /// <see cref="PagingTopCommunities"/> can be specified to request a custom paged result.
+        /// </summary>
+        public async Task<TopCommunityPage> GetTopCommunitiesPageAsync(PagingTopCommunities paging = null)
+        {
+            if (paging.isNull())
+            {
+                paging = new PagingTopCommunities();
+            }
+
+            RestRequest request = Request("communities/top", Method.GET);
+            request = paging.Add(request);
+
+            IRestResponse<TopCommunityPage> response = await client.ExecuteTaskAsync<TopCommunityPage>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a complete list of top communities based on views.
+        /// </summary>
+        public async Task<List<TopCommunity>> GetTopCommunitiesAsync()
+        {
+            PagingTopCommunities paging = new PagingTopCommunities();
+            paging.limit = 100;
+
+            List<TopCommunity> communities = await Paging.GetPagesByCursorAsync<TopCommunity, TopCommunityPage, PagingTopCommunities>(GetTopCommunitiesPageAsync, paging, "communities");
+            
+            return communities;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a complete list of a community's moderators.
+        /// </summary>
+        public async Task<CommunityModerators> GetCommunityModeratorsAsync(string community_id)
+        {
+            RestRequest request = Request("communities/{community_id}/moderators", Method.GET);
+            request.AddUrlSegment("community_id", community_id);
+
+            IRestResponse<CommunityModerators> response = await client.ExecuteTaskAsync<CommunityModerators>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously reports a channel for violating community rules.
+        /// Returns status '204' if the operation was successful.
+        /// </summary>
+        public async Task<HttpStatusCode> ReportCommunityViolationAsync(string community_id, string channel_id)
+        {
+            RestRequest request = Request("communities/{community_id}/report_channel", Method.POST);
+            request.AddUrlSegment("community_id", community_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { channel_id });
+
+            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }        
+
+        #endregion
+
+        #region Games
 
         /// <summary>
         /// Asynchronously gets a single paged list of top games currently being played on Twitch from highest to lowest view count.
@@ -349,7 +463,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Ingests                 DONE
+        #region Ingests
 
         /// <summary>
         /// Asynchronously gets a complete list of all Twitch servers to connect to.
@@ -365,7 +479,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Search                  DONE
+        #region Search
 
         /// <summary>
         /// Asynchronously gets a single paged list of channels based on the name query.
@@ -455,7 +569,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Streams                 DONE
+        #region Streams
 
         /// <summary>
         /// Asynchronously gets a stream object of the specified channel.
@@ -580,7 +694,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Teams                   DONE
+        #region Teams
 
         /// <summary>
         /// Asynchronously gets the <see cref="Team"/> object for a specified team name.
@@ -631,7 +745,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Users                   DONE
+        #region Users
 
         /// <summary>
         /// Asynchronously gets the <see cref="User"/> object for a user.
@@ -723,7 +837,7 @@ namespace TwitchLibrary.API
 
         #endregion
 
-        #region Videos                  DONE
+        #region Videos
 
         /// <summary>
         /// Asynchronously gets the <see cref="Video"/> object for a specified video id. 
