@@ -454,6 +454,7 @@ namespace TwitchLibrary.API
 
             RestRequest request = Request("communities/{community_id}/bans", Method.GET);
             request.AddUrlSegment("community_id", community_id);
+            request = paging.Add(request);
 
             IRestResponse<BannedCommunityUsersPage> response = await client.ExecuteTaskAsync<BannedCommunityUsersPage>(request);
 
@@ -666,6 +667,7 @@ namespace TwitchLibrary.API
 
             RestRequest request = Request("communities/{community_id}/timeouts", Method.GET);
             request.AddUrlSegment("community_id", community_id);
+            request = paging.Add(request);
 
             IRestResponse<TimedOutCommunityUsersPage> response = await client.ExecuteTaskAsync<TimedOutCommunityUsersPage>(request);
 
