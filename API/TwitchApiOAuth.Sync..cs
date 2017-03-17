@@ -739,6 +739,125 @@ namespace TwitchLibrary.API
             return GetUserFollowsVideosAsync(broadcast_type).Result;
         }
 
-        #endregion        
+        #endregion
+
+        #region Video Upload
+
+        /// <summary>
+        /// Creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public CreatedVideo CreateVideoUpload(string channel_name, string title, bool auto_retry = false)
+        {
+            return CreateVideoUploadAsync(channel_name, title, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public CreatedVideo CreateVideoUpload(string channel_name, string title, string description, bool auto_retry = false)
+        {
+            return CreateVideoUploadAsync(channel_name, title, description, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public CreatedVideo CreateVideoUpload(string channel_name, string title, string description, string tags, bool auto_retry = false)
+        {
+            return CreateVideoUploadAsync(channel_name, title, description, tags, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Uploads a video part to the specified video_id.
+        /// The video part data must be between 5MB and 25MB, unless it is the last part to be uploaded.
+        /// This method does not inherently require an oauth token or a scope, but 'channel_editor' is required to initialize the upload.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public HttpStatusCode UploadVideoPart(string video_id, int part, string upload_token, byte[] data, bool auto_retry = false)
+        {
+            return UploadVideoPartAsync(video_id, part, upload_token, data, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Completes the video upload to twitch once all video parts are uploaded to twitch.
+        /// This method does not inherently require an oauth token or a scope, but 'channel_editor' is required to initialize the upload.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public HttpStatusCode CompleteVideoUpload(string video_id, string upload_token, bool auto_retry = false)
+        {
+            return CompleteVideoUploadAsync(video_id, upload_token, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public HttpStatusCode UploadVideo(string path, string channel_name, string video_title, bool auto_retry = false)
+        {
+            return UploadVideoAsync(path, channel_name, video_title, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public HttpStatusCode UploadVideo(string path, string channel_name, string video_title, string description, bool auto_retry = false)
+        {
+            return UploadVideoAsync(path, channel_name, video_title, description, auto_retry).Result;
+        }
+
+        /// <summary>
+        /// Uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public HttpStatusCode UploadVideo(string path, string channel_name, string video_title, string description, string tags, bool auto_retry = false)
+        {
+            return UploadVideoAsync(path, channel_name, video_title, description, tags, auto_retry).Result;
+        }
+
+        #endregion
     }
 }
