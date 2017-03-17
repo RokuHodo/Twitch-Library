@@ -14,6 +14,9 @@ namespace TwitchLibrary.Models.API.Streams
         [JsonProperty("_id")]
         public string _id { get; protected set; }
 
+        [JsonProperty("community_id")]
+        public string community_id { get; protected set; }
+
         [JsonProperty("game")]
         public string game { get; protected set; }
 

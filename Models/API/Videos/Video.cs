@@ -21,6 +21,7 @@ namespace TwitchLibrary.Models.API.Videos
         [JsonProperty("broadcast_type")]
         public BroadcastType broadcast_type { get; protected set; }
 
+        //TODO: not a full channel object, just the name and display name
         [JsonProperty("channel")]
         public Channel channel { get; protected set; }
 

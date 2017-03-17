@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 //project namespaces
@@ -34,8 +33,8 @@ namespace TwitchLibrary.API
 {
     public partial class TwitchApiOAuth : TwitchApi, ITwitchRequest
     {
-        private string api_id;                              
-                
+        private string api_id;
+
         public TwitchApiOAuth(string oauth_token, string client_id = "") : base(client_id, oauth_token)
         {
             base.oauth_token = oauth_token;
@@ -53,7 +52,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("channel", Method.GET);
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -69,7 +68,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { status } });
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -85,7 +84,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { game } });
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -101,7 +100,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { delay } });
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -117,7 +116,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { channel_feed_enabled } });
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -131,7 +130,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("channels/{channel_id}/editors", Method.GET);
             request.AddUrlSegment("channel_id", api_id);
 
-            IRestResponse<Editors> response = await client.ExecuteTaskAsync<Editors>(request);
+            IRestResponse<Editors> response = await twitch_api_client.ExecuteTaskAsync<Editors>(request);
 
             return response.Data;
         }
@@ -153,7 +152,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", api_id);
             request = paging.Add(request);
 
-            IRestResponse<ChannelSubscribersPage> response = await client.ExecuteTaskAsync<ChannelSubscribersPage>(request);
+            IRestResponse<ChannelSubscribersPage> response = await twitch_api_client.ExecuteTaskAsync<ChannelSubscribersPage>(request);
 
             return response.Data;
         }
@@ -187,7 +186,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", user_id);
             request.AddUrlSegment("channel_id", api_id);
 
-            IRestResponse<ChannelSubscriber> response = await client.ExecuteTaskAsync<ChannelSubscriber>(request);
+            IRestResponse<ChannelSubscriber> response = await twitch_api_client.ExecuteTaskAsync<ChannelSubscriber>(request);
 
             return response.Data;
         }
@@ -221,7 +220,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel = new { duration } });
 
-            IRestResponse<CommercialResponse> response = await client.ExecuteTaskAsync<CommercialResponse>(request);
+            IRestResponse<CommercialResponse> response = await twitch_api_client.ExecuteTaskAsync<CommercialResponse>(request);
 
             return response.Data;
         }
@@ -235,7 +234,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("channels/{channel_id}/stream_key", Method.DELETE);
             request.AddUrlSegment("channel_id", api_id);
 
-            IRestResponse<ChannelOAuth> response = await client.ExecuteTaskAsync<ChannelOAuth>(request);
+            IRestResponse<ChannelOAuth> response = await twitch_api_client.ExecuteTaskAsync<ChannelOAuth>(request);
 
             return response.Data;
         }
@@ -243,6 +242,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously sets the community for the channel associated with the client's authentication token.        
         /// Returns status '204' if the community was successfully set.
+        /// Required scope: 'channel_editor'
         /// </summary>
         public async Task<HttpStatusCode> SetChannelCommunityAsync(string community_id)
         {
@@ -250,7 +250,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -259,14 +259,14 @@ namespace TwitchLibrary.API
         /// Asynchronously removes a channel from their community.        
         /// Intended for use by a channel in the community.
         /// Returns status '204' if the channel was successfully removed.
-        /// Required scope: 'none'
+        /// Required scope: 'channel_editor'
         /// </summary>
         public async Task<HttpStatusCode> DeleteChannelFromCommunityAsync()
         {
             RestRequest request = Request("channels/{channel_id}/community", Method.DELETE);
             request.AddUrlSegment("channel_id", api_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -275,14 +275,14 @@ namespace TwitchLibrary.API
         /// Asynchronously removes a channel from their community.        
         /// Intended for use by the community owner.
         /// Returns status '204' if the channel was successfully removed.
-        /// Required scope: 'none'
+        /// Required scope: 'channel_editor'
         /// </summary>
         public async Task<HttpStatusCode> DeleteChannelFromCommunityAsync(string channel_id)
         {
             RestRequest request = Request("channels/{channel_id}/community", Method.DELETE);
             request.AddUrlSegment("channel_id", channel_id);            
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -306,7 +306,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("clips/followed", Method.GET, ApiVersion.v4);
             request = paging.Add(request);
 
-            IRestResponse<ClipsPage> response = await client.ExecuteTaskAsync<ClipsPage>(request);
+            IRestResponse<ClipsPage> response = await twitch_api_client.ExecuteTaskAsync<ClipsPage>(request);
 
             return response.Data;
         }
@@ -334,46 +334,10 @@ namespace TwitchLibrary.API
         #region Communities
 
         /// <summary>
-        /// Asynchronously creates a community.
-        /// The name must be 3 to 25 characters and only include alphanumeric characters, underscores, dashes, tildes, or periods. If The name is less than 3 characters, a default <see cref="CreatedCommunity"/> is returned.
-        /// The max size for the summary, description, and rules is 160, 1572864 (1.5MB), and 1572864 (1.5MB) characters respectively.
-        /// All parameters are required to have some value and cannot be empty.
-        /// If any of these conditions is not met, the community will not be created.
-        /// Required scope: 'any'
-        /// </summary>
-        public async Task<CreatedCommunity> CreateCommunityAsync(string community_name, string summary, string description, string rules)
-        {
-            Regex regex = new Regex("^[a-zA-Z0-9_~.-]+$", RegexOptions.IgnoreCase);
-
-            //check to see if the name only contians alphanumeric or any legal special characters
-            if (!regex.IsMatch(community_name))
-            {
-                return default(CreatedCommunity);
-            }
-
-            //check length requirements
-            if(!community_name.isValidString() || community_name.Length < 3 || community_name.Length > 25 ||
-               !summary.isValidString() || summary.Length > 160 ||
-               !description.isValidString() || description.Length > 1572864 ||
-               !rules.isValidString() || rules.Length > 1572864)
-            {
-                return default(CreatedCommunity);
-            }
-
-            RestRequest request = Request("communities", Method.POST);
-            request.RequestFormat = DataFormat.Json;            
-            request.AddBody(new { community_name, summary, description, rules });
-
-            IRestResponse<CreatedCommunity> response = await client.ExecuteTaskAsync<CreatedCommunity>(request);
-
-            return response.Data;
-        }
-
-        /// <summary>
         /// Asynchronously updates the summary of a community.
         /// The max summary size is 160 characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UpdateCommunitySummaryAsync(string community_id, string summary)
         {
@@ -382,7 +346,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { summary });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -391,7 +355,7 @@ namespace TwitchLibrary.API
         /// Asynchronously updates the description of a community.
         /// The max description size is 1572864 (1.5MB) characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UpdateCommunityDescriptionAsync(string community_id, string description)
         {
@@ -400,7 +364,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { description });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -409,7 +373,7 @@ namespace TwitchLibrary.API
         /// Asynchronously updates the rules of a community.
         /// The max rules size is 1572864 (1.5MB) characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UpdateCommunityRulesAsync(string community_id, string rules)
         {
@@ -418,7 +382,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { rules });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -426,7 +390,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously updates the email of a community.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UpdateCommunityEmailAsync(string community_id, string email)
         {
@@ -435,7 +399,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { email });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -443,7 +407,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously gets a single paged list of banned community users.
         /// <see cref="PagingBannedCommunityUsers"/> can be specified to request a custom paged result.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<BannedCommunityUsersPage> GetBannedCommunityUsersPageAsync(string community_id, PagingBannedCommunityUsers paging = null)
         {
@@ -456,14 +420,14 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request = paging.Add(request);
 
-            IRestResponse<BannedCommunityUsersPage> response = await client.ExecuteTaskAsync<BannedCommunityUsersPage>(request);
+            IRestResponse<BannedCommunityUsersPage> response = await twitch_api_client.ExecuteTaskAsync<BannedCommunityUsersPage>(request);
 
             return response.Data;
         }
 
         /// <summary>
         /// Asynchronously gets a complete list of banned community users.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<List<BannedCommunityUser>> GetBannedCommunityUsersAsync(string community_id)
         {
@@ -478,7 +442,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously bans a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<HttpStatusCode> BanCommunityUserAsync(string community_id, string user_id)
         {
@@ -486,7 +450,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -494,7 +458,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously unbans a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<HttpStatusCode> UnbanCommunityUserAsync(string community_id, string user_id)
         {
@@ -502,7 +466,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -511,7 +475,7 @@ namespace TwitchLibrary.API
         /// Asynchronously creates a community avatar image.
         /// The image must be 600 x 800 and no larger than 1MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// <param name="avatar_image">64 bit encoded image string</param>
         /// </summary>
         public async Task<HttpStatusCode> CreateCommunityAvatarAsync(string community_id, string avatar_image)
@@ -521,7 +485,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { avatar_image });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -530,7 +494,7 @@ namespace TwitchLibrary.API
         /// Asynchronously uploads a community avatar image from a local file path.
         /// The image must be 600 x 800 and no larger than 1MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UploadCommunityAvatarAsync(string community_id, string file_path)
         {
@@ -545,14 +509,14 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously creates a community avatar image.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> DeleteCommunityAvatarAsync(string community_id)
         {
             RestRequest request = Request("communities/{community_id}/images/avatar", Method.DELETE);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -561,7 +525,7 @@ namespace TwitchLibrary.API
         /// Asynchronously creates a community cover image.        
         /// The image must be 1200 x 180 and no larger than 3MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// <param name="cover_image">64 bit encoded image string</param>
         /// </summary>
         public async Task<HttpStatusCode> CreateCommunityCoverAsync(string community_id, string cover_image)
@@ -571,7 +535,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { cover_image });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -580,7 +544,7 @@ namespace TwitchLibrary.API
         /// Asynchronously uploads a community cover image from a local file path.
         /// The image must be 1200 x 180 and no larger than 3MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> UploadCommunityCoverAsync(string community_id, string file_path)
         {
@@ -595,14 +559,14 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously deletes a community cover image from a local file path.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> DeleteCommunityCoverAsync(string community_id)
         {
             RestRequest request = Request("communities/{community_id}/images/cover", Method.DELETE);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -610,7 +574,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously adds a community moderator.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> AddCommunityModeratorAsync(string community_id, string user_id)
         {
@@ -618,7 +582,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -626,7 +590,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously deletes a community moderator.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public async Task<HttpStatusCode> DeleteCommunityModeratorAsync(string community_id, string user_id)
         {
@@ -634,7 +598,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -648,7 +612,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("communities/{community_id}/permissions", Method.GET);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<CommunityPermissions> response = await client.ExecuteTaskAsync<CommunityPermissions>(request);
+            IRestResponse<CommunityPermissions> response = await twitch_api_client.ExecuteTaskAsync<CommunityPermissions>(request);
 
             return response.Data;
         }
@@ -656,7 +620,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously gets a single paged list of timed out community users.
         /// <see cref="PagingTimedOutCommunityUsers"/> can be specified to request a custom paged result.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<TimedOutCommunityUsersPage> GetTimedOutCommunityUsersPageAsync(string community_id, PagingTimedOutCommunityUsers paging = null)
         {
@@ -669,14 +633,14 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request = paging.Add(request);
 
-            IRestResponse<TimedOutCommunityUsersPage> response = await client.ExecuteTaskAsync<TimedOutCommunityUsersPage>(request);
+            IRestResponse<TimedOutCommunityUsersPage> response = await twitch_api_client.ExecuteTaskAsync<TimedOutCommunityUsersPage>(request);
 
             return response.Data;
         }
 
         /// <summary>
         /// Asynchronously gets a complete list of timed out community users.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<List<TimedOutCommunityUser>> GetTimedOutCommunityUsersAsync(string community_id)
         {
@@ -692,7 +656,7 @@ namespace TwitchLibrary.API
         /// Asynchronously times out a community user for a number of hours.
         /// Minimum duration is 1 hour.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<HttpStatusCode> TimeOutCommunityUserAsync(string community_id, string user_id, int duration, string reason = "")
         {            
@@ -711,7 +675,7 @@ namespace TwitchLibrary.API
                 request.AddBody(new { duration });
             }            
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -719,7 +683,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously deletes a times out a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public async Task<HttpStatusCode> DeleteTimeOutCommunityUserAsync(string community_id, string user_id)
         {
@@ -727,7 +691,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -752,7 +716,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", api_id);
             request = paging.Add(request);
 
-            IRestResponse<PostsPage> response = await client.ExecuteTaskAsync<PostsPage>(request);
+            IRestResponse<PostsPage> response = await twitch_api_client.ExecuteTaskAsync<PostsPage>(request);
 
             return response.Data;
         }
@@ -782,7 +746,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("post_id", post_id.ToString());
             request.AddParameter("comments", comments.Clamp(0, 5, 5));
 
-            IRestResponse<Post> response = await client.ExecuteTaskAsync<Post>(request);
+            IRestResponse<Post> response = await twitch_api_client.ExecuteTaskAsync<Post>(request);
 
             return response.Data;
         }
@@ -801,7 +765,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { content });
 
-            IRestResponse<CreatedPost> response = await client.ExecuteTaskAsync<CreatedPost>(request);
+            IRestResponse<CreatedPost> response = await twitch_api_client.ExecuteTaskAsync<CreatedPost>(request);
 
             return response.Data;
         }
@@ -817,7 +781,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", api_id);
             request.AddUrlSegment("post_id", post_id.ToString());
 
-            IRestResponse<Post> response = await client.ExecuteTaskAsync<Post>(request);
+            IRestResponse<Post> response = await twitch_api_client.ExecuteTaskAsync<Post>(request);
 
             return response.Data;
         }
@@ -834,7 +798,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("post_id", post_id);            
             request.AddQueryParameter("emote_id", emote_id);
 
-            IRestResponse<CreateReactionResponse> response = await client.ExecuteTaskAsync<CreateReactionResponse>(request);
+            IRestResponse<CreateReactionResponse> response = await twitch_api_client.ExecuteTaskAsync<CreateReactionResponse>(request);
 
             return response.Data;
         }
@@ -851,7 +815,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("post_id", post_id);
             request.AddQueryParameter("emote_id", emote_id);
 
-            IRestResponse<DeleteReactionResponse> response = await client.ExecuteTaskAsync<DeleteReactionResponse>(request);
+            IRestResponse<DeleteReactionResponse> response = await twitch_api_client.ExecuteTaskAsync<DeleteReactionResponse>(request);
 
             return response.Data;
         }
@@ -873,7 +837,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("post_id", post_id.ToString());
             request = paging.Add(request);
 
-            IRestResponse<PostCommentsPage> response = await client.ExecuteTaskAsync<PostCommentsPage>(request);
+            IRestResponse<PostCommentsPage> response = await twitch_api_client.ExecuteTaskAsync<PostCommentsPage>(request);
 
             return response.Data;
         }
@@ -905,7 +869,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { content });
 
-            IRestResponse<Comment> response = await client.ExecuteTaskAsync<Comment>(request);
+            IRestResponse<Comment> response = await twitch_api_client.ExecuteTaskAsync<Comment>(request);
 
             return response.Data;
         }
@@ -922,7 +886,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("post_id", post_id.ToString());
             request.AddUrlSegment("comment_id", comment_id.ToString());
 
-            IRestResponse<Comment> response = await client.ExecuteTaskAsync<Comment>(request);
+            IRestResponse<Comment> response = await twitch_api_client.ExecuteTaskAsync<Comment>(request);
 
             return response.Data;
         }
@@ -940,7 +904,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("comment_id", comment_id);
             request.AddQueryParameter("emote_id", emote_id);
 
-            IRestResponse<CreateReactionResponse> response = await client.ExecuteTaskAsync<CreateReactionResponse>(request);
+            IRestResponse<CreateReactionResponse> response = await twitch_api_client.ExecuteTaskAsync<CreateReactionResponse>(request);
 
             return response.Data;
         }
@@ -958,7 +922,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("comment_id", comment_id);
             request.AddQueryParameter("emote_id", emote_id);
 
-            IRestResponse<DeleteReactionResponse> response = await client.ExecuteTaskAsync<DeleteReactionResponse>(request);
+            IRestResponse<DeleteReactionResponse> response = await twitch_api_client.ExecuteTaskAsync<DeleteReactionResponse>(request);
 
             return response.Data;
         }
@@ -982,7 +946,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("streams/followed", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<StreamsPage> response = await client.ExecuteTaskAsync<StreamsPage>(request);
+            IRestResponse<StreamsPage> response = await twitch_api_client.ExecuteTaskAsync<StreamsPage>(request);
 
             return response.Data;
         }
@@ -1014,7 +978,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("user", Method.GET);
 
-            IRestResponse<UserOAuth> response = await client.ExecuteTaskAsync<UserOAuth>(request);
+            IRestResponse<UserOAuth> response = await twitch_api_client.ExecuteTaskAsync<UserOAuth>(request);
 
             return response.Data;            
         }
@@ -1028,7 +992,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("users/{user_id}/emotes", Method.GET);
             request.AddUrlSegment("user_id", api_id);
 
-            IRestResponse<EmoteSet> response = await client.ExecuteTaskAsync<EmoteSet>(request);
+            IRestResponse<EmoteSet> response = await twitch_api_client.ExecuteTaskAsync<EmoteSet>(request);
 
             return response.Data;
         }
@@ -1046,7 +1010,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", user_id);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<UserSubscriber> response = await client.ExecuteTaskAsync<UserSubscriber>(request);
+            IRestResponse<UserSubscriber> response = await twitch_api_client.ExecuteTaskAsync<UserSubscriber>(request);
 
             return response.Data;
         }
@@ -1077,7 +1041,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", user_id);            
             request.AddParameter("notifications", notifications);
 
-            IRestResponse<Follow> response = await client.ExecuteTaskAsync<Follow>(request);
+            IRestResponse<Follow> response = await twitch_api_client.ExecuteTaskAsync<Follow>(request);
 
             return response.Data;
         }
@@ -1093,7 +1057,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", api_id);
             request.AddUrlSegment("channel_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -1114,7 +1078,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", api_id);
             request = paging.Add(request);
 
-            IRestResponse<BlockedUsersPage> response = await client.ExecuteTaskAsync<BlockedUsersPage>(request);
+            IRestResponse<BlockedUsersPage> response = await twitch_api_client.ExecuteTaskAsync<BlockedUsersPage>(request);
 
             return response.Data;
         }
@@ -1144,7 +1108,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", api_id);
             request.AddUrlSegment("channel_id", user_id);
 
-            IRestResponse<BlockedUser> response = await client.ExecuteTaskAsync<BlockedUser>(request);
+            IRestResponse<BlockedUser> response = await twitch_api_client.ExecuteTaskAsync<BlockedUser>(request);
 
             return response.Data;
         }
@@ -1162,7 +1126,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", api_id);
             request.AddUrlSegment("channel_id", user_id);
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }
@@ -1186,13 +1150,14 @@ namespace TwitchLibrary.API
             RestRequest request = Request("videos/followed", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<VideosFollowsPage> response = await client.ExecuteTaskAsync<VideosFollowsPage>(request);
+            IRestResponse<VideosFollowsPage> response = await twitch_api_client.ExecuteTaskAsync<VideosFollowsPage>(request);
 
             return response.Data;
         }
 
         /// <summary>
         /// Asynchronously gets a complete list of all the archives from the users the channel associated with the client's authentication token is following.
+        /// Required scope: 'user_read'
         /// </summary>        
         public async Task<List<Video>> GetUserFollowsArchivesAsync()
         {
@@ -1203,6 +1168,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a complete list of all the highlights from the users the channel associated with the client's authentication token is following.
+        /// Required scope: 'user_read'
         /// </summary>        
         public async Task<List<Video>> GetUserFollowsHighlightsAsync()
         {
@@ -1213,6 +1179,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a complete list of all the uploads from the users the channel associated with the client's authentication token is following.
+        /// Required scope: 'user_read'
         /// </summary>        
         public async Task<List<Video>> GetUserFollowsUploadsAsync()
         {
@@ -1223,6 +1190,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a complete list of all the videos (archives, uploads, and highlights) from the users the channel associated with the client's authentication token is following.
+        /// Required scope: 'user_read'
         /// </summary>
         public async Task<List<Video>> GetUserFollowsVideosAsync()
         {
@@ -1233,6 +1201,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a complete list of videos from the users the channel associated with the client's authentication token is following.
+        /// Required scope: 'user_read'
         /// </summary>        
         public async Task<List<Video>> GetUserFollowsVideosAsync(BroadcastType[] broadcast_type)
         {
@@ -1245,6 +1214,243 @@ namespace TwitchLibrary.API
             return follows_videos;
         }
 
+        #endregion
+
+        #region Video Upload 
+
+        /// <summary>
+        /// Asynchronously creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CreatedVideo> CreateVideoUploadAsync(string channel_name, string title, bool auto_retry = false)
+        {
+            CreatedVideo created_video = await CreateVideoUploadAsync(channel_name, title, "", "", auto_retry);
+
+            return created_video;
+        }
+
+        /// <summary>
+        /// Asynchronously creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CreatedVideo> CreateVideoUploadAsync(string channel_name, string title, string description, bool auto_retry = false)
+        {
+            CreatedVideo created_video = await CreateVideoUploadAsync(channel_name, title, description, "", auto_retry);
+
+            return created_video;
+        }
+
+        /// <summary>
+        /// Asynchronously creates a video upload request to a specified channel_name.
+        /// The <see cref="CreatedVideo"/> response contains the video upload token and a partially filled out <see cref="Video"/> object is successfull.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CreatedVideo> CreateVideoUploadAsync(string channel_name, string title, string description, string tags, bool auto_retry = false)
+        {
+            int retry_limit = 3;
+            int retry_count = 0;
+
+            IRestResponse<CreatedVideo> response;
+
+            do
+            {
+                RestRequest request = Request("videos", Method.POST, ApiVersion.v4);
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(new { channel_name, title, description, tags });
+
+                response = await twitch_api_client.ExecuteTaskAsync<CreatedVideo>(request);
+
+                if(response.StatusCode == HttpStatusCode.InternalServerError && auto_retry)
+                {
+                    ++retry_count;
+                }
+            }
+            while (response.StatusCode == HttpStatusCode.InternalServerError &&
+                   auto_retry &&
+                   retry_count < retry_limit);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously uploads a video part to the specified video_id.
+        /// The video part data must be between 5MB and 25MB, unless it is the last part to be uploaded.
+        /// This method does not inherently require an oauth token or a scope, but 'channel_editor' is required to initialize the upload.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HttpStatusCode> UploadVideoPartAsync(string video_id, int part, string upload_token, byte[] data, bool auto_retry = false)
+        {
+            int retry_limit = 3;
+            int retry_count = 0;
+
+            IRestResponse<object> response;
+
+            do
+            {
+                RestRequest request = Request("{video_id}", Method.PUT, ApiVersion.v4);
+                       
+                request.AddUrlSegment("video_id", video_id);
+                request.AddQueryParameter("part", part.ToString());
+                request.AddQueryParameter("upload_token", upload_token);
+                request.AddHeader("Content-Length", data.Length.ToString());
+                request.AddParameter("application/bson", data, ParameterType.RequestBody);
+
+                response = await uploads_api_client.ExecuteTaskAsync<object>(request);
+
+                if (response.StatusCode == HttpStatusCode.InternalServerError && auto_retry)
+                {
+                    ++retry_count;
+                }
+            }
+            while (response.StatusCode == HttpStatusCode.InternalServerError &&
+                   auto_retry &&
+                   retry_count < retry_limit);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously completes the video upload to twitch once all video parts are uploaded to twitch.
+        /// This method does not inherently require an oauth token or a scope, but 'channel_editor' is required to initialize the upload.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HttpStatusCode> CompleteVideoUploadAsync(string video_id, string upload_token, bool auto_retry = false)
+        {
+            int retry_limit = 3;
+            int retry_count = 0;
+
+            IRestResponse<object> response;
+
+            do
+            {
+                RestRequest request = Request("{video_id}/complete", Method.POST, ApiVersion.v4);
+                request.AddUrlSegment("video_id", video_id);
+                request.AddQueryParameter("upload_token", upload_token);
+
+                response = await uploads_api_client.ExecuteTaskAsync<object>(request);
+
+                if (response.StatusCode == HttpStatusCode.InternalServerError && auto_retry)
+                {
+                    ++retry_count;
+                }
+            }
+            while (response.StatusCode == HttpStatusCode.InternalServerError &&
+                   auto_retry &&
+                   retry_count < retry_limit);
+
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HttpStatusCode> UploadVideoAsync(string path, string channel_name, string video_title, bool auto_retry = false)
+        {
+            HttpStatusCode upload_video_status = await UploadVideoAsync(path, channel_name, video_title, "", "", auto_retry);
+
+            return upload_video_status;
+        }
+
+        /// <summary>
+        /// Asynchronously uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HttpStatusCode> UploadVideoAsync(string path, string channel_name, string video_title, string description, bool auto_retry = false)
+        {
+            HttpStatusCode upload_video_status = await UploadVideoAsync(path, channel_name, video_title, description, "", auto_retry);
+
+            return upload_video_status;
+        }
+
+        /// <summary>
+        /// Asynchronously uploads a video to twitch from a local file path to a specified channel.
+        /// Automatically handles the video creation, part separation, part uploads, and upload completetion to Twitch.
+        /// Max video size: 10GB
+        /// Video format:   MP4,
+        /// Audio format:   AAC,
+        /// Video codec:    H.264,
+        /// Video bitrate:  up to 10Mbps,
+        /// Resolution:     up to 1080p,
+        /// FPS:            up to 60FPS.
+        /// The operation can be retried up to 3 times if status 500 is returned from the server and "auto_retry" is set to true.
+        /// Required scope: 'channel_editor'
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HttpStatusCode> UploadVideoAsync(string path, string channel_name, string video_title, string description, string tags, bool auto_retry = false)
+        {
+            long max_file_size = (long)10 * 1024 * 1024 * 1024;
+
+            FileInfo info = new FileInfo(path);
+
+            //file trying to be uploaded doesn't exist
+            if (!info.Exists)
+            {
+                return HttpStatusCode.NotFound;
+            }
+
+            //file trying to be uploaded is larger than 10GB
+            if (info.Length > max_file_size)
+            {
+                return HttpStatusCode.RequestEntityTooLarge;
+            }
+
+            //create the video upload request
+            CreatedVideo created_video = await CreateVideoUploadAsync(channel_name, video_title, description, tags, auto_retry);
+
+            int part = 1;
+            int chunk_size = 20 * 1024 * 1024;
+
+            //read the file into memory at 20MB parts in case the user doesn't haver a shit ton of RAM
+            using (FileStream file = File.OpenRead(path))
+            {
+                byte[] buffer = new byte[chunk_size];
+
+                while (file.Read(buffer, 0, buffer.Length) > 0)
+                {
+                    //upload each 20MB part
+                    HttpStatusCode upload_part_status = await UploadVideoPartAsync(created_video.video._id, part, created_video.upload.token, buffer);
+
+                    ++part;
+                }
+            }
+
+            //finish the upload process to twitch
+            HttpStatusCode upload_video_status = await CompleteVideoUploadAsync(created_video.video._id, created_video.upload.token);
+
+            return upload_video_status;
+        }
 
         #endregion
 
@@ -1255,7 +1461,7 @@ namespace TwitchLibrary.API
         /// Requires the authentication token of the broadcaster and the client id of the application from Twitch.
         /// </summary>
         public new RestRequest Request(string endpoint, Method method, ApiVersion api_version = ApiVersion.v5)
-        {
+        {            
             RestRequest request = new RestRequest(endpoint, method);
 
             if (client_id.isValidString())
@@ -1264,7 +1470,7 @@ namespace TwitchLibrary.API
             }
             
             request.AddHeader("Authorization", "OAuth " + oauth_token);
-            request.AddQueryParameter("api_version", api_version.ToString().TextAfter("v"));                    
+            request.AddQueryParameter("api_version", api_version.ToString().TextAfter("v"));            
 
             return request;
         }

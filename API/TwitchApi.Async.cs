@@ -38,20 +38,29 @@ namespace TwitchLibrary.API
 {
     public partial class TwitchApi : ITwitchRequest
     {
-        protected string client_id,
-                         oauth_token;
+        protected string client_id;
+        protected string oauth_token;
 
-        protected RestClient client;
+        protected RestClient twitch_api_client;
+        protected RestClient uploads_api_client;
 
-        public TwitchApi(string client_id, string oauth_token = "")
+        public TwitchApi(string _client_id, string _oauth_token = "")
         {
-            this.client_id = client_id;
-            this.oauth_token = oauth_token;
+            client_id = _client_id;
+            oauth_token = _oauth_token;
                   
-            client = new RestClient("https://api.twitch.tv/kraken");                                    
-            client.AddHandler("application/json", new CustomJsonDeserializer());
-            client.AddHandler("text/html", new CustomJsonDeserializer());
-            client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v5+json");
+            //generic twitch api endpoints
+            twitch_api_client = new RestClient("https://api.twitch.tv/kraken");                                    
+            twitch_api_client.AddHandler("application/json", new CustomJsonDeserializer());
+            twitch_api_client.AddHandler("application/xml", new CustomJsonDeserializer());
+            twitch_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v5+json");
+
+            //video upload endpoints
+            uploads_api_client = new RestClient("https://uploads.twitch.tv/upload");
+            uploads_api_client.AddHandler("application/json", new CustomJsonDeserializer());
+            //uploads_api_client.AddHandler("application/bson", new CustomBsonDeserializer());
+            uploads_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v4+json");
+            uploads_api_client.AddDefaultHeader("Content-Type", "application/bson");
         }
 
         #region Channels
@@ -64,7 +73,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("channels/{channel_id}", Method.GET);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<Channel> response = await client.ExecuteTaskAsync<Channel>(request);
+            IRestResponse<Channel> response = await twitch_api_client.ExecuteTaskAsync<Channel>(request);
 
             return response.Data;
         }
@@ -94,7 +103,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", channel_id);
             request = paging.Add(request);
 
-            IRestResponse<FollowerPage> response = await client.ExecuteTaskAsync<FollowerPage>(request);
+            IRestResponse<FollowerPage> response = await twitch_api_client.ExecuteTaskAsync<FollowerPage>(request);
 
             return response.Data;
         }
@@ -121,7 +130,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("channels/{channel_id}/teams", Method.GET);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<ChannelTeams> response = await client.ExecuteTaskAsync<ChannelTeams>(request);
+            IRestResponse<ChannelTeams> response = await twitch_api_client.ExecuteTaskAsync<ChannelTeams>(request);
 
             return response.Data;
         }
@@ -141,7 +150,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", channel_id);
             request = paging.Add(request);
 
-            IRestResponse<VideosPage> response = await client.ExecuteTaskAsync<VideosPage>(request);
+            IRestResponse<VideosPage> response = await twitch_api_client.ExecuteTaskAsync<VideosPage>(request);
 
             return response.Data;
         }
@@ -209,7 +218,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("channels/{channel_id}/community", Method.GET);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+            IRestResponse<Community> response = await twitch_api_client.ExecuteTaskAsync<Community>(request);
 
             return response.Data;
         }        
@@ -226,7 +235,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("chat/{channel_id}/badges", Method.GET);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<Badges> response = await client.ExecuteTaskAsync<Badges>(request);
+            IRestResponse<Badges> response = await twitch_api_client.ExecuteTaskAsync<Badges>(request);
 
             return response.Data;
         }
@@ -240,7 +249,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("chat/emoticon_images", Method.GET);
             request.AddQueryParameter("emotesets", emote_set);
 
-            IRestResponse<EmoteSet> response = await client.ExecuteTaskAsync<EmoteSet>(request);
+            IRestResponse<EmoteSet> response = await twitch_api_client.ExecuteTaskAsync<EmoteSet>(request);
 
             return response.Data;
         }
@@ -253,7 +262,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("chat/emoticon_images", Method.GET);
 
-            IRestResponse<Emotes> response = await client.ExecuteTaskAsync<Emotes>(request);
+            IRestResponse<Emotes> response = await twitch_api_client.ExecuteTaskAsync<Emotes>(request);
 
             return response.Data;
         }
@@ -266,7 +275,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("chat/emoticons", Method.GET);
 
-            IRestResponse<EmoteImages> response = await client.ExecuteTaskAsync<EmoteImages>(request);
+            IRestResponse<EmoteImages> response = await twitch_api_client.ExecuteTaskAsync<EmoteImages>(request);
 
             return response.Data;
         }
@@ -289,7 +298,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("clips/top", Method.GET, ApiVersion.v4);
             request = paging.Add(request);
 
-            IRestResponse<ClipsPage> response = await client.ExecuteTaskAsync<ClipsPage>(request);
+            IRestResponse<ClipsPage> response = await twitch_api_client.ExecuteTaskAsync<ClipsPage>(request);
 
             return response.Data;
         }
@@ -321,7 +330,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_name", channel_name);
             request.AddUrlSegment("slug", slug);
 
-            IRestResponse<Clip> response = await client.ExecuteTaskAsync<Clip>(request);
+            IRestResponse<Clip> response = await twitch_api_client.ExecuteTaskAsync<Clip>(request);
 
             return response.Data;
         }
@@ -345,7 +354,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("communities", Method.GET);
             request.AddQueryParameter("name", community_name.ToLower());
 
-            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+            IRestResponse<Community> response = await twitch_api_client.ExecuteTaskAsync<Community>(request);
 
             return response.Data;
         }
@@ -358,7 +367,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("communities/{community_id}", Method.GET);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<Community> response = await client.ExecuteTaskAsync<Community>(request);
+            IRestResponse<Community> response = await twitch_api_client.ExecuteTaskAsync<Community>(request);
 
             return response.Data;
         }
@@ -377,7 +386,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("communities/top", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<TopCommunityPage> response = await client.ExecuteTaskAsync<TopCommunityPage>(request);
+            IRestResponse<TopCommunityPage> response = await twitch_api_client.ExecuteTaskAsync<TopCommunityPage>(request);
 
             return response.Data;
         }
@@ -403,7 +412,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("communities/{community_id}/moderators", Method.GET);
             request.AddUrlSegment("community_id", community_id);
 
-            IRestResponse<CommunityModerators> response = await client.ExecuteTaskAsync<CommunityModerators>(request);
+            IRestResponse<CommunityModerators> response = await twitch_api_client.ExecuteTaskAsync<CommunityModerators>(request);
 
             return response.Data;
         }
@@ -419,7 +428,7 @@ namespace TwitchLibrary.API
             request.RequestFormat = DataFormat.Json;
             request.AddBody(new { channel_id });
 
-            IRestResponse<object> response = await client.ExecuteTaskAsync<object>(request);
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
         }        
@@ -443,7 +452,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("games/top", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<TopGamesPage> response = await client.ExecuteTaskAsync<TopGamesPage>(request);
+            IRestResponse<TopGamesPage> response = await twitch_api_client.ExecuteTaskAsync<TopGamesPage>(request);
 
             return response.Data;
         }
@@ -472,7 +481,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("ingests", Method.GET);
 
-            IRestResponse<Ingests> response = await client.ExecuteTaskAsync<Ingests>(request);
+            IRestResponse<Ingests> response = await twitch_api_client.ExecuteTaskAsync<Ingests>(request);
 
             return response.Data;
         }
@@ -497,7 +506,7 @@ namespace TwitchLibrary.API
             request.AddQueryParameter("query", channel_name.ToLower());
             request = paging.Add(request);
 
-            IRestResponse<SearchChannelsPage> response = await client.ExecuteTaskAsync<SearchChannelsPage>(request);
+            IRestResponse<SearchChannelsPage> response = await twitch_api_client.ExecuteTaskAsync<SearchChannelsPage>(request);
 
             return response.Data;
         }
@@ -532,7 +541,7 @@ namespace TwitchLibrary.API
             request.AddQueryParameter("query", search.ToLower());
             request = paging.Add(request);
 
-            IRestResponse<SearchStreamsPage> response = await client.ExecuteTaskAsync<SearchStreamsPage>(request);
+            IRestResponse<SearchStreamsPage> response = await twitch_api_client.ExecuteTaskAsync<SearchStreamsPage>(request);
 
             return response.Data;
         }
@@ -562,7 +571,7 @@ namespace TwitchLibrary.API
             request.AddQueryParameter("query", game_name);
             request.AddQueryParameter("live", live.ToString().ToLower());
 
-            IRestResponse<SearchGames> response = await client.ExecuteTaskAsync<SearchGames>(request);
+            IRestResponse<SearchGames> response = await twitch_api_client.ExecuteTaskAsync<SearchGames>(request);
 
             return response.Data;
         }
@@ -580,7 +589,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("channel_id", channel_id);
             request.AddQueryParameter("stream_type", stream_type.ToString().ToLower());
 
-            IRestResponse<StreamResult> response = await client.ExecuteTaskAsync<StreamResult>(request);
+            IRestResponse<StreamResult> response = await twitch_api_client.ExecuteTaskAsync<StreamResult>(request);
 
             return response.Data;
         }
@@ -620,7 +629,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("streams", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<StreamsPage> response = await client.ExecuteTaskAsync<StreamsPage>(request);
+            IRestResponse<StreamsPage> response = await twitch_api_client.ExecuteTaskAsync<StreamsPage>(request);
 
             return response.Data;
         }
@@ -656,7 +665,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("streams/featured", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<FeaturedStreamsPage> response = await client.ExecuteTaskAsync<FeaturedStreamsPage>(request);
+            IRestResponse<FeaturedStreamsPage> response = await twitch_api_client.ExecuteTaskAsync<FeaturedStreamsPage>(request);
 
             return response.Data;
         }
@@ -687,7 +696,7 @@ namespace TwitchLibrary.API
                 request.AddQueryParameter("game", game_name);
             }
 
-            IRestResponse<StreamSummary> response = await client.ExecuteTaskAsync<StreamSummary>(request);
+            IRestResponse<StreamSummary> response = await twitch_api_client.ExecuteTaskAsync<StreamSummary>(request);
 
             return response.Data;
         }
@@ -707,7 +716,7 @@ namespace TwitchLibrary.API
             request.AddQueryParameter("community_id", community_id);
             request = paging.Add(request);
 
-            IRestResponse<CommunityStreamsPage> response = await client.ExecuteTaskAsync<CommunityStreamsPage>(request);
+            IRestResponse<CommunityStreamsPage> response = await twitch_api_client.ExecuteTaskAsync<CommunityStreamsPage>(request);
 
             return response.Data;
         }
@@ -738,7 +747,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("teams/{team}", Method.GET);
             request.AddUrlSegment("team", team_name);
 
-            IRestResponse<Team> response = await client.ExecuteTaskAsync<Team>(request);
+            IRestResponse<Team> response = await twitch_api_client.ExecuteTaskAsync<Team>(request);
 
             return response.Data;
         }
@@ -758,7 +767,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("teams", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<TeamsPage> response = await client.ExecuteTaskAsync<TeamsPage>(request);
+            IRestResponse<TeamsPage> response = await twitch_api_client.ExecuteTaskAsync<TeamsPage>(request);
 
             return response.Data;
         }
@@ -789,7 +798,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("users/{user_id}", Method.GET);
             request.AddUrlSegment("user_id", user_id);
 
-            IRestResponse<User> response = await client.ExecuteTaskAsync<User>(request);
+            IRestResponse<User> response = await twitch_api_client.ExecuteTaskAsync<User>(request);
 
             return response.Data;
         }
@@ -810,7 +819,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", user_id);
             request = paging.Add(request);
 
-            IRestResponse<FollowsPage> response = await client.ExecuteTaskAsync<FollowsPage>(request);
+            IRestResponse<FollowsPage> response = await twitch_api_client.ExecuteTaskAsync<FollowsPage>(request);
 
             return response.Data;
         }
@@ -841,7 +850,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("user_id", user_id);
             request.AddUrlSegment("channel_id", channel_id);
 
-            IRestResponse<Follow> response = await client.ExecuteTaskAsync<Follow>(request);
+            IRestResponse<Follow> response = await twitch_api_client.ExecuteTaskAsync<Follow>(request);
 
             return response.Data;
         }
@@ -881,7 +890,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("videos/{video_id}", Method.GET);
             request.AddUrlSegment("video_id", video_id);
 
-            IRestResponse<Video> response = await client.ExecuteTaskAsync<Video>(request);
+            IRestResponse<Video> response = await twitch_api_client.ExecuteTaskAsync<Video>(request);
 
             return response.Data;
         }
@@ -900,7 +909,7 @@ namespace TwitchLibrary.API
             RestRequest request = Request("videos/top", Method.GET);
             request = paging.Add(request);
 
-            IRestResponse<TopVideosPage> response = await client.ExecuteTaskAsync<TopVideosPage>(request);
+            IRestResponse<TopVideosPage> response = await twitch_api_client.ExecuteTaskAsync<TopVideosPage>(request);
 
             return response.Data;
         }

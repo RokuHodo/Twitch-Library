@@ -188,7 +188,7 @@ namespace TwitchLibrary.Helpers.Paging
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
             //calculate the max number of pages that would be returned based on requested_page._total and paging.limit
-            decimal pages_dec = requested_page_total_value / paging_limit_value;
+            decimal pages_dec = requested_page_total_value / (decimal)paging_limit_value;
             int pages = Convert.ToInt32(Math.Ceiling(pages_dec));
             int page = 0;
 
@@ -263,7 +263,7 @@ namespace TwitchLibrary.Helpers.Paging
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
             //calculate the max number of pages that would be returned based on requested_page._total and paging.limit
-            decimal pages_dec = requested_page_total_value / paging_limit_value;
+            decimal pages_dec = requested_page_total_value / (decimal)paging_limit_value;
             int pages = Convert.ToInt32(Math.Ceiling(pages_dec));
             int page = 0;
 

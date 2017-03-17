@@ -51,7 +51,7 @@ namespace TwitchLibrary.Clients
         public event EventHandler<OnSuccessfulConnectionEventArgs> OnSuccessfulConnection;
 
         //TODO: reimplement new follower service
-        public event EventHandler<OnNewFollowerEventArgs> OnNewFollower;
+        //public event EventHandler<OnNewFollowerEventArgs> OnNewFollower;
 
         public event EventHandler<OnReSubscriberEventArgs> OnReSubscriber;
         public event EventHandler<OnNewSubscriberEventArgs> OnNewSubscriber;

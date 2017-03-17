@@ -149,7 +149,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Sets the community for the channel associated with the client's authentication token.
         /// Returns status '204' if the community was successfully set.
-        /// Required scope: 'any'
+        /// Required scope: 'channel_editor'
         /// </summary>
         public HttpStatusCode SetChannelCommunity(string community_id)
         {
@@ -160,7 +160,7 @@ namespace TwitchLibrary.API
         /// Removes a channel from their community.        
         /// Intended for use by a channel in the community.
         /// Returns status '204' if the channel was successfully removed.
-        /// Required scope: 'none'
+        /// Required scope: 'channel_editor'
         /// </summary>
         public HttpStatusCode DeleteChannelFromCommunity()
         {
@@ -171,7 +171,7 @@ namespace TwitchLibrary.API
         /// Removes a channel from their community.        
         /// Intended for use by the community owner.
         /// Returns status '204' if the channel was successfully removed.
-        /// Required scope: 'none'
+        /// Required scope: 'channel_editor'
         /// </summary>
         public HttpStatusCode DeleteChannelFromCommunity(string channel_id)
         {
@@ -207,23 +207,10 @@ namespace TwitchLibrary.API
         #region Communities
 
         /// <summary>
-        /// Creates a community.
-        /// The name must be 3 to 25 characters and only include alphanumeric characters, underscores, dashes, tildes, or periods. If The name is less than 3 characters, a default <see cref="CreatedCommunity"/> is returned.
-        /// The max size for the summary, description, and rules is 160, 1572864, and 1572864 characters respectively.
-        /// All parameters are required to have some value and cannot be empty.
-        /// If any of these conditions is not met, the community will not be created.
-        /// Required scope: 'any'
-        /// </summary>
-        public CreatedCommunity CreateCommunity(string community_name, string summary, string description, string rules)
-        {
-            return CreateCommunityAsync(community_name, summary, description, rules).Result;
-        }
-
-        /// <summary>
         /// Updates the summary of a community.
         /// The max summary size is 160 characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UpdateCommunitySummary(string community_id, string summary)
         {
@@ -234,7 +221,7 @@ namespace TwitchLibrary.API
         /// Updates the description of a community.
         /// The max description size is 1572864 (1.5MB) characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UpdateCommunityDescription(string community_id, string description)
         {
@@ -245,7 +232,7 @@ namespace TwitchLibrary.API
         /// Updates the rules of a community.
         /// The max rules size is 1572864 (1.5MB) characters.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UpdateCommunityRules(string community_id, string rules)
         {
@@ -255,7 +242,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Updates the email of a community.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UpdateCommunityEmail(string community_id, string email)
         {
@@ -265,7 +252,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a single paged list of banned community users.
         /// <see cref="PagingBannedCommunityUsers"/> can be specified to request a custom paged result.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public BannedCommunityUsersPage GetBannedCommunityUsersPage(string community_id, PagingBannedCommunityUsers paging = null)
         {
@@ -274,7 +261,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a complete list of banned community users.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public List<BannedCommunityUser> GetBannedCommunityUsers(string community_id)
         {
@@ -284,7 +271,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Bans a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public HttpStatusCode BanCommunityUser(string community_id, string user_id)
         {
@@ -294,7 +281,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Unbans a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public HttpStatusCode UnbanCommunityUser(string community_id, string user_id)
         {
@@ -305,7 +292,7 @@ namespace TwitchLibrary.API
         /// Creates a community avatar image.
         /// The image must be 600 x 800 and no larger than 1MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// <param name="avatar_image">64 bit encoded image string</param>
         /// </summary>
         public HttpStatusCode CreateCommunityAvatar(string community_id, string avatar_image)
@@ -317,7 +304,7 @@ namespace TwitchLibrary.API
         /// Uploads a community avatar image from a local file path.
         /// The image must be 600 x 800 and no larger than 1MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UploadCommunityAvatar(string community_id, string file_path)
         {
@@ -327,7 +314,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Creates a community avatar image.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode DeleteCommunityAvatar(string community_id)
         {
@@ -338,7 +325,7 @@ namespace TwitchLibrary.API
         /// Creates a community cover image.
         /// The image must be 1200 x 180 and no larger than 3MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// /// <param name="cover_image">64 bit encoded image string</param>
         /// </summary>
         public HttpStatusCode CreateCommunityCover(string community_id, string cover_image)
@@ -350,7 +337,7 @@ namespace TwitchLibrary.API
         /// Uploads a community cover image from a local file path.
         /// The image must be 1200 x 180 and no larger than 3MB.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode UploadCommunityCover(string community_id, string file_path)
         {
@@ -360,7 +347,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Deletes a community cover image from a local file path.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode DeleteCommunityCover(string community_id)
         {
@@ -370,7 +357,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Adds a community moderator.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode AddCommunityModerator(string community_id, string user_id)
         {
@@ -380,7 +367,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Asynchronously deletes a community moderator.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_edit'
         /// </summary>
         public HttpStatusCode DeleteCommunityModerator(string community_id, string user_id)
         {
@@ -399,7 +386,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Gets a single paged list of timed out community users.
         /// <see cref="PagingTimedOutCommunityUsers"/> can be specified to request a custom paged result.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public TimedOutCommunityUsersPage GetTimedOutCommunityUsersPage(string community_id, PagingTimedOutCommunityUsers paging = null)
         {
@@ -408,7 +395,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Gets a complete list of timed out community users.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public List<TimedOutCommunityUser> GetTimedOutCommunityUsers(string community_id)
         {
@@ -419,7 +406,7 @@ namespace TwitchLibrary.API
         /// Times out a community user for a number of hours.
         /// Minimum duration is 1 hour.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public HttpStatusCode TimeOutCommunityUser(string community_id, string user_id, int duration, string reason = "")
         {
@@ -429,7 +416,7 @@ namespace TwitchLibrary.API
         /// <summary>
         /// Deletes a times out a community user.
         /// Returns status '204' if the operation was successful.
-        /// Required scope: 'any'
+        /// Required scope: 'communities_moderate'
         /// </summary>
         public HttpStatusCode DeleteTimeOutCommunityUser(string community_id, string user_id)
         {

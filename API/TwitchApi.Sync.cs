@@ -28,7 +28,7 @@ using TwitchLibrary.Models.API.Videos;
 
 /*
  * TODO: (API) Master todo list
- *      -   Add wrappers for communities reference
+ *      -   Add wrappers for new Collections reference
  *      -   Add in video upload endpoints and methods  
  *      -   Implement custom exceptions for each failure case
  */
