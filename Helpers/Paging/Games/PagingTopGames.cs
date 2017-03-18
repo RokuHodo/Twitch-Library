@@ -1,8 +1,6 @@
 ﻿//project namespaces
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
-
 namespace TwitchLibrary.Helpers.Paging.Games
 {
     public class PagingTopGames : PagingLimitOffset, ITwitchPaging

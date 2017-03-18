@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿//standard namespaces
+using System.Collections.Generic;
 
 //project namespaces
 using TwitchLibrary.Models.API.HTTP;

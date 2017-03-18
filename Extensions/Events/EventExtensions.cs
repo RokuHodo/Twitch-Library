@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Threading.Tasks;
 
 namespace TwitchLibrary.Extensions.Events

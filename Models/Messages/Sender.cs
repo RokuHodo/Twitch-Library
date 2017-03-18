@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System.Collections.Generic;
 using System.Drawing;
 
 //project namespaces
@@ -17,7 +18,7 @@ namespace TwitchLibrary.Models.Messages
         public string display_name { get; protected set; }
         public string user_id { get; protected set; }
 
-        public string[] badges { get; protected set; }
+        public Dictionary<string, string> badges { get; protected set; }
 
         public UserType user_type { get; protected set; }    
 
@@ -36,7 +37,7 @@ namespace TwitchLibrary.Models.Messages
 
                 badges = TagConverter.ToBadges(irc_message.tags, "badges");
 
-                user_type = Array.Exists(badges, badge => badge.Contains("broadcaster")) ? UserType.broadcaster : TagConverter.ToEnum<UserType>(irc_message.tags, "user-type");
+                user_type = badges.ContainsKey("broadcaster") ? UserType.broadcaster : TagConverter.ToEnum<UserType>(irc_message.tags, "user-type");
 
                 color = TagConverter.ToColor(irc_message.tags, "color");
             }            

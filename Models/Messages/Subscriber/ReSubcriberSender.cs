@@ -1,4 +1,4 @@
-﻿
+﻿//project namespaces
 using TwitchLibrary.Helpers.Messages;
 using TwitchLibrary.Models.Messages.IRC;
 

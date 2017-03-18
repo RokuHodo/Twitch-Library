@@ -1,8 +1,6 @@
 ﻿//project namespaces
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
-
 namespace TwitchLibrary.Helpers.Paging.Streams
 {
     public class PagingFeaturedStreams : PagingLimitOffset, ITwitchPaging

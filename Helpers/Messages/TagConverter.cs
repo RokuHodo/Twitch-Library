@@ -1,11 +1,13 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
+//project namespaces
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Extensions;
-using TwitchLibrary.Models.Messages.Emotes;
+using TwitchLibrary.Models.Messages.Tags;
 
 namespace TwitchLibrary.Helpers.Messages
 {
@@ -126,63 +128,67 @@ namespace TwitchLibrary.Helpers.Messages
             return value;
         }
 
-        public static string[] ToBadges(Dictionary<string, string> tags, string key)
+        public static Dictionary<string, string> ToBadges(Dictionary<string, string> tags, string key)
         {
-            List<string> badges_list = new List<string>();
+            Dictionary<string, string> badges = new Dictionary<string, string>();
 
             if (!key.isValidString())
             {
-                return badges_list.ToArray();
+                return badges;
             }
 
-            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');
+            //split the tag into each badge and it's version number            
+            //badge/version,badge/verison...
+            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    //[0] badge/verison     [1] badge/version       ...
 
             if (!badges_array.isValidArray())
             {
-                return badges_list.ToArray();
+                return badges;
             }
 
+            //split each badge into it's name and version number
             foreach(string element in badges_array)
             {
-                string badge = element.TextBefore("/");
+                string[] info = element.StringToArray<string>('/');                             //[0] badge             [1] version
 
-                if (badge.isValidString())
-                {
-                    badges_list.Add(badge);
-                }
+                badges[info[0]] = info[1];
             }
 
-            return badges_list.ToArray();
+            return badges;
         }
 
         public static MessageEmotes ToEmotes(Dictionary<string, string> tags, string key)
         {
-            int count_total = 0;
-            MessageEmotes message_emotes_master;
+            MessageEmotes emotes = new MessageEmotes();
 
-            List<MessageEmote> message_emotes_unique = new List<MessageEmote>();
-            string[] emotes_array_unique = ToGeneric<string>(tags, "emotes").StringToArray<string>('/');    //get every unique emote with attached ranges
+            //get every unique emote with all ranges where the emote was used in the body of message
+            //emote_id:start-end,start-end,.../emote_id:start-end,start-end,...
+            string[] emotes_array = ToGeneric<string>(tags, key).StringToArray<string>('/');
 
-            if (!emotes_array_unique.isValidArray())
+            if (!emotes_array.isValidArray())
             {
-                return new MessageEmotes();
+                return emotes;
             }
 
-            foreach (string emote_element in emotes_array_unique)
+            int count_total = 0;
+
+            List<MessageEmote> emotes_list = new List<MessageEmote>();
+
+            foreach (string emote_element in emotes_array)
             {
                 List<MessageEmoteRange> ranges = new List<MessageEmoteRange>();
 
-                string[] emote_data = emote_element.StringToArray<string>(':'),                             //split the emote into the ID and the ranges
-                         emote_ranges = emote_data[1].StringToArray<string>(',');                           //get the ranges in the message where the emote was used
+                string[] emote_data = emote_element.StringToArray<string>(':');     //[0] emote_id      [1] start-end,start-end,...
+                string[] emote_ranges = emote_data[1].StringToArray<string>(',');   //[0] start-end     [1] start-end    [n] ....
 
                 foreach (string range_element in emote_ranges)
                 {
-                    int[] range_array = range_element.StringToArray<int>('-');
+                    int[] emote_range = range_element.StringToArray<int>('-');
 
-                    MessageEmoteRange range = new MessageEmoteRange
+                    MessageEmoteRange range = new MessageEmoteRange                 //[0] start         [1] end
                     {
-                        start = range_array[0],
-                        end = range_array[1]
+                        start = emote_range[0],
+                        end = emote_range[1]
                     };
 
                     ranges.Add(range);
@@ -192,22 +198,19 @@ namespace TwitchLibrary.Helpers.Messages
 
                 MessageEmote emote = new MessageEmote
                 {
-                    id = Convert.ToInt32(emote_data[0]),
-                    count = emote_ranges.Length,
+                    count = ranges.Count,
+                    emote_id = emote_data[0],
                     ranges = ranges.ToArray()
                 };
 
-                message_emotes_unique.Add(emote);
-
+                emotes_list.Add(emote);
             }
 
-            message_emotes_master = new MessageEmotes
-            {
-                count = count_total,
-                emotes = message_emotes_unique.ToArray()
-            };
+            emotes.emotes = emotes_list.ToArray();
+            emotes.count_total = count_total;
+            emotes.count_unique = emotes_list.Count;
 
-            return message_emotes_master;
+            return emotes;
         }
     }
 }

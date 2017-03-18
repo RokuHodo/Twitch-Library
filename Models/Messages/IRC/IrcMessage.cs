@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Collections.Generic;
 
 //project namespaces

@@ -1,8 +1,7 @@
-﻿
-//project namespaces
+﻿//project namespaces
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Helpers.Messages;
-using TwitchLibrary.Models.Messages.Emotes;
+using TwitchLibrary.Models.Messages.Tags;
 using TwitchLibrary.Models.Messages.IRC;
 
 namespace TwitchLibrary.Models.Messages
@@ -11,10 +10,10 @@ namespace TwitchLibrary.Models.Messages
     {
         public string body { get; private set; }
 
-        public MessageEmotes emotes { get; private set; } 
+        public MessageEmotes emotes { get; private set; }
 
         public Message(IrcMessage irc_message)
-        {
+        {            
             if (irc_message.contains_tags)
             {
                 emotes = TagConverter.ToEmotes(irc_message.tags, "emotes");

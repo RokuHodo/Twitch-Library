@@ -1,8 +1,10 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
+//project namespaces
 using TwitchLibrary.Extensions;
 
 namespace TwitchLibrary.Helpers.Paging

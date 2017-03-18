@@ -1,4 +1,5 @@
-﻿using TwitchLibrary.Enums.API;
+﻿//project namespaces
+using TwitchLibrary.Enums.API;
 
 //imported .dll's
 using RestSharp;

@@ -113,6 +113,11 @@
     <Compile Include="Helpers\Trie.cs" />
     <Compile Include="Interfaces\API\ITwitchRequest.cs" />
     <Compile Include="Interfaces\Helpers\Paging\ITwitchPaging.cs" />
+    <Compile Include="Models\API\Bits\Cheermotes.cs" />
+    <Compile Include="Models\API\Bits\BitImage.cs" />
+    <Compile Include="Models\API\Bits\BitImages.cs" />
+    <Compile Include="Models\API\Bits\Tier.cs" />
+    <Compile Include="Models\API\Bits\Action.cs" />
     <Compile Include="Models\API\Clips\ClipsPage.cs" />
     <Compile Include="Models\API\Clips\Vod.cs" />
     <Compile Include="Models\API\Clips\Thumnails.cs" />
@@ -140,9 +145,9 @@
     <Compile Include="Models\Messages\Subscriber\ReSubcriberSender.cs" />
     <Compile Include="Models\Messages\Whisper\WhisperMessage.cs" />
     <Compile Include="Models\Messages\Whisper\WhisperSender.cs" />
-    <Compile Include="Models\Messages\Emotes\MessageEmoteRange.cs" />
-    <Compile Include="Models\Messages\Emotes\MessageEmotes.cs" />
-    <Compile Include="Models\Messages\Emotes\MessageEmote.cs" />
+    <Compile Include="Models\Messages\Tags\MessageEmoteRange.cs" />
+    <Compile Include="Models\Messages\Tags\MessageEmotes.cs" />
+    <Compile Include="Models\Messages\Tags\MessageEmote.cs" />
     <Compile Include="Helpers\Messages\TagConverter.cs" />
     <Compile Include="Models\Messages\Private\PrivateMessage.cs" />
     <Compile Include="Models\API\Channels\Channel.cs" />

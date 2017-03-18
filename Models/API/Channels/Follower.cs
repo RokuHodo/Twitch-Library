@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 
 //project namespaces
 using TwitchLibrary.Models.API.Users;

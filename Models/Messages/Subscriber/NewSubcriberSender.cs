@@ -1,4 +1,4 @@
-﻿
+﻿//project namespaces
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Models.Messages.Private;
 

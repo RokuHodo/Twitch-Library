@@ -1,5 +1,4 @@
-﻿
-//project namespaces
+﻿//project namespaces
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 

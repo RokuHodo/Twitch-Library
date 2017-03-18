@@ -1,5 +1,4 @@
-﻿
-//project namespaces
+﻿//project namespaces
 using TwitchLibrary.Models.Messages.IRC;
 
 namespace TwitchLibrary.Models.Messages.Whisper

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿//standard namespaces
+using System.Collections.Generic;
 
 namespace TwitchLibrary.Helpers
 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Collections.Generic;
 using System.Net;
 
@@ -14,6 +15,7 @@ using TwitchLibrary.Helpers.Paging.Teams;
 using TwitchLibrary.Helpers.Paging.Users;
 using TwitchLibrary.Helpers.Paging.Videos;
 using TwitchLibrary.Interfaces.API;
+using TwitchLibrary.Models.API.Bits;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
@@ -29,7 +31,7 @@ using TwitchLibrary.Models.API.Videos;
 /*
  * TODO: (API) Master todo list
  *      -   Add wrappers for new Collections reference
- *      -   Add in video upload endpoints and methods  
+ *      -   Add wrappers for VHS endpoints in Users
  *      -   Implement custom exceptions for each failure case
  */
 
@@ -37,6 +39,21 @@ namespace TwitchLibrary.API
 {
     public partial class TwitchApi : ITwitchRequest
     {
+        #region Bits
+
+        /// <summary>
+        /// Gets a list of available cheermotes that can be used in chat.
+        /// The cheermotes returned are available in all bits-enabled channels.
+        /// If the "channel_id" is included, the custom cheermotes for the specified channel is included if applicable and valid.
+        /// </summary>
+        /// <returns></returns>
+        public Cheermotes GetCheermotes(string channel_id = "")
+        {
+            return GetCheermotesAsync(channel_id).Result;
+        }
+
+        #endregion
+
         #region Channels
 
         /// <summary>

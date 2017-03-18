@@ -1,8 +1,6 @@
 ﻿//project namespaces
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
-
 namespace TwitchLibrary.Helpers.Paging.Teams
 {
     public class PagingTeams : PagingLimitOffset, ITwitchPaging

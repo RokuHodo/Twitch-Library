@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿//standard namespaces
+using System.Collections.Generic;
 
+//project namespaces
 using TwitchLibrary.Models.API.Streams;
 
+//imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Community

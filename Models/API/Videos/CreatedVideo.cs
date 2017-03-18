@@ -1,7 +1,4 @@
-﻿
-//project namespaces
-
-//imported .dll's
+﻿//imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Videos

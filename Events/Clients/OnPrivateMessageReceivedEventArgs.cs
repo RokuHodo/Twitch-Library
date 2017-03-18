@@ -1,5 +1,7 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 
+//project namespaces
 using TwitchLibrary.Models.Messages.Private;
 
 namespace TwitchLibrary.Events.Clients

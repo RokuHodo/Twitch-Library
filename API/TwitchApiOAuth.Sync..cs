@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿//standard namespaces
+using System.Collections.Generic;
 using System.Net;
 
 //project namespaces
@@ -19,8 +20,6 @@ using TwitchLibrary.Models.API.Feed;
 using TwitchLibrary.Models.API.Streams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
-
-//imported .dll's
 
 namespace TwitchLibrary.API
 {

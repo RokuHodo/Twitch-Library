@@ -1,4 +1,5 @@
-﻿using TwitchLibrary.Models.Messages.Private;
+﻿//project namespaces
+using TwitchLibrary.Models.Messages.Private;
 
 namespace TwitchLibrary.Models.Messages.Subscriber
 {

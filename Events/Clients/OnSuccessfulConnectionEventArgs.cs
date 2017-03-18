@@ -1,5 +1,5 @@
-﻿using System;
-
+﻿//standard namespaces
+using System;
 
 namespace TwitchLibrary.Events.Clients
 {

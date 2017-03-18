@@ -1,4 +1,5 @@
-﻿using System;
+﻿//standard namespaces
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ using TwitchLibrary.Helpers.Paging.Teams;
 using TwitchLibrary.Helpers.Paging.Users;
 using TwitchLibrary.Helpers.Paging.Videos;
 using TwitchLibrary.Interfaces.API;
+using TwitchLibrary.Models.API.Bits;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
@@ -62,6 +64,29 @@ namespace TwitchLibrary.API
             uploads_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v4+json");
             uploads_api_client.AddDefaultHeader("Content-Type", "application/bson");
         }
+
+        #region Bits
+
+        /// <summary>
+        /// Asynchronously gets a list of available cheermotes that can be used in chat.
+        /// The cheermotes returned are available in all bits-enabled channels.
+        /// If the "channel_id" is included, the custom cheermotes for the specified channel is included if applicable and valid.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Cheermotes> GetCheermotesAsync(string channel_id = "")
+        {
+            RestRequest request = Request("bits/actions", Method.GET);
+            if (channel_id.isValidString())
+            {
+                request.AddQueryParameter("channel_id", channel_id);
+            }
+
+            IRestResponse<Cheermotes> response = await twitch_api_client.ExecuteTaskAsync<Cheermotes>(request);
+
+            return response.Data;
+        }
+
+        #endregion
 
         #region Channels
 
