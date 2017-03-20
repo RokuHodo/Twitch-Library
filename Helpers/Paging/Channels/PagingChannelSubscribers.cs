@@ -28,9 +28,9 @@ namespace TwitchLibrary.Helpers.Paging.Channels
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
-            request.AddParameter("direction", direction.ToString().ToLower());
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
+            request.AddQueryParameter("direction", direction.ToString().ToLower());
 
             return request;
         }

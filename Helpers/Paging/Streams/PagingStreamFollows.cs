@@ -28,9 +28,9 @@ namespace TwitchLibrary.Helpers.Paging.Streams
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
-            request.AddParameter("stream_type", stream_type.ToString().ToLower());            
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
+            request.AddQueryParameter("stream_type", stream_type.ToString().ToLower());            
 
             return request;
         }

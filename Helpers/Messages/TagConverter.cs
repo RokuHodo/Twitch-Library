@@ -22,9 +22,7 @@ namespace TwitchLibrary.Helpers.Messages
                 return value;
             }
 
-            string value_string;
-
-            tags.TryGetValue(key, out value_string);
+            tags.TryGetValue(key, out string value_string);
 
             if (!value_string.isValidString())
             {
@@ -139,7 +137,7 @@ namespace TwitchLibrary.Helpers.Messages
 
             //split the tag into each badge and it's version number            
             //badge/version,badge/verison...
-            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    //[0] badge/verison     [1] badge/version       ...
+            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    //[0] badge/verison     [1] badge/version       [n] ...
 
             if (!badges_array.isValidArray())
             {

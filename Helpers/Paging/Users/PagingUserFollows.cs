@@ -31,10 +31,10 @@ namespace TwitchLibrary.Helpers.Paging.Users
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);            
-            request.AddParameter("direction", direction.ToString().ToLower());
-            request.AddParameter("sortby", sort_by.ToString().ToLower());
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());            
+            request.AddQueryParameter("direction", direction.ToString().ToLower());
+            request.AddQueryParameter("sortby", sort_by.ToString().ToLower());
 
             return request;
         }

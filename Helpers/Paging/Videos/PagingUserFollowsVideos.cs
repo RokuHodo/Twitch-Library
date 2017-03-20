@@ -28,9 +28,9 @@ namespace TwitchLibrary.Helpers.Paging.Videos
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
-            request.AddParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
+            request.AddQueryParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
 
             return request;
         }

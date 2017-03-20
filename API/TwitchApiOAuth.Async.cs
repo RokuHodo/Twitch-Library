@@ -21,6 +21,7 @@ using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Clips;
 using TwitchLibrary.Models.API.Chat;
+using TwitchLibrary.Models.API.Collections;
 using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Feed;
 using TwitchLibrary.Models.API.Streams;
@@ -699,6 +700,141 @@ namespace TwitchLibrary.API
 
         #endregion
 
+        #region Collections
+
+        /// <summary>
+        /// Asynchronously creates a collection for as specified channel.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<CollectionMetadata> CreateCollectionAsync(string channel_id, string title)
+        {
+            RestRequest request = Request("channels/{channel_id}/collections", Method.POST);
+            request.AddUrlSegment("channel_id", channel_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { title });
+
+            IRestResponse<CollectionMetadata> response = await twitch_api_client.ExecuteTaskAsync<CollectionMetadata>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously updates the title of a collection.
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<HttpStatusCode> UpdateCollectionTitleAsync(string collection_id, string title)
+        {
+            RestRequest request = Request("collections/{collection_id}", Method.PUT);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { title });
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously creates/sets the thumbnail of the collection to the thumbnail of the specififed colleciton item.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<HttpStatusCode> CreateCollectionThumbnailAsync(string collection_id, string item_id)
+        {
+            RestRequest request = Request("collections/{collection_id}/thumbnail", Method.PUT);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { item_id });
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously deletes a colleciton.
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<HttpStatusCode> DeleteCollectionAsync(string collection_id)
+        {
+            RestRequest request = Request("collections/{collection_id}", Method.DELETE);
+            request.AddUrlSegment("collection_id", collection_id);
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously adds an item to a colleciton.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<Item> AddCollectionItemAsync(string collection_id, string video_id)
+        {
+            RestRequest request = Request("collections/{collection_id}/items", Method.POST);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { id = video_id, type = "video" });
+
+            IRestResponse<Item> response = await twitch_api_client.ExecuteTaskAsync<Item>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously deletes an intem from a colleciton.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<HttpStatusCode> DeleteCollectionItemAsync(string collection_id, string item_id)
+        {
+            RestRequest request = Request("collections/{collection_id}/items/{item_id}", Method.DELETE);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.AddUrlSegment("item_id", item_id);
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously moves an item in a collection to a different position within the same collection.
+        /// Positon is zero based.
+        /// If "check_bounds" is set to true, the position will be checked against how many items are in the collecion but will take more time to execute.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public async Task<HttpStatusCode> MoveCollectionItemPositionAsync(string collection_id, string item_id, int position, bool check_bounds = false)
+        {
+            if (check_bounds)
+            {
+                Collection collection = await GetCollectionAsync(collection_id, true);
+
+                position = position.Clamp(0, collection.items.Count - 1);
+            }
+            else
+            {
+                position = position.ClampMin(0);
+            }
+
+            RestRequest request = Request("collections/{collection_id}/items/{item_id}", Method.PUT);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.AddUrlSegment("item_id", item_id);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { position });
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        #endregion
+
         #region Feed
 
         /// <summary>
@@ -969,6 +1105,55 @@ namespace TwitchLibrary.API
 
         #endregion
 
+        #region User (VHS)
+
+        /// <summary>
+        /// Asynchronously creates a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '204' if the connection was successfully created.
+        /// Returns status '422' if the game is not configured.
+        /// Required scope: 'viewing_activity_read'
+        /// </summary>
+        public async Task<HttpStatusCode> CreateUserVHSConnectionAsync(string identifier)
+        {
+            RestRequest request = Request("user/vhs", Method.PUT);
+            request.RequestFormat = DataFormat.Json;
+            request.AddBody(new { identifier });
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        /// <summary>
+        /// Asynchronously checks a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '404' if no connection is established.
+        /// Required scope: 'user_read'
+        /// </summary>
+        public async Task<VHSConnectionCheck> CheckUserVHSConnectionAsync()
+        {
+            RestRequest request = Request("user/vhs", Method.GET);
+
+            IRestResponse<VHSConnectionCheck> response = await twitch_api_client.ExecuteTaskAsync<VHSConnectionCheck>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously deletes a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '204' if the connection was successfully deleted.
+        /// Required scope: 'viewing_activity_read'
+        /// </summary>
+        public async Task<HttpStatusCode> DeleteUserVHSConnectionAsync()
+        {
+            RestRequest request = Request("user/vhs", Method.DELETE);
+
+            IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
+
+            return response.StatusCode;
+        }
+
+        #endregion
+
         #region Users
 
         /// <summary>
@@ -1130,7 +1315,7 @@ namespace TwitchLibrary.API
             IRestResponse<object> response = await twitch_api_client.ExecuteTaskAsync<object>(request);
 
             return response.StatusCode;
-        }
+        }       
 
         #endregion
 

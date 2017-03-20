@@ -34,8 +34,8 @@ namespace TwitchLibrary.Helpers.Paging
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
 
             return request;
         }

@@ -62,7 +62,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a minum with no maximum.
+        /// Clamps the value to a minum with no maximum (inclusive).
         /// If the number is less than the minimum, the default value is returned.
         /// </summary>
         public static int ClampMin(this int value, int minimum, int default_value)
@@ -79,7 +79,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a minum with no maximum.
+        /// Clamps the value to a minum with no maximum (inclusive).
         /// </summary>
         public static int ClampMin(this int value, int minimum)
         {
@@ -92,7 +92,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a maximum with no minimum.
+        /// Clamps the value to a maximum with no minimum (inclusive).
         /// If the number is greater than the maximum, the default value is returned.
         /// </summary>
         public static int ClampMax(this int value, int maximum, int default_value)
@@ -109,7 +109,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a maximum with no minimum.
+        /// Clamps the value to a maximum with no minimum (inclusive).
         /// </summary>
         public static int ClampMax(this int value, int maximum)
         {
@@ -122,7 +122,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value between a range of numbers.
+        /// Clamps the value between a range of numbers (inclusive).
         /// If the number is out of range, the default value is returned.
         /// </summary>
         public static int Clamp(this int value, int minimum, int maximum, int default_value)
@@ -137,7 +137,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value between a range of numbers.
+        /// Clamps the value between a range of numbers (inclusive).
         /// If the number is out of range, either the minimum or maximum will be returned depending on an overflow or underflow.
         /// </summary>
         public static int Clamp(this int value, int minimum, int maximum)

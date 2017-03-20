@@ -27,11 +27,11 @@ namespace TwitchLibrary.Helpers.Paging.Feed
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);  
+            request.AddQueryParameter("limit", limit.ToString());  
             
             if(cursor.isValidString())
             {
-                request.AddParameter("cursor", cursor);
+                request.AddQueryParameter("cursor", cursor);
             }            
 
             return request;

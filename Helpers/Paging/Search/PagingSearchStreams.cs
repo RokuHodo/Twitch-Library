@@ -30,11 +30,11 @@ namespace TwitchLibrary.Helpers.Paging.Search
         {
             if (!hls.isNull())
             {
-                request.AddParameter("hls", hls);
+                request.AddQueryParameter("hls", hls.ToString());
             }
                         
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);            
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());            
 
             return request;
         }

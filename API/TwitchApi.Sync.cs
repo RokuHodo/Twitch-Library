@@ -7,6 +7,7 @@ using System.Net;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;
+using TwitchLibrary.Helpers.Paging.Collections;
 using TwitchLibrary.Helpers.Paging.Communities;
 using TwitchLibrary.Helpers.Paging.Games;
 using TwitchLibrary.Helpers.Paging.Search;
@@ -19,6 +20,7 @@ using TwitchLibrary.Models.API.Bits;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
+using TwitchLibrary.Models.API.Collections;
 using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Games;
 using TwitchLibrary.Models.API.Ingests;
@@ -30,7 +32,6 @@ using TwitchLibrary.Models.API.Videos;
 
 /*
  * TODO: (API) Master todo list
- *      -   Add wrappers for new Collections reference
  *      -   Add wrappers for VHS endpoints in Users
  *      -   Implement custom exceptions for each failure case
  */
@@ -221,6 +222,45 @@ namespace TwitchLibrary.API
         public Clip GetClip(string channel_name, string slug)
         {
             return GetClipAsync(channel_name, slug).Result;
+        }
+
+        #endregion
+
+        #region Collections
+
+        /// <summary>
+        /// Gets the metadata for a specified collection.
+        /// </summary>
+        public CollectionMetadata GetCollectionMetadata(string collection_id)
+        {
+            return GetCollectionMetadataAsync(collection_id).Result;
+        }
+
+        /// <summary>
+        /// Gets a specific collection.
+        /// If "include_all_items" is set to true, all unwatchable VODs (private and/or in-process) are included in the response.
+        /// </summary>
+        public Collection GetCollection(string collection_id, bool include_all_items = false)
+        {
+            return GetCollectionAsync(collection_id, include_all_items).Result;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a single paged list of collections that a channel has created.
+        /// <see cref="PagingChannelCollections"/> can be specified to request a custom paged result.
+        /// </summary>
+        public ChannelCollectionsPage GetChannelCollectionsPage(string channel_id, PagingChannelCollections paging = null)
+        {
+            return GetChannelCollectionsPageAsync(channel_id, paging).Result;
+        }
+
+        /// <summary>
+        /// Gets a complete list of collections that a channel has created.
+        /// If "video_id" is included, only colelctions containing the video will be returned.
+        /// </summary>
+        public List<CollectionMetadata> GetChannelCollections(string channel_id, string video_id = "")
+        {
+            return GetChannelCollectionsAsync(channel_id, video_id).Result;
         }
 
         #endregion

@@ -12,6 +12,7 @@ using TwitchLibrary.Helpers.Json;
 using TwitchLibrary.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;
+using TwitchLibrary.Helpers.Paging.Collections;
 using TwitchLibrary.Helpers.Paging.Communities;
 using TwitchLibrary.Helpers.Paging.Games;
 using TwitchLibrary.Helpers.Paging.Search;
@@ -24,6 +25,7 @@ using TwitchLibrary.Models.API.Bits;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Chat;
 using TwitchLibrary.Models.API.Clips;
+using TwitchLibrary.Models.API.Collections;
 using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Games;
 using TwitchLibrary.Models.API.Ingests;
@@ -60,7 +62,6 @@ namespace TwitchLibrary.API
             //video upload endpoints
             uploads_api_client = new RestClient("https://uploads.twitch.tv/upload");
             uploads_api_client.AddHandler("application/json", new CustomJsonDeserializer());
-            //uploads_api_client.AddHandler("application/bson", new CustomBsonDeserializer());
             uploads_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v4+json");
             uploads_api_client.AddDefaultHeader("Content-Type", "application/bson");
         }
@@ -358,6 +359,73 @@ namespace TwitchLibrary.API
             IRestResponse<Clip> response = await twitch_api_client.ExecuteTaskAsync<Clip>(request);
 
             return response.Data;
+        }
+
+        #endregion
+
+        #region Collections
+
+        /// <summary>
+        /// Asynchronously gets the metadata for a specified collection.
+        /// </summary>
+        public async Task<CollectionMetadata> GetCollectionMetadataAsync(string collection_id)
+        {
+            RestRequest request = Request("collections/{collection_id}", Method.GET);
+            request.AddUrlSegment("collection_id", collection_id);
+
+            IRestResponse<CollectionMetadata> response = await twitch_api_client.ExecuteTaskAsync<CollectionMetadata>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a specific collection.
+        /// If "include_all_items" is set to true, all unwatchable VODs (private and/or in-process) are included in the response.
+        /// </summary>
+        public async Task<Collection> GetCollectionAsync(string collection_id, bool include_all_items = false)
+        {
+            RestRequest request = Request("collections/{collection_id}/items", Method.GET);
+            request.AddUrlSegment("collection_id", collection_id);
+            request.AddUrlSegment("include_all_items", include_all_items.ToString());
+
+            IRestResponse<Collection> response = await twitch_api_client.ExecuteTaskAsync<Collection>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a single paged list of collections that a channel has created.
+        /// <see cref="PagingChannelCollections"/> can be specified to request a custom paged result.
+        /// </summary>
+        public async Task<ChannelCollectionsPage> GetChannelCollectionsPageAsync(string channel_id, PagingChannelCollections paging = null)
+        {
+            if (paging.isNull())
+            {
+                paging = new PagingChannelCollections();
+            }
+
+            RestRequest request = Request("channels/{channel_id}/collections", Method.GET);
+            request.AddUrlSegment("channel_id", channel_id);
+            request = paging.Add(request);
+
+            IRestResponse<ChannelCollectionsPage> response = await twitch_api_client.ExecuteTaskAsync<ChannelCollectionsPage>(request);
+
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Asynchronously gets a complete list of collections that a channel has created.
+        /// If "video_id" is included, only colelctions containing the video will be returned.
+        /// </summary>
+        public async Task<List<CollectionMetadata>> GetChannelCollectionsAsync(string channel_id, string video_id = "")
+        {
+            PagingChannelCollections paging = new PagingChannelCollections();
+            paging.limit = 100;
+            paging.containing_item = video_id;
+
+            List<CollectionMetadata> collections = await Paging.GetPagesByCursorAsync<CollectionMetadata, ChannelCollectionsPage, PagingChannelCollections>(GetChannelCollectionsPageAsync, channel_id, paging, "collections");
+
+            return collections;
         }
 
         #endregion

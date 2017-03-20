@@ -24,6 +24,7 @@ using ChatSharp.Events;
  * TODO: (Client) Master todo list
  *      -   Finish adding all Twitch IRC commands
  *      -   Add events for each Twitch IRC command
+ *      -   Add support for pubsub
  *      -   Test to see if ChatSharp handles ping and disconnects and address them accordingly
  *      -   Re-implement detecting new followers, possibly as it's own stand alone service but automatically included in the client 
  */

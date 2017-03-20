@@ -45,19 +45,19 @@ namespace TwitchLibrary.Helpers.Paging.Streams
         {
             if (channel.isValidArray())
             {
-                request.AddParameter("channel", string.Join(",", channel));
+                request.AddQueryParameter("channel", string.Join(",", channel));
             }
 
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
 
             if (game.isValidString())
             {
-                request.AddParameter("game", game);
+                request.AddQueryParameter("game", game);
             }
 
-            request.AddParameter("stream_type", stream_type.ToString().ToLower());
-            request.AddParameter("language", string.Join(",", language).ToLower().Replace("_", "-"));
+            request.AddQueryParameter("stream_type", stream_type.ToString().ToLower());
+            request.AddQueryParameter("language", string.Join(",", language).ToLower().Replace("_", "-"));
 
             return request;
         }

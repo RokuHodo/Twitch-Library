@@ -37,11 +37,11 @@ namespace TwitchLibrary.Helpers.Paging.Channels
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
-            request.AddParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
-            request.AddParameter("language", string.Join(",", language).ToLower());
-            request.AddParameter("sort", sort.ToString().ToLower());
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
+            request.AddQueryParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
+            request.AddQueryParameter("language", string.Join(",", language).ToLower());
+            request.AddQueryParameter("sort", sort.ToString().ToLower());
 
             return request;
         }

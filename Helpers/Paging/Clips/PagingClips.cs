@@ -40,25 +40,25 @@ namespace TwitchLibrary.Helpers.Paging.Clips
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("trending", trending.ToString().ToLower());
-            request.AddParameter("limit", limit);         
+            request.AddQueryParameter("trending", trending.ToString().ToLower());
+            request.AddQueryParameter("limit", limit.ToString());         
 
             if (game.isValidString())
             {
-                request.AddParameter("game", game);
+                request.AddQueryParameter("game", game);
             }
 
             if (cursor.isValidString())
             {
-                request.AddParameter("cursor", cursor);
+                request.AddQueryParameter("cursor", cursor);
             }
 
             if (channel.isValidArray())
             {
-                request.AddParameter("channel", string.Join(",", channel));
+                request.AddQueryParameter("channel", string.Join(",", channel));
             }
 
-            request.AddParameter("period", period.ToString().ToLower());
+            request.AddQueryParameter("period", period.ToString().ToLower());
 
             return request;
         }

@@ -15,6 +15,7 @@ using TwitchLibrary.Interfaces.API;
 using TwitchLibrary.Models.API.Channels;
 using TwitchLibrary.Models.API.Clips;
 using TwitchLibrary.Models.API.Chat;
+using TwitchLibrary.Models.API.Collections;
 using TwitchLibrary.Models.API.Community;
 using TwitchLibrary.Models.API.Feed;
 using TwitchLibrary.Models.API.Streams;
@@ -424,6 +425,83 @@ namespace TwitchLibrary.API
 
         #endregion
 
+        #region Collection
+
+        /// <summary>
+        /// Creates a collection for as specified channel.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public CollectionMetadata CreateCollection(string channel_id, string title)
+        {
+            return CreateCollectionAsync(channel_id, title).Result;
+        }
+
+        /// <summary>
+        /// Updates the title of a collection.
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public HttpStatusCode UpdateCollectionTitle(string collection_id, string title)
+        {
+            return UpdateCollectionTitleAsync(collection_id, title).Result;
+        }
+
+        /// <summary>
+        /// Creates/sets the thumbnail of the collection to the thumbnail of the specififed colleciton item.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public HttpStatusCode CreateCollectionThumbnail(string collection_id, string item_id)
+        {
+            return CreateCollectionThumbnailAsync(collection_id, item_id).Result;
+        }
+
+        /// <summary>
+        /// Deletes a colleciton.
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public HttpStatusCode DeleteCollection(string collection_id)
+        {
+            return DeleteCollectionAsync(collection_id).Result;
+        }
+
+        /// <summary>
+        /// Adds an item to a colleciton.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public Item AddCollectionItem(string collection_id, string video_id)
+        {
+            return AddCollectionItemAsync(collection_id, video_id).Result;
+        }
+
+        /// <summary>
+        /// Deletes an intem from a colleciton.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public HttpStatusCode DeleteCollectionItem(string collection_id, string item_id)
+        {
+            return DeleteCollectionItemAsync(collection_id, item_id).Result;
+        }
+
+        /// <summary>
+        /// Asynchronously moves an item in a collection to a different position within the same collection.
+        /// Positon is zero based.
+        /// If "check_bounds" is set to true, the position will be checked against how many items are in the collecion but will take more time to execute.
+        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// Returns status '204' if the operation was successful.
+        /// Required scope: 'collections_edit'
+        /// </summary>
+        public HttpStatusCode MoveCollectionItemPosition(string collection_id, string item_id, int position, bool check_bounds = false)
+        {
+            return MoveCollectionItemPositionAsync(collection_id, item_id, position, check_bounds).Result;
+        }
+
+        #endregion
+
         #region Feed
 
         /// <summary>
@@ -579,6 +657,41 @@ namespace TwitchLibrary.API
 
         #endregion
 
+        #region User (VHS)
+
+        /// <summary>
+        /// Creates a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '204' if the connection was successfully created.
+        /// Returns status '422' if the game is not configured.
+        /// Required scope: 'viewing_activity_read'
+        /// </summary>
+        public HttpStatusCode CreateUserVHSConnection(string identifier)
+        {
+            return CreateUserVHSConnectionAsync(identifier).Result;
+        }
+
+        /// <summary>
+        /// Checks a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '404' if no connection is established.
+        /// Required scope: 'user_read'
+        /// </summary>
+        public VHSConnectionCheck CheckUserVHSConnection()
+        {
+            return CheckUserVHSConnectionAsync().Result;
+        }
+
+        /// <summary>
+        /// Deletes a Viewer Heartbeat Service (VHS) connection with the user associated with the client's authentication token.
+        /// Returns status '204' if the connection was successfully deleted.
+        /// Required scope: 'viewing_activity_read'
+        /// </summary>
+        public HttpStatusCode DeleteUserVHSConnection()
+        {
+            return DeleteUserVHSConnectionAsync().Result;
+        }
+
+        #endregion
+
         #region Users
 
         /// <summary>
@@ -682,7 +795,7 @@ namespace TwitchLibrary.API
         public HttpStatusCode Unblock(string user_id)
         {
             return UnblockAsync(user_id).Result;
-        }
+        }       
 
         #endregion
 

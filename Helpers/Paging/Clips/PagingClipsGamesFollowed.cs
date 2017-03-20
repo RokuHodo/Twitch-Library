@@ -31,12 +31,12 @@ namespace TwitchLibrary.Helpers.Paging.Clips
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("trending", trending.ToString().ToLower());
-            request.AddParameter("limit", limit);         
+            request.AddQueryParameter("trending", trending.ToString().ToLower());
+            request.AddQueryParameter("limit", limit.ToString());         
 
             if (cursor.isValidString())
             {
-                request.AddParameter("cursor", cursor);
+                request.AddQueryParameter("cursor", cursor);
             }
 
             return request;

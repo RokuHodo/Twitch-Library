@@ -41,7 +41,7 @@ namespace TwitchLibrary.Helpers.Paging
         /// </summary>
         public RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
+            request.AddQueryParameter("limit", limit.ToString());
 
             return request;
         }

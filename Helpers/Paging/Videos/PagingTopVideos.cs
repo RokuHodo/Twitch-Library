@@ -36,16 +36,16 @@ namespace TwitchLibrary.Helpers.Paging.Videos
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            request.AddParameter("limit", limit);
-            request.AddParameter("offset", offset);
+            request.AddQueryParameter("limit", limit.ToString());
+            request.AddQueryParameter("offset", offset.ToString());
 
             if (game.isValidString())
             {
-                request.AddParameter("game", game);
+                request.AddQueryParameter("game", game);
             }
             
-            request.AddParameter("period", period.ToString().ToLower());
-            request.AddParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
+            request.AddQueryParameter("period", period.ToString().ToLower());
+            request.AddQueryParameter("broadcast_type", string.Join(",", broadcast_type).ToLower());
 
             return request;
         }
