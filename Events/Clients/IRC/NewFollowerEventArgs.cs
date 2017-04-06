@@ -4,9 +4,9 @@ using System;
 //project namespaces
 using TwitchLibrary.Models.API.Channels;
 
-namespace TwitchLibrary.Events.Clients
+namespace TwitchLibrary.Events.Clients.IRC
 {
-    public class OnNewFollowerEventArgs : EventArgs
+    public class NewFollowerEventArgs : EventArgs
     {
         public Follower follower { get; set; }
     }

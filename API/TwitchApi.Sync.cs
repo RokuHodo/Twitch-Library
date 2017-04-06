@@ -30,11 +30,9 @@ using TwitchLibrary.Models.API.Teams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
 
-/*
- * TODO: (API) Master todo list
- *      -   Add wrappers for VHS endpoints in Users
- *      -   Implement custom exceptions for each failure case
- */
+//TODO: (API) Implement exceptions when Twitch reports an error, the status is not 200 or 204, or when the response is not what was expected
+//TODO: (API) Refactor method names
+//TODO: (API, Models) Refactor model names used with API methods
 
 namespace TwitchLibrary.API
 {
@@ -500,7 +498,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Gets the <see cref="Team"/> object for a specified team name.
-        /// NOTE: the team name is not always the same as the display name.
+        /// NOTE: The team name is not always the same as the display name.
         /// </summary>        
         public Team GetTeam(string team_name)
         {

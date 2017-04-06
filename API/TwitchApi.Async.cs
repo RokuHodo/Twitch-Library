@@ -77,7 +77,7 @@ namespace TwitchLibrary.API
         public async Task<Cheermotes> GetCheermotesAsync(string channel_id = "")
         {
             RestRequest request = Request("bits/actions", Method.GET);
-            if (channel_id.isValidString())
+            if (channel_id.isValid())
             {
                 request.AddQueryParameter("channel_id", channel_id);
             }
@@ -784,7 +784,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = Request("streams/summary", Method.GET);
 
-            if (game_name.isValidString())
+            if (game_name.isValid())
             {
                 request.AddQueryParameter("game", game_name);
             }
@@ -833,7 +833,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets the <see cref="Team"/> object for a specified team name.
-        /// NOTE: the team name is not always the same as the display name.
+        /// NOTE: The team name is not always the same as the display name.
         /// </summary>        
         public async Task<Team> GetTeamAsync(string team_name)
         {
@@ -1034,7 +1034,7 @@ namespace TwitchLibrary.API
         {
             RestRequest request = new RestRequest(endpoint, method);            
 
-            if (oauth_token.isValidString())
+            if (oauth_token.isValid())
             {
                 request.AddHeader("Authorization", "OAuth " + oauth_token);
             }

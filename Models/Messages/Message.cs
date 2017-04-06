@@ -29,7 +29,7 @@ namespace TwitchLibrary.Models.Messages
         {
             string body = string.Empty;
 
-            if (!trailing.isValidArray())
+            if (!trailing.isValid())
             {
                 return body;
             }

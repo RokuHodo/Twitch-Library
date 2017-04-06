@@ -36,12 +36,12 @@ namespace TwitchLibrary.Helpers.Paging.Collections
         {
             request.AddQueryParameter("limit", limit.ToString());
 
-            if (cursor.isValidString())
+            if (cursor.isValid())
             {
                 request.AddQueryParameter("cursor", cursor);
             }
 
-            if (containing_item.isValidString())
+            if (containing_item.isValid())
             {
                 //really weird query parameter "video:<video_id>"
                 request.AddQueryParameter("containing_item", "video:" + containing_item);

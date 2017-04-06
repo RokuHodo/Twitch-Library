@@ -50,16 +50,21 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\TwitchApi.Async.cs" />
     <Compile Include="API\TwitchApi.Sync.cs" />
     <Compile Include="API\TwitchApiOAuth.Async.cs" />
     <Compile Include="API\TwitchApiOAuth.Sync..cs" />
-    <Compile Include="Clients\TwitchClient.cs" />
+    <Compile Include="Clients\IRC\TwitchIrcClient.cs" />
+    <Compile Include="Clients\PubSub\TwitchPubSubClient.cs" />
     <Compile Include="Debug\LibraryDebug.cs" />
     <Compile Include="Debug\LibraryDebugError.cs" />
     <Compile Include="Enums\API\ApiVersion.cs" />
+    <Compile Include="Enums\Clients\PubSub\PubSubType.cs" />
     <Compile Include="Enums\Debug\LibraryDebugMethod.cs" />
     <Compile Include="Enums\Debug\TimeStamp.cs" />
     <Compile Include="Enums\Extensions\Padding.cs" />
@@ -74,18 +79,24 @@
     <Compile Include="Enums\Helpers\Paging\SortBy.cs" />
     <Compile Include="Enums\Messages\MessageType.cs" />
     <Compile Include="Enums\Messages\UserType.cs" />
-    <Compile Include="Events\Clients\OnSuccessfulConnectionEventArgs.cs" />
-    <Compile Include="Events\Clients\OnReSubscriberEventArgs.cs" />
-    <Compile Include="Events\Clients\OnNewSubscriberEventArgs.cs" />
-    <Compile Include="Events\Clients\OnNewFollowerEventArgs.cs" />
-    <Compile Include="Events\Clients\OnWhisperMessageReceivedEventArgs.cs" />
-    <Compile Include="Events\Clients\OnPrivateMessageReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\ReSubscriberEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\NewSubscriberEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\NewFollowerEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\WhisperMessageReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\PrivateMessageReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\MessageTypeEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\ErrorReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\BitsReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\WhisperReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\UnsupportedMessageTypeReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\PubSub\ResponseReceivedEventArgs.cs" />
     <Compile Include="Extensions\Events\EventExtensions.cs" />
     <Compile Include="Extensions\UniversalExtensions.cs" />
     <Compile Include="Helpers\Json\CustomJsonDeserializer.cs" />
     <Compile Include="Helpers\Json\CustomBsonDeserializer.cs" />
     <Compile Include="Helpers\Paging\Clips\PagingClipsGamesFollowed.cs" />
     <Compile Include="Helpers\Paging\Clips\PagingClips.cs" />
+    <Compile Include="Helpers\Paging\Collections\PagingChannelCollections.cs" />
     <Compile Include="Helpers\Paging\Communities\PagingTimedOutCommunityUsers.cs" />
     <Compile Include="Helpers\Paging\Communities\PagingBannedCommunityUsers.cs" />
     <Compile Include="Helpers\Paging\Communities\PagingCommunityStreams.cs" />
@@ -123,6 +134,11 @@
     <Compile Include="Models\API\Clips\Thumnails.cs" />
     <Compile Include="Models\API\Clips\ClipChannel.cs" />
     <Compile Include="Models\API\Clips\Clip.cs" />
+    <Compile Include="Models\API\Collections\ChannelCollectionsPage.cs" />
+    <Compile Include="Models\API\Collections\Item.cs" />
+    <Compile Include="Models\API\Collections\Collection.cs" />
+    <Compile Include="Models\API\Collections\Owner.cs" />
+    <Compile Include="Models\API\Collections\CollectionMetadata.cs" />
     <Compile Include="Models\API\Community\CommunityStreamsPage.cs" />
     <Compile Include="Models\API\Community\TimedOutCommunityUsersPage.cs" />
     <Compile Include="Models\API\Community\TimedOutCommunityUser.cs" />
@@ -134,8 +150,24 @@
     <Compile Include="Models\API\Community\TopCommunity.cs" />
     <Compile Include="Models\API\Community\CreatedCommunity.cs" />
     <Compile Include="Models\API\Community\Community.cs" />
+    <Compile Include="Models\API\Users\VHSConnectionCheck.cs" />
     <Compile Include="Models\API\Videos\CreatedVideo.cs" />
     <Compile Include="Models\API\Videos\Upload.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Bits\PubSubBitsBadgeEntitlement.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Bits\PubSubBitsMessageData.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Bits\PubSubBitsMessage.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperEmotes.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\PubSubMessageType.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\PubSubMessageData.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\PubSubMessage.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperRecipient.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperBadges.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperTags.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperMessageData.cs" />
+    <Compile Include="Models\Clients\PubSub\Message\Data\Whisper\PubSubWhisperMessage.cs" />
+    <Compile Include="Models\Clients\PubSub\Request\PubSubRequestData.cs" />
+    <Compile Include="Models\Clients\PubSub\Response\PubSubResponse.cs" />
+    <Compile Include="Models\Clients\PubSub\Request\PubSubRequest.cs" />
     <Compile Include="Models\Messages\IRC\IrcMessage.cs" />
     <Compile Include="Models\Messages\Message.cs" />
     <Compile Include="Models\Messages\Sender.cs" />

@@ -43,7 +43,7 @@ namespace TwitchLibrary.Helpers.Paging.Streams
         /// </summary>
         public new RestRequest Add(RestRequest request)
         {
-            if (channel.isValidArray())
+            if (channel.isValid())
             {
                 request.AddQueryParameter("channel", string.Join(",", channel));
             }
@@ -51,7 +51,7 @@ namespace TwitchLibrary.Helpers.Paging.Streams
             request.AddQueryParameter("limit", limit.ToString());
             request.AddQueryParameter("offset", offset.ToString());
 
-            if (game.isValidString())
+            if (game.isValid())
             {
                 request.AddQueryParameter("game", game);
             }

@@ -11,7 +11,7 @@ using TwitchLibrary.Models.Messages.IRC;
 
 namespace TwitchLibrary.Models.Messages.Subscriber
 {
-    public class ReSubscriberMessage : Message
+    public class ResubscriberMessage : Message
     {
         //twitch prime        
         public bool is_premium { get; protected set; }
@@ -26,7 +26,7 @@ namespace TwitchLibrary.Models.Messages.Subscriber
 
         public ReSubcriberSender sender { get; protected set; }
 
-        public ReSubscriberMessage(IrcMessage irc_message, string oauth_token) : base(irc_message)
+        public ResubscriberMessage(IrcMessage irc_message, string oauth_token) : base(irc_message)
         {
             if (irc_message.contains_tags)
             {
@@ -56,7 +56,7 @@ namespace TwitchLibrary.Models.Messages.Subscriber
             catch (Exception excepion)
             {
                 LibraryDebug.Error(LibraryDebugMethod.GET, nameof(room), LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(excepion), excepion.Message);
+                LibraryDebug.PrintLineFormatted(nameof(excepion), excepion.Message);
 
                 if (irc_message.contains_tags)
                 {

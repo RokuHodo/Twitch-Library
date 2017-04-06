@@ -39,7 +39,7 @@ namespace TwitchLibrary.Helpers.Paging.Videos
             request.AddQueryParameter("limit", limit.ToString());
             request.AddQueryParameter("offset", offset.ToString());
 
-            if (game.isValidString())
+            if (game.isValid())
             {
                 request.AddQueryParameter("game", game);
             }

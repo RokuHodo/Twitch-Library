@@ -17,14 +17,14 @@ namespace TwitchLibrary.Helpers.Messages
         {
             type value = default(type);            
 
-            if (!key.isValidString())
+            if (!key.isValid())
             {
                 return value;
             }
 
             tags.TryGetValue(key, out string value_string);
 
-            if (!value_string.isValidString())
+            if (!value_string.isValid())
             {
                 return value;
             }
@@ -41,8 +41,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_string), value_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
             }
 
             return value;
@@ -62,8 +62,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_int), value_int.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_int), value_int.ToString());
             }
 
             return value;
@@ -82,8 +82,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(color_string), color_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(color_string), color_string);
             }
 
             return value;
@@ -93,7 +93,7 @@ namespace TwitchLibrary.Helpers.Messages
         {
             type value = default(type);
 
-            if (!key.isValidString())
+            if (!key.isValid())
             {
                 return value;
             }
@@ -102,7 +102,7 @@ namespace TwitchLibrary.Helpers.Messages
 
             tags.TryGetValue(key, out value_string);
 
-            if (!value_string.isValidString())
+            if (!value_string.isValid())
             {
                 return value;
             }
@@ -119,8 +119,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "value", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_string), value_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
             }
 
             return value;
@@ -130,7 +130,7 @@ namespace TwitchLibrary.Helpers.Messages
         {
             Dictionary<string, string> badges = new Dictionary<string, string>();
 
-            if (!key.isValidString())
+            if (!key.isValid())
             {
                 return badges;
             }
@@ -139,7 +139,7 @@ namespace TwitchLibrary.Helpers.Messages
             //badge/version,badge/verison...
             string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    //[0] badge/verison     [1] badge/version       [n] ...
 
-            if (!badges_array.isValidArray())
+            if (!badges_array.isValid())
             {
                 return badges;
             }
@@ -163,7 +163,7 @@ namespace TwitchLibrary.Helpers.Messages
             //emote_id:start-end,start-end,.../emote_id:start-end,start-end,...
             string[] emotes_array = ToGeneric<string>(tags, key).StringToArray<string>('/');
 
-            if (!emotes_array.isValidArray())
+            if (!emotes_array.isValid())
             {
                 return emotes;
             }

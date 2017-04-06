@@ -668,7 +668,7 @@ namespace TwitchLibrary.API
             request.AddUrlSegment("community_id", community_id);
             request.AddUrlSegment("user_id", user_id);
             request.RequestFormat = DataFormat.Json;
-            if (reason.isValidString())
+            if (reason.isValid())
             {
                 request.AddBody(new { duration, reason });
             }
@@ -737,7 +737,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously creates/sets the thumbnail of the collection to the thumbnail of the specififed colleciton item.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>
@@ -786,7 +786,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously deletes an intem from a colleciton.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>
@@ -805,7 +805,7 @@ namespace TwitchLibrary.API
         /// Asynchronously moves an item in a collection to a different position within the same collection.
         /// Positon is zero based.
         /// If "check_bounds" is set to true, the position will be checked against how many items are in the collecion but will take more time to execute.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>
@@ -1392,7 +1392,7 @@ namespace TwitchLibrary.API
         public async Task<List<Video>> GetUserFollowsVideosAsync(BroadcastType[] broadcast_type)
         {
             PagingUserFollowsVideos paging = new PagingUserFollowsVideos();
-            //paging.limit = 50;        for some reaosn, setting this to anything but the default breaks things
+            paging.limit = 100; 
             paging.broadcast_type = broadcast_type;
 
             List<Video> follows_videos = await Paging.GetPagesByOffsetAsync<Video, VideosFollowsPage, PagingUserFollowsVideos>(GetUserFollowsVideosPageAsync, paging, "videos");
@@ -1650,7 +1650,7 @@ namespace TwitchLibrary.API
         {            
             RestRequest request = new RestRequest(endpoint, method);
 
-            if (client_id.isValidString())
+            if (client_id.isValid())
             {
                 request.AddHeader("Client-ID", client_id);
             }

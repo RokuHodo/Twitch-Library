@@ -44,7 +44,7 @@ namespace TwitchLibrary.Helpers.Paging.Feed
             request.AddQueryParameter("limit", limit.ToString());
             request.AddQueryParameter("comments", comments.ToString());
 
-            if (cursor.isValidString())
+            if (cursor.isValid())
             {
                 request.AddQueryParameter("cursor", cursor);
             }            

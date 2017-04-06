@@ -448,7 +448,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Creates/sets the thumbnail of the collection to the thumbnail of the specififed colleciton item.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>
@@ -478,7 +478,7 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Deletes an intem from a colleciton.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>
@@ -491,7 +491,7 @@ namespace TwitchLibrary.API
         /// Asynchronously moves an item in a collection to a different position within the same collection.
         /// Positon is zero based.
         /// If "check_bounds" is set to true, the position will be checked against how many items are in the collecion but will take more time to execute.
-        /// NOTE: the method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
+        /// NOTE: The method parameter "item_id" is the "_id" field and not the "item_id" field from the <see cref="Item"/> object field. 
         /// Returns status '204' if the operation was successful.
         /// Required scope: 'collections_edit'
         /// </summary>

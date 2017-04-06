@@ -76,7 +76,7 @@ namespace TwitchLibrary.Models.Messages.IRC
                 catch (Exception exception)
                 {
                     LibraryDebug.Error(LibraryDebugMethod.GET, "tag", LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                    LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
                 }
             }
 

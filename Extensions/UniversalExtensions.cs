@@ -2,64 +2,80 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 //project namespaces
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Enums.Extensions;
 
+//imported .dll's
+using Newtonsoft.Json;
+
 namespace TwitchLibrary.Extensions
 {
     public static class UniversalExtensions
     {
+        #region Validity checks
+
         /// <summary>
-        /// Checks to see if an object is null.
-        /// </summary>        
+        /// Verifies that an object is null.
+        /// </summary>     
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isNull(this object obj)
         {
             return obj == null;
         }
 
         /// <summary>
-        /// Checks to see if an array is initialized and has at least one element.
+        /// Verifies that an array is not null and has at least one element.
         /// </summary>
-        public static bool isValidArray(this Array array)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool isValid(this Array array)
         {
             return array != null && array.Length > 0;
         }
 
         /// <summary>
-        /// Checks to see if a list is initialized and has at least one element.
+        /// Verifies that a list is not null and has at least one element.
         /// </summary>
-        public static bool isValidList<type>(this List<type> list)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool isValid<type>(this List<type> list)
         {
             return !list.isNull() && list.Count > 0;
         }
 
         /// <summary>
-        /// Checks to see if a dictionary is initialized and has at least one element.
+        /// Verifies that a dictionary is not null and has at least one <see cref="KeyValuePair{TKey, TValue}"/>.
         /// </summary>
-        public static bool isValidDictionary<Tkey, TValue>(this Dictionary<Tkey, TValue> dictionary)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool isValid<Tkey, TValue>(this Dictionary<Tkey, TValue> dictionary)
         {
             return !dictionary.isNull() && dictionary.Keys.Count > 0;
         }
 
         /// <summary>
-        /// Checks to see if a string is null, empty, or contains only whitespace.
+        /// Verifies that a string is not null, empty, or contains only whitespace.
         /// </summary>
-        public static bool isValidString(this string str)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool isValid(this string str)
         {
             return !string.IsNullOrEmpty(str) && !string.IsNullOrWhiteSpace(str);
         }
+
         /// <summary>
         /// Checks to see if an object can be convereted to certain type.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanCovertTo<type>(this object obj)
         {
-            TypeConverter converter = TypeDescriptor.GetConverter(typeof(type));
-
-            return converter.IsValid(obj);
+            return TypeDescriptor.GetConverter(typeof(type)).IsValid(obj);
         }
+
+        #endregion
+
+        #region Arithmetic operations
 
         /// <summary>
         /// Clamps the value to a minum with no maximum (inclusive).
@@ -148,73 +164,233 @@ namespace TwitchLibrary.Extensions
             return value;
         }
 
+        #endregion
+
+        #region String parsing
+
         /// <summary>
-        /// Gets the text after a certain part of a string.
-        /// Returns <see cref="string.Empty"/> if the string index cannot be found.
+        /// Gets the text after character.
         /// </summary>
-        public static string TextAfter(this string str, string find)
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="start">The character to search from.</param>
+        /// <param name="offset_index">How far into the string to start searching for the start character.</param>
+        /// <returns>
+        /// If the start character could not be found, an empty string is returned.
+        /// </returns>
+        public static string TextAfter(this string str, char start, int offset_index = 0)
         {
-            string result = string.Empty;
-
-            int index = str.IndexOf(find);
-
-            if (index != -1)
-            {
-                index += find.Length;
-
-                result = str.Substring(index);
-            }
-
-            return result;
+            return str.TextAfter(start.ToString(), offset_index);
         }
 
         /// <summary>
-        /// Gets the text before a certain part of a string.
-        /// Returns <see cref="string.Empty"/> if the string index cannot be found.
+        /// Gets the text after a sub string.
         /// </summary>
-        public static string TextBefore(this string str, string find)
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="start">The sub string to search from.</param>
+        /// <param name="index_offset">How far into the string to start searching for the start sub string.</param>
+        /// <returns>
+        /// If the start sub string could not be found, an empty string is returned.
+        /// </returns>
+        public static string TextAfter(this string str, string start, int index_offset = 0)
         {
             string result = string.Empty;
 
-            int index = str.IndexOf(find);
-
-            if (index != -1)
+            if (!str.isValid())
             {
-                result = str.Substring(0, index);
+                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+
+                return result;
             }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the text between two characters at the first occurance.
-        /// The starting index can be specified.
-        /// The offset specifies how far into the sub string to return.
-        /// </summary>
-        public static string TextBetween(this string str, char start, char end, int starting_index = 0, int offset = 0)
-        {
-            string result = "";
-
-            int parse_start, parse_end;
-
-            parse_start = str.IndexOf(start, starting_index) + 1;
-            parse_end = str.IndexOf(end, parse_start);
 
             try
             {
-                result = str.Substring(parse_start + offset, parse_end - parse_start - offset);
+                int index_start = str.IndexOf(start, index_offset);
+                if (index_start < 0)
+                {
+                    LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
+                    LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found");
+                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+
+                    return result;
+                }
+
+                index_start += start.Length;
+                result = str.Substring(index_start);
             }
-            catch (Exception exception)
+            catch(Exception exception)
             {
-
-                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
-
-                LibraryDebug.PrintLine(nameof(str), str);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;
         }
+
+        /// <summary>
+        /// Gets the text before character.
+        /// </summary>
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="end">The sub string to search up to.</param>
+        /// <param name="index_offset">How far into the string to start searching for the end sub string.</param>
+        /// <returns>
+        /// If the end character could not be found, an empty string is returned.
+        /// </returns>
+        public static string TextBefore(this string str, char end, int offset_index = 0)
+        {
+            return str.TextBefore(end.ToString(), offset_index);
+        }
+
+        /// <summary>
+        /// Gets the text before a sub string.
+        /// </summary>
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="end">The sub string to search up to.</param>
+        /// <param name="index_offset">How far into the string to start searching for the end sub string.</param>
+        /// <returns>
+        /// If the end sub string could not be found, an empty string is returned.
+        /// </returns>
+        public static string TextBefore(this string str, string end, int index_offset = 0)
+        {
+            string result = string.Empty;
+
+            if (!str.isValid())
+            {
+                LibraryDebug.Error("Failed to find text before " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+
+                return result;
+            }
+
+            try
+            {
+                int index_end = str.IndexOf(end, index_offset);
+                if (index_end < 0)
+                {
+                    LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                    LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found");
+                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+
+                    return result;
+                }
+
+                result = str.Substring(0, index_end);
+            }
+            catch (Exception exception)
+            {
+                LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the text between two characters.
+        /// </summary>
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="start">The first charcater to search from.</param>
+        /// <param name="end">The character to search up to after the start character.</param>
+        /// <param name="offset_index">How far into the string to start searching for the start character.</param>
+        /// <returns>
+        /// If no sub string could be found between the start and end characters, an empty string is returned.
+        /// </returns>
+        public static string TextBetween(this string str, char start, char end, int offset_index = 0)
+        {
+            return str.TextBetween(start.ToString(), end.ToString(), offset_index);
+        }
+
+        /// <summary>
+        /// Gets the text between two sub strings.
+        /// </summary>
+        /// <param name="str">The string to be parsed.</param>
+        /// <param name="start">The sub string to search from.</param>
+        /// <param name="end">The sub string to search up to after the start sub string.</param>
+        /// <param name="index_offset">How far into the string to start searching for the start sub string.</param>
+        /// <returns>
+        /// If no sub string could be found between the start and end sub strings, an empty string is returned.
+        /// </returns>
+        public static string TextBetween(this string str, string start, string end, int index_offset = 0)
+        {
+            string result = string.Empty;
+
+            if (!str.isValid())
+            {
+                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+
+                return result;
+            }
+
+            try
+            {
+                int index_start = str.IndexOf(start, index_offset);
+                int index_end = str.IndexOf(end, index_start + start.Length);
+                if (index_start < 0 || index_end < 0)
+                {
+                    LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+
+                    if (index_start < 0)
+                    {
+                        LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found", TimeStamp.TimeLong);
+                    }
+
+                    if (index_end < 0)
+                    {
+                        LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found", TimeStamp.TimeLong);
+                    }
+
+                    return result;
+                }
+            
+                index_start += start.Length;
+                result = str.Substring(index_start, index_end - index_start);
+            }
+            catch(Exception exception)
+            {
+                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts a string into an array of a specified type.
+        /// Whitespace lines are ignored and not added to the array.
+        /// If no elements of the string could be converted, a default array of the specified type is returned. 
+        /// </summary>
+        public static type[] StringToArray<type>(this string str, char separator)
+        {
+            if (!str.isValid())
+            {
+                return default(type[]);
+            }
+
+            List<type> result = new List<type>();
+
+            string[] array = str.Split(separator);
+            foreach (string element in array)
+            {
+                if (!element.CanCovertTo<type>())
+                {
+                    LibraryDebug.Error("Could not convert " + element.Wrap("\"", "\"") + " from " + typeof(string).Name + " to " + typeof(string).Name, TimeStamp.TimeLong);
+                    continue;
+                }
+
+                result.Add((type)Convert.ChangeType(element, typeof(type)));
+            }
+
+            return result.isValid() ? result.ToArray() : default(type[]);
+        }
+
+        #endregion
 
         /// <summary>
         /// Wraps a string with the specified strings.
@@ -250,48 +426,7 @@ namespace TwitchLibrary.Extensions
             return start + character + end;
         }
 
-        /// <summary>
-        /// Converts a string into an array of a specified type.
-        /// Whitespace lines are ignored and not added to the array.
-        /// If no elements of the string could be converted, a default array of the specified type is returned. 
-        /// </summary>
-        public static type[] StringToArray<type>(this string str, char parse_point)
-        {
-            if (!str.isValidString())
-            {
-                return default(type[]);
-            }
-
-            string[] array = str.Split(parse_point);
-
-            List<type> result = new List<type>();
-
-            int index = 0;
-            foreach (string element in array)
-            {
-                if (!element.CanCovertTo<type>())
-                {
-                    continue;
-                }
-
-                try
-                {
-                    result.Add((type)Convert.ChangeType(element, typeof(type)));
-                }
-                catch (Exception exception)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Could not convert array element " + element.Wrap("\"", "\"") + " from " + typeof(string).Name.Wrap("\"", "\"") + " to " + typeof(type).Name.Wrap("\"", "\"") + " at index \"" + index + "\"");
-                    Console.ResetColor();
-
-                    Console.WriteLine("{0,-20} {1,-20}", nameof(exception), exception.Message);
-                }
-
-                ++index;
-            }
-
-            return result.Count == 0 ? default(type[]) : result.ToArray();
-        }
+        
 
         /// <summary>
         /// Removes padding from the left, right, both sides of a string.
@@ -306,7 +441,7 @@ namespace TwitchLibrary.Extensions
                     {
                         for (int index = 0; index < str.Length; index++)
                         {
-                            if (str[index].ToString().isValidString())
+                            if (str[index].ToString().isValid())
                             {
                                 result = str.Substring(index);
 
@@ -319,7 +454,7 @@ namespace TwitchLibrary.Extensions
                     {
                         for (int index = str.Length; index > 0; index--)
                         {
-                            if (str[index - 1].ToString().isValidString())
+                            if (str[index - 1].ToString().isValid())
                             {
                                 result = str.Substring(0, index);
 
@@ -360,11 +495,71 @@ namespace TwitchLibrary.Extensions
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "str", LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
             }
 
             return value;
+        }
+
+        public static async Task<string> TrySerializeObjectAsync<type>(this type obj)
+        {
+            Task<string> task = Task.Run(() =>
+            {
+                try
+                {
+                    return JsonConvert.SerializeObject(obj);
+                }
+                catch (Exception exception)
+                {
+                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
+
+                    return "";
+                }
+            });
+
+            string result = await task;
+
+            if (task.IsFaulted)
+            {
+                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
+                LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
+
+                result = "";
+            }
+
+            return result;
+        }
+
+        public static async Task<type> TryDeserializeObjectAsync<type>(this string str)
+        {
+            Task<type> task = Task.Run(() =>
+            {
+                try
+                {
+                    return JsonConvert.DeserializeObject<type>(str);
+                }
+                catch (Exception exception)
+                {
+                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
+
+                    return default(type);
+                }
+            });
+
+            type result = await task;
+
+            if (task.IsFaulted)
+            {
+                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
+                LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
+
+                result = default(type);
+            }
+
+            return result;
         }
     }
 }

@@ -12,6 +12,7 @@
         APPLY,
         GET,
         SERIALIZE,
-        CONVERT
+        CONVERT,
+        RAISE
     }
 }

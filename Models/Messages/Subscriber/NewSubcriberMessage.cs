@@ -3,7 +3,7 @@ using TwitchLibrary.Models.Messages.Private;
 
 namespace TwitchLibrary.Models.Messages.Subscriber
 {
-    public class NewSubcriberMessage
+    public class UserSubcribedMessage
     {
         //twitch prime
         public bool is_premium { get; protected set; }
@@ -13,7 +13,7 @@ namespace TwitchLibrary.Models.Messages.Subscriber
 
         public NewSubcriberSender sender { get; protected set; }
 
-        public NewSubcriberMessage(PrivateMessage private_message)
+        public UserSubcribedMessage(PrivateMessage private_message)
         {
             is_premium = private_message.body.Contains("Twitch Prime");
 

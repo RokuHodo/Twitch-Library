@@ -34,7 +34,7 @@ namespace TwitchLibrary.Helpers.Paging.Clips
             request.AddQueryParameter("trending", trending.ToString().ToLower());
             request.AddQueryParameter("limit", limit.ToString());         
 
-            if (cursor.isValidString())
+            if (cursor.isValid())
             {
                 request.AddQueryParameter("cursor", cursor);
             }

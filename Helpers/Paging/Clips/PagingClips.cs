@@ -43,17 +43,17 @@ namespace TwitchLibrary.Helpers.Paging.Clips
             request.AddQueryParameter("trending", trending.ToString().ToLower());
             request.AddQueryParameter("limit", limit.ToString());         
 
-            if (game.isValidString())
+            if (game.isValid())
             {
                 request.AddQueryParameter("game", game);
             }
 
-            if (cursor.isValidString())
+            if (cursor.isValid())
             {
                 request.AddQueryParameter("cursor", cursor);
             }
 
-            if (channel.isValidArray())
+            if (channel.isValid())
             {
                 request.AddQueryParameter("channel", string.Join(",", channel));
             }

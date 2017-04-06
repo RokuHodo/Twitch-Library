@@ -4,9 +4,9 @@ using System;
 //project namespaces
 using TwitchLibrary.Models.Messages.Whisper;
 
-namespace TwitchLibrary.Events.Clients
+namespace TwitchLibrary.Events.Clients.IRC
 {
-    public class OnWhisperMessageReceivedEventArgs : EventArgs
+    public class WhisperMessageReceivedEventArgs : EventArgs
     {
         public WhisperMessage whisper_message { get; set; }
     }

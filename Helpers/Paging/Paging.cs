@@ -60,7 +60,7 @@ namespace TwitchLibrary.Helpers.Paging
                     list.Add(follower);
                 }
 
-                if (requested_page_cursor_value.isValidString())
+                if (requested_page_cursor_value.isValid())
                 {
                     //update the paging cursor property to properly request the next page
                     paging_cursor_info.SetValue(paging, requested_page_cursor_value);
@@ -126,7 +126,7 @@ namespace TwitchLibrary.Helpers.Paging
                     list.Add(follower);
                 }
 
-                if (requested_page_cursor_value.isValidString())
+                if (requested_page_cursor_value.isValid())
                 {
                     //update the paging cursor property to properly request the next page
                     paging_cursor_info.SetValue(paging, requested_page_cursor_value);
@@ -330,7 +330,7 @@ namespace TwitchLibrary.Helpers.Paging
             //requested page values
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
-            if (!requested_page_property_loop_list.isValidList())
+            if (!requested_page_property_loop_list.isValid())
             {
                 return list;
             }
@@ -364,7 +364,7 @@ namespace TwitchLibrary.Helpers.Paging
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
                     //the page doesn't contain any data, probably reached the end, stop requesting
-                    if (requested_page.isNull() || !requested_page_property_loop_list.isValidList())
+                    if (requested_page.isNull() || !requested_page_property_loop_list.isValid())
                     {
                         requesting = false;
                     }

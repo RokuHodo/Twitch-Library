@@ -36,7 +36,7 @@ namespace TwitchLibrary.Helpers.Paging.Channels
             request.AddQueryParameter("limit", limit.ToString());
             request.AddQueryParameter("offset", offset.ToString());
 
-            if (cursor.isValidString())
+            if (cursor.isValid())
             {
                 request.AddQueryParameter("cursor", cursor);
             }
