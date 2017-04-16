@@ -268,7 +268,7 @@ namespace TwitchLibrary.Clients.PubSub
         private void OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             LibraryDebug.Error("Error received from PubSub socket " + WEB_SOCKET.Wrap("\"", "\""), TimeStamp.TimeLong);
-            LibraryDebug.PrintLineFormatted(nameof(e.Message), e.Message);
+            LibraryDebug.PrintLine(nameof(e.Message), e.Message);
 
             OnErrorReceived.RaiseAsync(this, new ErrorReceivedEventArgs
             {
@@ -384,7 +384,7 @@ namespace TwitchLibrary.Clients.PubSub
                 default:
                     {
                         LibraryDebug.Error("Unsuported PubSub type recieved", TimeStamp.TimeLong);
-                        LibraryDebug.PrintLineFormatted(nameof(type), type.ToString());
+                        LibraryDebug.PrintLine(nameof(type), type.ToString());
 
                         OnUnsupportedMessageTypeReceived.RaiseAsync(this, new UnsupportedMessageTypeReceivedEventArgs
                         {

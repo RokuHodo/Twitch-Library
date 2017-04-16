@@ -82,6 +82,8 @@
     <Compile Include="Events\Clients\IRC\ReSubscriberEventArgs.cs" />
     <Compile Include="Events\Clients\IRC\NewSubscriberEventArgs.cs" />
     <Compile Include="Events\Clients\IRC\NewFollowerEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\NamesReceivedEventArgs.cs" />
+    <Compile Include="Events\Clients\IRC\UnsupportedMessageReceivedEventArgs.cs" />
     <Compile Include="Events\Clients\IRC\WhisperMessageReceivedEventArgs.cs" />
     <Compile Include="Events\Clients\IRC\PrivateMessageReceivedEventArgs.cs" />
     <Compile Include="Events\Clients\PubSub\MessageTypeEventArgs.cs" />

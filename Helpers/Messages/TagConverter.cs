@@ -13,7 +13,7 @@ namespace TwitchLibrary.Helpers.Messages
 {
     public static class TagConverter
     {
-        public static type ToGeneric<type>(Dictionary<string, string> tags, string key)
+        internal static type ToGeneric<type>(Dictionary<string, string> tags, string key)
         {
             type value = default(type);            
 
@@ -41,8 +41,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(value_string), value_string);
             }
 
             return value;
@@ -62,8 +62,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_int), value_int.ToString());
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(value_int), value_int.ToString());
             }
 
             return value;
@@ -82,8 +82,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(color_string), color_string);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(color_string), color_string);
             }
 
             return value;
@@ -119,8 +119,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "value", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(value_string), value_string);
             }
 
             return value;

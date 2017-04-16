@@ -10,22 +10,26 @@ namespace TwitchLibrary.Helpers.Paging.Clips
 {   
     public class PagingClips : PagingClipsGamesFollowed, ITwitchPaging
     {
-        public string game;
-
+        public string[] game;
         public string[] channel;
+        public BroadcasterLanguage[] language;
 
         public PeriodClips period;
 
         public PagingClips()
         {
             trending = false;
-            game = string.Empty;
-            cursor = string.Empty;
+
+            game = new string[0];
             channel = new string[0];
+            language = new BroadcasterLanguage[0];
+
+            cursor = string.Empty;
+            
             period = PeriodClips.DAY;
         }
 
-        public PagingClips(bool _trending, int _limit, string _cursor, string _game, string[] _channel, PeriodClips _period) : base(_trending, _limit, _cursor)
+        public PagingClips(bool _trending, int _limit, string _cursor, string[] _game, string[] _channel, BroadcasterLanguage[] _language, PeriodClips _period) : base(_trending, _limit, _cursor)
         {
             trending = _trending;
             limit = _limit;
@@ -33,6 +37,7 @@ namespace TwitchLibrary.Helpers.Paging.Clips
             cursor = _cursor;
             channel = _channel;
             period = _period;
+            language = _language;
         }
 
         /// <summary>
@@ -45,7 +50,7 @@ namespace TwitchLibrary.Helpers.Paging.Clips
 
             if (game.isValid())
             {
-                request.AddQueryParameter("game", game);
+                request.AddQueryParameter("game", string.Join(",", game));
             }
 
             if (cursor.isValid())
@@ -56,6 +61,11 @@ namespace TwitchLibrary.Helpers.Paging.Clips
             if (channel.isValid())
             {
                 request.AddQueryParameter("channel", string.Join(",", channel));
+            }
+
+            if (language.isValid())
+            {
+                request.AddQueryParameter("language", string.Join(",", language));
             }
 
             request.AddQueryParameter("period", period.ToString().ToLower());

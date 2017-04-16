@@ -53,7 +53,7 @@ namespace TwitchLibrary.Models.Messages.Private
             catch(Exception excepion)
             {
                 LibraryDebug.Error(LibraryDebugMethod.GET, nameof(room), LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(excepion), excepion.Message);
+                LibraryDebug.PrintLine(nameof(excepion), excepion.Message);
 
                 if (irc_message.contains_tags)
                 {

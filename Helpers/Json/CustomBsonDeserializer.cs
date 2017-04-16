@@ -10,7 +10,7 @@ using RestSharp.Deserializers;
 
 namespace TwitchLibrary.Helpers.Json
 {
-    class CustomBsonDeserializer : IDeserializer
+    internal class CustomBsonDeserializer : IDeserializer
     {
         public string RootElement { get; set; }
         public string Namespace { get; set; }

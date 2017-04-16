@@ -1,6 +1,7 @@
 ﻿//standard namespaces
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 //project namespaces
@@ -13,15 +14,33 @@ namespace TwitchLibrary.Debug
     {       
         #region Success, error, and warning messages
 
+        private static void PrintPrefix(string prefix, string text, ConsoleColor prefix_color, TimeStamp stamp)
+        {
+            if (!text.isValid())
+            {
+                return;
+            }
+
+            Dictionary<string, ConsoleColor> segments = new Dictionary<string, ConsoleColor>();
+            string time = GetTimeStampString(stamp);
+            if (time.isValid())
+            {
+                segments.Add(time, prefix_color);
+            }
+            segments.Add("[ " + prefix + " ] ", prefix_color);
+            segments.Add(text, ConsoleColor.Gray);
+
+            PrintFinal(segments, true);
+        }
+
         /// <summary>
         /// Prints a success debug message to the command line following a template with an optional time stamp.
         /// [ Success ] Successfully (method) the (obj)
         /// </summary>
         public static void Success(LibraryDebugMethod method, string obj, TimeStamp stamp = TimeStamp.None)
         {
-            string message = "Successfully " + GetSuccessMethodString(method).ToLower() + " the " + obj;
-
-            PrintLine(message, ConsoleColor.Green, stamp, "Success");
+            string text = "Successfully " + GetSuccessMethodString(method).ToLower() + " the " + obj;
+            PrintPrefix("Success", text, ConsoleColor.Green, stamp);
         }
 
         /// <summary>
@@ -74,28 +93,18 @@ namespace TwitchLibrary.Debug
         /// Prints a custom success debug message to the command line with an optional time stamp.
         /// [ Success ] (message)
         /// </summary>
-        public static void Success(string message, TimeStamp stamp = TimeStamp.None)
+        public static void Success(string text, TimeStamp stamp = TimeStamp.None)
         {
-            if (!message.isValid())
-            {
-                return;
-            }
-
-            PrintLine(message, ConsoleColor.Green, stamp, "Success");
+            PrintPrefix("Success", text, ConsoleColor.Green, stamp);
         }
 
         /// <summary>
         /// Prints a custom warning debug message to the command line with an optional time stamp.
         /// [ Warning ] (message)
         /// </summary>
-        public static void Warning(string message, TimeStamp stamp = TimeStamp.None)
+        public static void Warning(string text, TimeStamp stamp = TimeStamp.None)
         {
-            if (!message.isValid())
-            {
-                return;
-            }
-
-            PrintLine(message, ConsoleColor.Yellow, stamp, "Warning");
+            PrintPrefix("Warning", text, ConsoleColor.Yellow, stamp);
         }
 
         /// <summary>
@@ -104,29 +113,21 @@ namespace TwitchLibrary.Debug
         /// </summary>
         public static void Error(LibraryDebugMethod method, string obj, string error, TimeStamp stamp = TimeStamp.None)
         {
-            string message = "Failed to " + method.ToString().ToLower() + " the " + obj;
-
-            if(error.isValid())
+            string text = "Failed to " + method.ToString().ToLower() + " the " + obj;
+            if (error.isValid())
             {
-                message += ": " + error;
+                text += ": " + error;
             }
-
-            PrintLine(message, ConsoleColor.Red, stamp, "Error");
+            PrintPrefix("Error", text, ConsoleColor.Red, stamp);
         }
 
         /// <summary>
         /// Prints a custom error debug message to the command line with an optional time stamp.
         /// [ Error ] Failed to (method) the (obj) : (error)
         /// </summary>
-        public static void Error(string message, TimeStamp stamp = TimeStamp.None)
+        public static void Error(string text, TimeStamp stamp = TimeStamp.None)
         {
-            if (!message.isValid())
-            {
-                return;
-
-            }
-
-            PrintLine(message, ConsoleColor.Red, stamp, "Error");
+            PrintPrefix("Error", text, ConsoleColor.Red, stamp);
         }
 
         #endregion
@@ -137,14 +138,9 @@ namespace TwitchLibrary.Debug
         /// Prints a notify debug message to the command line with an optional time stamp.
         /// [ Notice ] (message)
         /// </summary>
-        public static void Notify(string message, TimeStamp stamp = TimeStamp.None)
+        public static void Notify(string text, TimeStamp stamp = TimeStamp.None)
         {
-            if (!message.isValid())
-            {
-                return;
-            }
-
-            PrintLine(message, ConsoleColor.Cyan, stamp, "Notice");
+            PrintPrefix("Notice", text, ConsoleColor.Cyan, stamp);
         }
 
         /// <summary>
@@ -164,45 +160,53 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line.
         /// </summary>
-        public static void Print(string text, string prefix = "")
+        public static void Print(string text)
         {
-            PrintFinal(prefix, text, ConsoleColor.Gray);
+            Print(text, ConsoleColor.Gray, TimeStamp.None);
         }
 
         /// <summary>
         /// Prints a line of text to the command line in a specified color.
         /// </summary>
-        public static void Print(string text, ConsoleColor color, string prefix = "")
+        public static void Print(string text, ConsoleColor color)
         {
-            PrintFinal(prefix, text, color);
+            Print(text, color, TimeStamp.None);
         }
 
         /// <summary>
         /// Prints a line of text to the command line with a time stamp.
         /// </summary>
-        public static void Print(string text, TimeStamp stamp, string prefix = "")
+        public static void Print(string text, TimeStamp stamp)
         {
-            PrintFinal(prefix, text, ConsoleColor.Gray, stamp);
+            Print(text, ConsoleColor.Gray, stamp);
         }
 
         /// <summary>
         /// Prints a line of text to the command line in a specified color and with a time stamp.
         /// </summary>
-        public static void Print(string text, ConsoleColor color, TimeStamp stamp, string prefix = "")
-        {
-            PrintFinal(prefix, text, color, stamp);
-        }
-
-        /// <summary>
-        /// Prints a line of text to the command line preceeded with a label.
-        /// </summary>
-        public static void PrintFormatted(string label, string text)
+        public static void Print(string text, ConsoleColor color, TimeStamp stamp)
         {
             if (!text.isValid())
             {
                 return;
             }
 
+            Dictionary<string, ConsoleColor> segments = new Dictionary<string, ConsoleColor>();
+            string time = GetTimeStampString(stamp);
+            if (time.isValid())
+            {
+                segments.Add(time, ConsoleColor.Gray);
+            }
+            segments.Add(text, ConsoleColor.Gray);
+
+            PrintFinal(segments);
+        }
+
+        /// <summary>
+        /// Prints a line of text to the command line preceeded with a label.
+        /// </summary>
+        public static void Print(string label, string text)
+        {
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             Print(message);
@@ -211,13 +215,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label in a specified color.
         /// </summary>
-        public static void PrintFormatted(string label, string text, ConsoleColor color)
+        public static void Print(string label, string text, ConsoleColor color)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             Print(message, color);
@@ -226,13 +225,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label and a time stamp.
         /// </summary>
-        public static void PrintFormatted(string label, string text, TimeStamp stamp)
+        public static void Print(string label, string text, TimeStamp stamp)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             Print(message, stamp);
@@ -241,13 +235,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label in a specified color with a time stamp.
         /// </summary>
-        public static void PrintFormatted(string label, string text, ConsoleColor color, TimeStamp stamp)
+        public static void Print(string label, string text, ConsoleColor color, TimeStamp stamp)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             Print(message, color, stamp);
@@ -260,45 +249,53 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line.
         /// </summary>
-        public static void PrintLine(string text, string prefix = "")
+        public static void PrintLine(string text)
         {
-            PrintFinal(prefix, text, ConsoleColor.Gray, TimeStamp.None, true);
+            PrintLine(text, ConsoleColor.Gray, TimeStamp.None);
         }
 
         /// <summary>
         /// Prints a line of text to the command line in a specified color.
         /// </summary>
-        public static void PrintLine(string text, ConsoleColor color, string prefix = "")
+        public static void PrintLine(string text, ConsoleColor color)
         {
-            PrintFinal(prefix, text, color, TimeStamp.None, true);
+            PrintLine(text, color, TimeStamp.None);
         }
 
         /// <summary>
         /// Prints a line of text to the command line with a time stamp.
         /// </summary>
-        public static void PrintLine(string text, TimeStamp stamp, string prefix = "")
+        public static void PrintLine(string text, TimeStamp stamp)
         {
-            PrintFinal(prefix, text, ConsoleColor.Gray, stamp, true);
+            PrintLine(text, ConsoleColor.Gray, stamp);
         }
 
         /// <summary>
         /// Prints a line of text to the command line in a specified color and with a time stamp.
         /// </summary>
-        public static void PrintLine(string text, ConsoleColor color, TimeStamp stamp, string prefix = "")
-        {
-            PrintFinal(prefix, text, color, stamp, true);
-        }
-
-        /// <summary>
-        /// Prints a line of text to the command line preceeded with a label.
-        /// </summary>
-        public static void PrintLineFormatted(string label, string text)
+        public static void PrintLine(string text, ConsoleColor color, TimeStamp stamp)
         {
             if (!text.isValid())
             {
                 return;
             }
 
+            Dictionary<string, ConsoleColor> segments = new Dictionary<string, ConsoleColor>();
+            string time = GetTimeStampString(stamp);
+            if (time.isValid())
+            {
+                segments.Add(time, ConsoleColor.Gray);
+            }
+            segments.Add(text, ConsoleColor.Gray);
+
+            PrintFinal(segments, true);
+        }
+
+        /// <summary>
+        /// Prints a line of text to the command line preceeded with a label.
+        /// </summary>
+        public static void PrintLine(string label, string text)
+        {
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             PrintLine(message);
@@ -307,13 +304,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label in a specified color.
         /// </summary>
-        public static void PrintLineFormatted(string label, string text, ConsoleColor color)
+        public static void PrintLine(string label, string text, ConsoleColor color)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             PrintLine(message, color);
@@ -322,13 +314,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label and a time stamp.
         /// </summary>
-        public static void PrintLineFormatted(string label, string text, TimeStamp stamp)
+        public static void PrintLine(string label, string text, TimeStamp stamp)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             PrintLine(message, stamp);
@@ -337,13 +324,8 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line preceeded with a label in a specified color with a time stamp.
         /// </summary>
-        public static void PrintLineFormatted(string label, string text, ConsoleColor color, TimeStamp stamp)
+        public static void PrintLine(string label, string text, ConsoleColor color, TimeStamp stamp)
         {
-            if (!text.isValid())
-            {
-                return;
-            }
-
             string message = string.Format("{0,-20} {1,-20}", label, text);
 
             PrintLine(message, color, stamp);
@@ -354,13 +336,29 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a line of text to the command line with a specified color and if it should return to a new line after printing.
         /// </summary>
-        private static void PrintFinal(string prefix, string text, ConsoleColor color = ConsoleColor.Gray, TimeStamp stamp = TimeStamp.None, bool carriage_return = false)
+        private static void PrintFinal(Dictionary<string, ConsoleColor> segments, bool carriage_return = false)
         {
-            if (!text.isValid())
+            if (!segments.isValid())
             {
                 return;
             }
 
+            foreach(KeyValuePair<string, ConsoleColor> pair in segments)
+            {
+                Console.ForegroundColor = pair.Value;
+                Console.Write(pair.Key);
+            }
+
+            if (carriage_return)
+            {
+                Console.WriteLine();
+            }
+            
+            Console.ResetColor();
+        }
+
+        private static string GetTimeStampString(TimeStamp stamp)
+        {
             string time = "[ {0} ]";
 
             switch (stamp)
@@ -398,30 +396,7 @@ namespace TwitchLibrary.Debug
                     break;
             }
 
-            string message = text;
-
-            if (prefix.isValid())
-            {
-                message = "[ " + prefix + " ] " + message;
-            }
-
-            if (time.isValid())
-            {
-                message = time + message;
-            }
-
-            Console.ForegroundColor = color;
-
-            if (carriage_return)
-            {
-                Console.WriteLine(message);
-            }
-            else
-            {
-                Console.Write(message);
-            }
-            
-            Console.ResetColor();
+            return time;
         }
 
         /// <summary>
@@ -452,7 +427,7 @@ namespace TwitchLibrary.Debug
             if (obj == null || obj is ValueType || obj is DateTime || obj is string)
             {
                 string value = GetObjectValueString(obj);
-                PrintLineFormatted(label, value);
+                PrintLine(label, value);
             }
             else if (obj is IEnumerable)
             {
@@ -488,7 +463,7 @@ namespace TwitchLibrary.Debug
                         }                        
                         else
                         {
-                            PrintLineFormatted(member.Name, obj_member_value_string);
+                            PrintLine(member.Name, obj_member_value_string);
                         }                                              
                     }
                 }

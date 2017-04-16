@@ -11,6 +11,7 @@
         PARSE,
         APPLY,
         GET,
+        DESERIALIZE,
         SERIALIZE,
         CONVERT,
         RAISE

@@ -295,17 +295,17 @@ namespace TwitchLibrary.API
 
         /// <summary>
         /// Asynchronously gets a single paged list of clips from the games the user associated with the client's authentication token is following highest to lowest view count.
-        /// <see cref="PagingClips"/> can be specified to request a custom paged result.
+        /// <see cref="PagingClipsGamesFollowed"/> can be specified to request a custom paged result.
         /// Required scope: 'user_read'
         /// </summary>
         public async Task<ClipsPage> GetUserGamesFollowedClipsPageAsync(PagingClipsGamesFollowed paging = null)
         {
             if (paging.isNull())
             {
-                paging = new PagingClips();
+                paging = new PagingClipsGamesFollowed();
             }
 
-            RestRequest request = Request("clips/followed", Method.GET, ApiVersion.v4);
+            RestRequest request = Request("clips/followed", Method.GET);
             request = paging.Add(request);
 
             IRestResponse<ClipsPage> response = await twitch_api_client.ExecuteTaskAsync<ClipsPage>(request);

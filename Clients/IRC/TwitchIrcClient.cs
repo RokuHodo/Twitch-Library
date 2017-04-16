@@ -1,12 +1,14 @@
 ﻿//standard namespaces
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 //project namespaces
 using TwitchLibrary.API;
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Events.Clients.IRC;
+using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.Messages.Subscriber;
@@ -24,9 +26,9 @@ namespace TwitchLibrary.Clients.IRC
     public class TwitchIrcClient
     {
         //private
-        private readonly int PORT = 6667;
+        private int PORT = 6667;
 
-        private readonly string IP_ADRESS = "irc.chat.twitch.tv";
+        private string IP_ADRESS = "irc.chat.twitch.tv";
         private string OAUTH_TOKEN;
 
         private User user;
@@ -35,21 +37,27 @@ namespace TwitchLibrary.Clients.IRC
         private IrcUser irc_user;
         private IrcClient irc_client;
 
+        private List<string> names;
+
         //public
         public string _id;
         public string name;
         public string display_name;
 
-        public event EventHandler<EventArgs> OnSuccessfulConnection;
+        public event EventHandler<EventArgs> OnConnect;
 
         //TODO: (IRC) Implement follower service and OnNewFollower
         //public event EventHandler<OnNewFollowerEventArgs> OnNewFollower;
 
+        public event EventHandler<NamesReceivedEventArgs> OnNamesReceived;
+
         public event EventHandler<UseResubscriberEventArgs> OnUserResubscribed;
         public event EventHandler<UserSubscribedEventArgs> OnUserSubscribed;
 
+        //message events
         public event EventHandler<PrivateMessageReceivedEventArgs> OnPrivateMessageReceived;
         public event EventHandler<WhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
+        public event EventHandler<UnsupportedMessageReceivedEventArgs> OnUnsupportedMessageReceived;
 
         public TwitchIrcClient(string oauth_token)
         {
@@ -64,9 +72,18 @@ namespace TwitchLibrary.Clients.IRC
             irc_user = new IrcUser(name, name, "oauth:" + oauth_token);
             irc_client = new IrcClient(IP_ADRESS + ":" + PORT, irc_user);            
             irc_client.ConnectionComplete += new EventHandler<EventArgs>(OnConnectionComplete);
-            irc_client.RawMessageRecieved += new EventHandler<RawMessageEventArgs>(OnIrcMessageReceived);            
+            irc_client.RawMessageRecieved += new EventHandler<RawMessageEventArgs>(OnIrcMessageReceived);
+
+            //TODO: (IRC) Have the user connect themselves.
             irc_client.ConnectAsync();              
         }
+
+        //TODO: (IRC) Connect().
+        //TODO: (IRC) ConnectAsync().
+        //TODO: (IRC) Reonnect().
+        //TODO: (IRC) ReconnectAsync().
+        //TODO: (IRC) Disconnect().
+        //TODO: (IRC) DisconnectAsync().
 
         private void OnConnectionComplete(object sender, EventArgs e)
         {   
@@ -76,7 +93,7 @@ namespace TwitchLibrary.Clients.IRC
             irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/commands");
 
             //TODO: (IRC) Modify OnSuccessfulConnection
-            OnSuccessfulConnection.RaiseAsync(this, new EventArgs());            
+            OnConnect.RaiseAsync(this, new EventArgs());            
         }
 
         private void OnIrcMessageReceived(object sender, RawMessageEventArgs e)
@@ -97,27 +114,39 @@ namespace TwitchLibrary.Clients.IRC
                             if (private_message.body.IndexOf("just subscribed") != -1)
                             {
                                 UserSubcribedMessage subscriber_message = new UserSubcribedMessage(private_message);
-                                OnUserSubscribed.RaiseAsync(this, new UserSubscribedEventArgs { subscriber_message = subscriber_message });
+                                OnUserSubscribed.RaiseAsync(this, new UserSubscribedEventArgs
+                                {
+                                    subscriber_message = subscriber_message
+                                });
                             }
                         }
                         else
                         {
-                            OnPrivateMessageReceived.RaiseAsync(this, new PrivateMessageReceivedEventArgs { private_message = private_message });
+                            OnPrivateMessageReceived.RaiseAsync(this, new PrivateMessageReceivedEventArgs
+                            {
+                                private_message = private_message
+                            });
                         }
                     }
                     break;
                 case "WHISPER":
                     {
                         WhisperMessage whisper_message = new WhisperMessage(irc_message, OAUTH_TOKEN);
-                        OnWhisperMessageReceived.RaiseAsync(this, new WhisperMessageReceivedEventArgs { whisper_message = whisper_message });
+                        OnWhisperMessageReceived.RaiseAsync(this, new WhisperMessageReceivedEventArgs
+                        {
+                            whisper_message = whisper_message
+                        });
                     }
                     break;
                 case "USERNOTICE":
                     {
                         //NOTE: (IRC) IRC Command - USERNOTICE requires /commands
-                        //NOTE: (IRC) IRC Command - USERNOTICE tags only sent when / tags is requested
+                        //NOTE: (IRC) IRC Command - USERNOTICE tags only sent when /tags is requested
                         ResubscriberMessage subscriber_message = new ResubscriberMessage(irc_message, OAUTH_TOKEN);
-                        OnUserResubscribed.RaiseAsync(this, new UseResubscriberEventArgs { subscriber_message = subscriber_message });
+                        OnUserResubscribed.RaiseAsync(this, new UseResubscriberEventArgs
+                        {
+                            subscriber_message = subscriber_message
+                        });
                     }
                     break;
                 case "JOIN":
@@ -150,18 +179,28 @@ namespace TwitchLibrary.Clients.IRC
                     break;
                 case "353":
                     {
-                        //NOTE: (IRC) IRC Command - 353 (NAMES) requires /membership
-                        //NOTE: (IRC) IRC Command - 353 (NAMES) will only list OP users is number of users in the room > 1000
-                        
-                        //TODO: (IRC) IRC Command - 353 (NAMES) list of users in a channel's room
+                        //NOTE: (IRC) IRC Command - 353 (NAMES) requires /membership, will only list OP users is number of users in the room > 1000
+                        if (!names.isValid())
+                        {
+                            names = new List<string>();
+                        }
+
+                        foreach(string name in irc_message.trailing)
+                        {
+                            names.Add(name);
+                        }
                     }
                     break;
                 case "366":
                     {
                         //NOTE: (IRC) IRC Command - 366 (NAMES) requires /membership
                         //NOTE: (IRC) IRC Command - 366 (NAMES) once this line is recieved, the stored names from 353 should be raised and then emptied for the next 353
-                        
-                        //TODO: (IRC) IRC Command - 366 (NAMES) end of the returned names list, OnNamesReceived
+                        OnNamesReceived.RaiseAsync(this, new NamesReceivedEventArgs
+                        {
+                            names = names
+                        });
+
+                        names = new List<string>();
                     }
                     break;
                 case "CLEARCHAT":
@@ -225,11 +264,21 @@ namespace TwitchLibrary.Clients.IRC
                     break;
                 default:
                     {
-                        //TODO: (IRC) IRC Command - UnknownIrcCommandReceived
+                        OnUnsupportedMessageReceived.RaiseAsync(this, new UnsupportedMessageReceivedEventArgs
+                        {
+                            message = e.Message,
+                            irc_message = irc_message
+                        });
                     }
                     break;
 
             }
+        }
+
+        private void ClearNames(TaskStatus status)
+        {
+            LibraryDebug.PrintLine("Called back");
+            names = new List<string>();
         }
 
         #region Threads
@@ -415,7 +464,6 @@ namespace TwitchLibrary.Clients.IRC
             //TODO: (IRC) Chat Command - OnJoinedChannel
             irc_client.JoinChannel("#" + channel);            
 
-            LibraryDebug.BlankLine();
             LibraryDebug.Notify("Joining room: " + channel, TimeStamp.TimeLong);
         }
 
@@ -429,7 +477,6 @@ namespace TwitchLibrary.Clients.IRC
             //TODO: (IRC) Chat Command - OnPartChannel
             irc_client.PartChannel("#" + channel);
 
-            LibraryDebug.BlankLine();
             LibraryDebug.Notify("Leaving room: " + channel, TimeStamp.TimeLong);
         }
         

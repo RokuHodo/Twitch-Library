@@ -215,7 +215,7 @@ namespace TwitchLibrary.API
         }
 
         /// <summary>
-        /// Gets the information of a specified clip for a specific channel
+        /// Gets the information of a specified clip .
         /// </summary>
         public Clip GetClip(string channel_name, string slug)
         {

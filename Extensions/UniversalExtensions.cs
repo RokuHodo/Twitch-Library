@@ -15,13 +15,18 @@ using Newtonsoft.Json;
 
 namespace TwitchLibrary.Extensions
 {
-    public static class UniversalExtensions
+    internal static class UniversalExtensions
     {
         #region Validity checks
 
         /// <summary>
         /// Verifies that an object is null.
-        /// </summary>     
+        /// </summary>  
+        /// <param name="obj">The object to be checked.</param>
+        /// <returns>
+        /// Returns true is the object is null.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isNull(this object obj)
         {
@@ -29,8 +34,13 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Verifies that an array is not null and has at least one element.
+        /// Verifies that an <see cref="Array"/> is not null and has a length of at leats 1.
         /// </summary>
+        /// <param name="array">The <see cref="Array"/> to be validated.</param>
+        /// <returns>
+        /// Returns true if the <see cref="Array"/> is not null and has a length of at least 1.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isValid(this Array array)
         {
@@ -38,8 +48,14 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Verifies that a list is not null and has at least one element.
+        /// Verifies that a <see cref="List{T}"/> is not null and has a length of at leats 1.
         /// </summary>
+        /// <typeparam name="type">The type of the list.</typeparam>
+        /// <param name="list">The <see cref="List{T}"/> to be validated.</param>
+        /// <returns>
+        /// Returns true if the <see cref="List{T}"/> is not null and has a length of at least 1.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isValid<type>(this List<type> list)
         {
@@ -47,8 +63,15 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Verifies that a dictionary is not null and has at least one <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// Verifies that a <see cref="Dictionary{TKey, TValue}"/> is not null and has at least one <see cref="KeyValuePair{TKey, TValue}"/>.
         /// </summary>
+        /// <typeparam name="Tkey">The type of the key.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="dictionary">The <see cref="Dictionary{TKey, TValue}"/> to be validated.</param>
+        /// <returns>
+        /// Returns true if the <see cref="Dictionary{TKey, TValue}"/> is not null and has at least one <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isValid<Tkey, TValue>(this Dictionary<Tkey, TValue> dictionary)
         {
@@ -58,6 +81,11 @@ namespace TwitchLibrary.Extensions
         /// <summary>
         /// Verifies that a string is not null, empty, or contains only whitespace.
         /// </summary>
+        /// <param name="str">The <see cref="string"/> to be validated.</param>
+        /// <returns>
+        /// Returns true if the string is not not, not whitespace, and not empty.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool isValid(this string str)
         {
@@ -67,6 +95,12 @@ namespace TwitchLibrary.Extensions
         /// <summary>
         /// Checks to see if an object can be convereted to certain type.
         /// </summary>
+        /// <typeparam name="type">The type the object the object will be converted to.</typeparam>
+        /// <param name="obj">The <see cref="object"/> to be checked.</param>
+        /// <returns>
+        /// Retuens true if the object can be converted to the specified type.
+        /// Returns false otherwise.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanCovertTo<type>(this object obj)
         {
@@ -78,9 +112,37 @@ namespace TwitchLibrary.Extensions
         #region Arithmetic operations
 
         /// <summary>
-        /// Clamps the value to a minum with no maximum (inclusive).
-        /// If the number is less than the minimum, the default value is returned.
+        /// Clamps the value of an <see cref="int"/> to a minimum value.
         /// </summary>
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <returns>
+        /// Returns the minimum value if the value of the <see cref="int"/> is lower than the minumum.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
+        public static int ClampMin(this int value, int minimum)
+        {
+            if (value < minimum)
+            {
+                value = minimum;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Clamps the value of an <see cref="int"/> to a minimum value.
+        /// </summary>
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <param name="default_value">
+        /// The value that will be returned if the the <see cref="int"/> is less than the minimum value.
+        /// The default value is clamped against the minimum to verify that the default value is not less than the minimum.
+        /// </param>
+        /// <returns>
+        /// Returns the default value if the value of the <see cref="int"/> is lower than the minumum.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
         public static int ClampMin(this int value, int minimum, int default_value)
         {
             //in case the user is an idiot
@@ -95,22 +157,37 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a minum with no maximum (inclusive).
+        /// Clamps the value of an <see cref="int"/> to a maximum value.
         /// </summary>
-        public static int ClampMin(this int value, int minimum)
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <returns>
+        /// Returns the maximum value if the value of the <see cref="int"/> is greater than the maximum.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
+        public static int ClampMax(this int value, int maximum)
         {
-            if (value < minimum)
+            if (value > maximum)
             {
-                value = minimum;
+                value = maximum;
             }
 
             return value;
         }
 
         /// <summary>
-        /// Clamps the value to a maximum with no minimum (inclusive).
-        /// If the number is greater than the maximum, the default value is returned.
+        /// Clamps the value of an <see cref="int"/> to a maximum value.
         /// </summary>
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="default_value">
+        /// The value that will be returned if the the <see cref="int"/> is greater than the maximum value.
+        /// The default value is clamped against the maximum to verify that the default value is not greater than the maximum.
+        /// </param>
+        /// <returns>
+        /// Returns the default value if the value of the <see cref="int"/> is greater than the maximum.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
         public static int ClampMax(this int value, int maximum, int default_value)
         {
             //in case the user is an idiot
@@ -125,22 +202,38 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value to a maximum with no minimum (inclusive).
+        /// Clamps the value of an <see cref="int"/> to a minimum and maximum value.
         /// </summary>
-        public static int ClampMax(this int value, int maximum)
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <returns>
+        /// Returns the minimum value if the value of the <see cref="int"/> is less than the minimum.
+        /// Returns the maximum value if the value of the <see cref="int"/> is greater than the maximum.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
+        public static int Clamp(this int value, int minimum, int maximum)
         {
-            if (value > maximum)
-            {
-                value = maximum;
-            }
+            value = value.ClampMin(minimum);
+            value = value.ClampMax(maximum);
 
             return value;
         }
 
         /// <summary>
-        /// Clamps the value between a range of numbers (inclusive).
-        /// If the number is out of range, the default value is returned.
+        /// Clamps the value of an <see cref="int"/> to a minimum and maximum value.
         /// </summary>
+        /// <param name="value">The <see cref="int"/> to be clamped.</param>
+        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="default_value">
+        /// The value that will be returned if the the <see cref="int"/> is out of range.
+        /// The default value is clamped against the minimum and maximum to verify that the default value within the valid range.
+        /// </param>
+        /// <returns>
+        /// Returns the default value if the value of the <see cref="int"/> is out of range.
+        /// Returns the value of the <see cref="int"/> otherise.
+        /// </returns>
         public static int Clamp(this int value, int minimum, int maximum, int default_value)
         {
             //in case the user is an idiot
@@ -152,30 +245,19 @@ namespace TwitchLibrary.Extensions
             return value;
         }
 
-        /// <summary>
-        /// Clamps the value between a range of numbers (inclusive).
-        /// If the number is out of range, either the minimum or maximum will be returned depending on an overflow or underflow.
-        /// </summary>
-        public static int Clamp(this int value, int minimum, int maximum)
-        {
-            value = value.ClampMin(minimum);
-            value = value.ClampMax(maximum);
-
-            return value;
-        }
-
         #endregion
 
         #region String parsing
 
         /// <summary>
-        /// Gets the text after character.
+        /// Gets the text after a <see cref="char"/> in a <see cref="string"/>.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="start">The character to search from.</param>
-        /// <param name="offset_index">How far into the string to start searching for the start character.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="start">The <see cref="char"/> to search from.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the start <see cref="char"/>.</param>
         /// <returns>
-        /// If the start character could not be found, an empty string is returned.
+        /// Returns an empty string if the start <see cref="char"/> could not be found or if the offset index was out of bounds.
+        /// Returns the text after the start <see cref="char"/> otherwise.
         /// </returns>
         public static string TextAfter(this string str, char start, int offset_index = 0)
         {
@@ -183,15 +265,16 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Gets the text after a sub string.
+        /// Gets the text after a sub string in a <see cref="string"/>.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="start">The sub string to search from.</param>
-        /// <param name="index_offset">How far into the string to start searching for the start sub string.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="start">The sub <see cref="string"/> to search from.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the start sub <see cref="string"/>.</param>
         /// <returns>
-        /// If the start sub string could not be found, an empty string is returned.
+        /// Returns an empty string if the start sub <see cref="string"/> could not be found or if the offset index was out of bounds.
+        /// Returns the text after the start sub <see cref="char"/> otherwise.
         /// </returns>
-        public static string TextAfter(this string str, string start, int index_offset = 0)
+        public static string TextAfter(this string str, string start, int offset_index = 0)
         {
             string result = string.Empty;
 
@@ -205,12 +288,12 @@ namespace TwitchLibrary.Extensions
 
             try
             {
-                int index_start = str.IndexOf(start, index_offset);
+                int index_start = str.IndexOf(start, offset_index);
                 if (index_start < 0)
                 {
                     LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
                     LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+                    LibraryDebug.PrintLine(nameof(str), str);
 
                     return result;
                 }
@@ -221,9 +304,9 @@ namespace TwitchLibrary.Extensions
             catch(Exception exception)
             {
                 LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(str), str);
+                LibraryDebug.PrintLine(nameof(offset_index), offset_index.ToString());
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
             }
 
             return result;
@@ -232,11 +315,12 @@ namespace TwitchLibrary.Extensions
         /// <summary>
         /// Gets the text before character.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="end">The sub string to search up to.</param>
-        /// <param name="index_offset">How far into the string to start searching for the end sub string.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="end">The <see cref="char"/> to search up to.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the end <see cref="char"/>.</param>
         /// <returns>
-        /// If the end character could not be found, an empty string is returned.
+        /// Returns an empty string if the end <see cref="char"/> could not be found or if the offset index was out of bounds.
+        /// Returns the text before the end <see cref="char"/> otherwise.
         /// </returns>
         public static string TextBefore(this string str, char end, int offset_index = 0)
         {
@@ -244,13 +328,14 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Gets the text before a sub string.
+        /// Gets the text before a <see cref="char"/> in a <see cref="string"/>.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="end">The sub string to search up to.</param>
-        /// <param name="index_offset">How far into the string to start searching for the end sub string.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="end">The sub <see cref="string"/> to search up to.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the end sub <see cref="string"/>.</param>
         /// <returns>
-        /// If the end sub string could not be found, an empty string is returned.
+        /// Returns an empty string if the end sub <see cref="string"/> could not be found or if the offset index was out of bounds.
+        /// Returns the text before the end sub <see cref="string"/> otherwise.
         /// </returns>
         public static string TextBefore(this string str, string end, int index_offset = 0)
         {
@@ -271,7 +356,7 @@ namespace TwitchLibrary.Extensions
                 {
                     LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
                     LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+                    LibraryDebug.PrintLine(nameof(str), str);
 
                     return result;
                 }
@@ -281,23 +366,24 @@ namespace TwitchLibrary.Extensions
             catch (Exception exception)
             {
                 LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(str), str);
+                LibraryDebug.PrintLine(nameof(index_offset), index_offset.ToString());
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
             }
 
             return result;
         }
 
         /// <summary>
-        /// Gets the text between two characters.
+        /// Gets the text between two <see cref="char"/>s in a <see cref="string"/>.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="start">The first charcater to search from.</param>
-        /// <param name="end">The character to search up to after the start character.</param>
-        /// <param name="offset_index">How far into the string to start searching for the start character.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="start">The <see cref="char"/> to search from.</param>
+        /// <param name="end">The <see cref="char"/> to search up to.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the start <see cref="char"/>.</param>
         /// <returns>
-        /// If no sub string could be found between the start and end characters, an empty string is returned.
+        /// Returns an empty string if the start or end <see cref="char"/>s could not be found or if the offset index was out of bounds.
+        /// Returns the text between the start and end <see cref="char"/>s otherwise.
         /// </returns>
         public static string TextBetween(this string str, char start, char end, int offset_index = 0)
         {
@@ -305,16 +391,17 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Gets the text between two sub strings.
+        /// Gets the text between two sub <see cref="string"/>s in a <see cref="string"/>.
         /// </summary>
-        /// <param name="str">The string to be parsed.</param>
-        /// <param name="start">The sub string to search from.</param>
-        /// <param name="end">The sub string to search up to after the start sub string.</param>
-        /// <param name="index_offset">How far into the string to start searching for the start sub string.</param>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="start">The sub <see cref="string"/> to search from.</param>
+        /// <param name="end">The sub <see cref="string"/> to search up to.</param>
+        /// <param name="offset_index">How far into the <see cref="string"/> to start searching for the start sub <see cref="string"/>.</param>
         /// <returns>
-        /// If no sub string could be found between the start and end sub strings, an empty string is returned.
+        /// Returns an empty string if the start or end sub <see cref="string"/>s could not be found or if the offset index was out of bounds.
+        /// Returns the text between the start and end <see cref="char"/>s otherwise.
         /// </returns>
-        public static string TextBetween(this string str, string start, string end, int index_offset = 0)
+        public static string TextBetween(this string str, string start, string end, int offset_index = 0)
         {
             string result = string.Empty;
 
@@ -328,7 +415,7 @@ namespace TwitchLibrary.Extensions
 
             try
             {
-                int index_start = str.IndexOf(start, index_offset);
+                int index_start = str.IndexOf(start, offset_index);
                 int index_end = str.IndexOf(end, index_start + start.Length);
                 if (index_start < 0 || index_end < 0)
                 {
@@ -353,20 +440,40 @@ namespace TwitchLibrary.Extensions
             catch(Exception exception)
             {
                 LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(str), str);
+                LibraryDebug.PrintLine(nameof(offset_index), offset_index.ToString());
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
             }
 
             return result;
         }
 
         /// <summary>
-        /// Converts a string into an array of a specified type.
-        /// Whitespace lines are ignored and not added to the array.
-        /// If no elements of the string could be converted, a default array of the specified type is returned. 
+        /// Converts a <see cref="string"/> into an <see cref="Array"/> of a specified type.
         /// </summary>
-        public static type[] StringToArray<type>(this string str, char separator)
+        /// <typeparam name="type">The type of the returned <see cref="Array"/>.</typeparam>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="separator">An <see cref="char"/> that represents a point to separate the string into elemnts.</param>
+        /// <returns>
+        /// Returns a default <see cref="Array"/> of the specified type is no <see cref="string"/> elements could be converted.
+        /// Returns an <see cref="Array"/> of a specified type with the successfully converted <see cref="string"/> elements otherwise.
+        /// </returns>
+        public static type[] StringToArray<type>(this string str, char separator, StringSplitOptions options = StringSplitOptions.None)
+        {
+            return str.StringToArray<type>(new char[] { separator }, options);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="string"/> into an <see cref="Array"/> of a specified type.
+        /// </summary>
+        /// <typeparam name="type">The type of the returned <see cref="Array"/>.</typeparam>
+        /// <param name="str">The <see cref="string"/> to be parsed.</param>
+        /// <param name="separator">An <see cref="Array"/> of <see cref="char"/>s that represent points to separate the string into elemnts.</param>
+        /// <returns>
+        /// Returns a default <see cref="Array"/> of the specified type is no <see cref="string"/> elements could be converted.
+        /// Returns an <see cref="Array"/> of a specified type with the successfully converted <see cref="string"/> elements otherwise.
+        /// </returns>
+        public static type[] StringToArray<type>(this string str, char[] separators, StringSplitOptions options = StringSplitOptions.None)
         {
             if (!str.isValid())
             {
@@ -375,7 +482,7 @@ namespace TwitchLibrary.Extensions
 
             List<type> result = new List<type>();
 
-            string[] array = str.Split(separator);
+            string[] array = str.Split(separators, options);
             foreach (string element in array)
             {
                 if (!element.CanCovertTo<type>())
@@ -392,50 +499,54 @@ namespace TwitchLibrary.Extensions
 
         #endregion
 
+        #region String helpers
+
         /// <summary>
-        /// Wraps a string with the specified strings.
+        /// Wraps a <see cref="string"/> with the specified <see cref="string"/>s.
         /// </summary>
+        /// <param name="str">The <see cref="string"/> to be wrapped.</param>
+        /// <param name="prefix">The <see cref="string"/> to be placed at the begining of the current <see cref="string"/>.</param>
+        /// <param name="suffix">The <see cref="string"/> to be placed at the end of the current <see cref="string"/>.</param>
+        /// <returns>
+        /// Returns the current string wrapped in the prefix <see cref="string"/> and the suffix <see cref="string"/>.
+        /// </returns>
         public static string Wrap(this string str, string prefix, string suffix)
         {
-            if (!str.StartsWith(prefix))
-            {
-                str = prefix + str;
-            }
-
-            if (!str.EndsWith(suffix))
-            {
-                str += suffix;
-            }
-
-            return str;
+            return prefix + str + suffix;
         }
 
         /// <summary>
-        /// Wraps a character with the specified strings.
+        /// Wraps a <see cref="string"/> with the specified <see cref="char"/>s.
         /// </summary>
+        /// <param name="str">The <see cref="string"/> to be wrapped.</param>
+        /// <param name="prefix">The <see cref="char"/> to be placed at the begining of the current <see cref="string"/>.</param>
+        /// <param name="suffix">The <see cref="char"/> to be placed at the end of the current <see cref="string"/>.</param>
+        /// <returns>
+        /// Returns the current string wrapped in the prefix <see cref="char"/> and the suffix <see cref="char"/>.
+        /// </returns>
         public static string Wrap(this string str, char prefix, char suffix)
         {
             return prefix + str + suffix;
         }
 
         /// <summary>
-        /// Wraps a character with the specified strings.
+        /// Removes padding from the left, right, both sides of a <see cref="string"/>.
         /// </summary>
-        public static string Wrap(this char character, string start, string end)
-        {
-            return start + character + end;
-        }
-
-        
-
-        /// <summary>
-        /// Removes padding from the left, right, both sides of a string.
-        /// </summary>
-        public static string RemovePadding(this string str, Padding string_side = Padding.Both)
+        /// <param name="str">The <see cref="string"/> to be trimmed.</param>
+        /// <param name="side">Which side of the <see cref="string"/> to be trimmed.</param>
+        /// <returns>
+        /// Returns a <see cref="string"/> that has with all padding removed from the specified side of the string.
+        /// </returns>
+        public static string RemovePadding(this string str, Padding side = Padding.Both)
         {
             string result = string.Empty;
 
-            switch (string_side)
+            if (!str.isValid())
+            {
+                return str;
+            }
+
+            switch (side)
             {
                 case Padding.Left:
                     {
@@ -479,7 +590,21 @@ namespace TwitchLibrary.Extensions
             return result;
         }
 
-        public static type ConvertToEnum<type>(this string str) where type : struct
+        #endregion
+
+        #region Enum helpers
+
+        /// <summary>
+        /// Converts a <see cref="string"/> to a specified <see cref="enum"/> equivalent value.
+        /// </summary>
+        /// <typeparam name="type">The <see cref="enum"/> for the <see cref="string"/> to be converted to.</typeparam>
+        /// <param name="str">The <see cref="string"/> to be converted.</param>
+        /// <param name="ignore_case">Determins whether or not to ignore the case of the <see cref="string"/> when converting it to the <see cref="enum"/> value.</param>
+        /// <returns>
+        /// Returns the default value of the specified <see cref="enum"/> if the <see cref="string"/> could not be converted.
+        /// Returns the equivalent <see cref="enum"/> value otherwise.
+        /// </returns>
+        public static type ConvertToEnum<type>(this string str, bool ignore_case = true) where type : struct
         {
             type value = default(type);
 
@@ -490,76 +615,118 @@ namespace TwitchLibrary.Extensions
 
             try
             {
-                Enum.TryParse(str, out value);
+                Enum.TryParse(str, ignore_case, out value);
             }
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "str", LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(str), str);
             }
 
             return value;
         }
 
+        #endregion
+
+        #region Serialization helpers
+
+        /// <summary>
+        /// Asynchronously attempts to serialize an <see cref="object"/> using JSON.net into a <see cref="string"/>.
+        /// </summary>
+        /// <typeparam name="type">The implied type of the <see cref="object"/>.</typeparam>
+        /// <param name="obj">The <see cref="object"/> to be serialized into a <see cref="string"/>.</param>
+        /// <returns>
+        /// Returns an empty <see cref="string"/> if the object could not be serialized or if the <see cref="Task.Run(Action)"/> failed.
+        /// Returns the serialized <see cref="string"/> of the <see cref="object"/> otherwise.
+        /// </returns>
         public static async Task<string> TrySerializeObjectAsync<type>(this type obj)
         {
-            Task<string> task = Task.Run(() =>
+            string result = string.Empty;
+
+            try
             {
-                try
+                Task<string> task = Task.Run(() =>
                 {
-                    return JsonConvert.SerializeObject(obj);
-                }
-                catch (Exception exception)
+                    try
+                    {
+                        return JsonConvert.SerializeObject(obj);
+                    }
+                    catch (Exception exception)
+                    {
+                        LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                        LibraryDebug.PrintLine(nameof(exception), exception.Message);
+
+                        return string.Empty;
+                    }
+                });
+
+                result = await task;
+
+                if (task.IsFaulted)
                 {
-                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
-
-                    return "";
+                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
+                    LibraryDebug.PrintLine(nameof(task.Id), task.Id.ToString());
+                    LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
                 }
-            });
-
-            string result = await task;
-
-            if (task.IsFaulted)
+            }
+            catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
-                LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
-
-                result = "";
+                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Asynchronously attempts to deserialize a <see cref="string"/> using JSON.net into an <see cref="object"/>.
+        /// </summary>
+        /// <typeparam name="type">The specified type of the <see cref="object"/> to deserialize the <see cref="string"/> as.</typeparam>
+        /// <param name="str">The <see cref="string"/> to be deserialized.</param>
+        /// <returns>
+        /// Returns a default <see cref="object"/> of the specified type if the <see cref="string"/> could not be deserialized or if the <see cref="Task.Run(Action)"/> failed.
+        /// Returns the deserialized <see cref="object"/> of the <see cref="string"/> otherwise.
+        /// </returns>
         public static async Task<type> TryDeserializeObjectAsync<type>(this string str)
         {
-            Task<type> task = Task.Run(() =>
+            type result = default(type);
+
+            try
             {
-                try
+                Task<type> task = Task.Run(() =>
                 {
-                    return JsonConvert.DeserializeObject<type>(str);
-                }
-                catch (Exception exception)
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<type>(str);
+                    }
+                    catch (Exception exception)
+                    {
+                        LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                        LibraryDebug.PrintLine(nameof(exception), exception.Message);
+
+                        return default(type);
+                    }
+                });
+
+                result = await task;
+
+                if (task.IsFaulted)
                 {
-                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
-
-                    return default(type);
+                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
+                    LibraryDebug.PrintLine(nameof(task.Id), task.Id.ToString());
+                    LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
                 }
-            });
-
-            type result = await task;
-
-            if (task.IsFaulted)
+            }
+            catch(Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
-                LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
-
-                result = default(type);
+                LibraryDebug.Error(LibraryDebugMethod.DESERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
             }
 
             return result;
         }
+
+        #endregion
     }
 }

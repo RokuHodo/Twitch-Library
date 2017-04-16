@@ -45,7 +45,7 @@ namespace TwitchLibrary.Models.Messages.Whisper
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.GET, nameof(recipient_name), LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLine(nameof(exception), exception.Message);
 
                 if (irc_message.contains_tags)
                 {

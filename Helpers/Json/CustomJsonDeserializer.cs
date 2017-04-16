@@ -6,7 +6,7 @@ using RestSharp.Deserializers;
 
 namespace TwitchLibrary.Helpers.Json
 {
-    class CustomJsonDeserializer : IDeserializer
+    internal class CustomJsonDeserializer : IDeserializer
     {
         public string RootElement { get; set; }
         public string Namespace { get; set; }

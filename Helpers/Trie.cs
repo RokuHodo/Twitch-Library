@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TwitchLibrary.Helpers
 {
-    public class Trie
+    internal class Trie
     {
         Node root;
 

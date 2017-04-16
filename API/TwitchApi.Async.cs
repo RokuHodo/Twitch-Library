@@ -321,7 +321,7 @@ namespace TwitchLibrary.API
                 paging = new PagingClips();
             }
 
-            RestRequest request = Request("clips/top", Method.GET, ApiVersion.v4);
+            RestRequest request = Request("clips/top", Method.GET);
             request = paging.Add(request);
 
             IRestResponse<ClipsPage> response = await twitch_api_client.ExecuteTaskAsync<ClipsPage>(request);
@@ -348,11 +348,11 @@ namespace TwitchLibrary.API
         }
 
         /// <summary>
-        /// Asynchronously gets the information of a specified clip for a specific channel
+        /// Asynchronously gets the information of a specified clip.
         /// </summary>
         public async Task<Clip> GetClipAsync(string channel_name, string slug)
         {
-            RestRequest request = Request("clips/{channel_name}/{slug}", Method.GET, ApiVersion.v4);
+            RestRequest request = Request("clips/{slug}", Method.GET);
             request.AddUrlSegment("channel_name", channel_name);
             request.AddUrlSegment("slug", slug);
 
