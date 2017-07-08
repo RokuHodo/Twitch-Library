@@ -1,285 +1,805 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
+using System.Drawing;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Timers;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.API;
 using TwitchLibrary.Debug;
+using TwitchLibrary.Enums.Clients.IRC;
 using TwitchLibrary.Enums.Debug;
+using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Events.Clients.IRC;
+using TwitchLibrary.Models.Messages.IRC.Templates;
+using TwitchLibrary.Events.Clients.IRC.Commands.Twitch;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
 using TwitchLibrary.Models.API.Users;
-using TwitchLibrary.Models.Messages.Subscriber;
-using TwitchLibrary.Models.Messages.Whisper;
-
-//imported .dll's
-using ChatSharp;
-using ChatSharp.Events;
-
-
-//TODO: (IRC) Test to see if ChatSharp handles ping and disconnects and address them accordingly
 
 namespace TwitchLibrary.Clients.IRC
 {
-    public class TwitchIrcClient
+    public class TwitchIrcClient : IrcClient
     {
-        //private
-        private int PORT = 6667;
+        #region Fields
 
-        private string IP_ADRESS = "irc.chat.twitch.tv";
-        private string OAUTH_TOKEN;
+        // private
 
-        private User user;
-        private TwitchApiOAuth twitch_api;
+        private int                                                             port;
+        
+        private User                                                            user;
 
-        private IrcUser irc_user;
-        private IrcClient irc_client;
+        private Queue<PrivmsgTemplate>                                          privmsg_queue;
+        private Queue<WhisperTemplate>                                          whisper_queue;
 
-        private List<string> names;
+        private Timer                                                           privmsg_queue_timer;
+        private Timer                                                           whisper_queue_timer;        
 
-        //public
-        public string _id;
-        public string name;
-        public string display_name;
+        // public               
 
-        public event EventHandler<EventArgs> OnConnect;
+        /// <summary>
+        /// If set to true, the client will automatically reconnect when a 'RECONNECT' message is received from Twitch.
+        /// </summary>
+        public bool                                                             auto_reconnect;
 
-        //TODO: (IRC) Implement follower service and OnNewFollower
-        //public event EventHandler<OnNewFollowerEventArgs> OnNewFollower;
+        /// <summary>
+        /// If set to true, 'tags' are automatically requested when a successful connected is established.
+        /// </summary>
+        public bool                                                             request_tags;
 
-        public event EventHandler<NamesReceivedEventArgs> OnNamesReceived;
+        /// <summary>
+        /// If set to true, 'commands' are automatically requested when a successful connected is established.
+        /// </summary>
+        public bool                                                             request_commands;
 
-        public event EventHandler<UseResubscriberEventArgs> OnUserResubscribed;
-        public event EventHandler<UserSubscribedEventArgs> OnUserSubscribed;
+        /// <summary>
+        /// If set to true, 'membership' is automatically requested when a successful connected is established.
+        /// </summary>
+        public bool                                                             request_membership;
 
-        //message events
-        public event EventHandler<PrivateMessageReceivedEventArgs> OnPrivateMessageReceived;
-        public event EventHandler<WhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
-        public event EventHandler<UnsupportedMessageReceivedEventArgs> OnUnsupportedMessageReceived;
+        // TODO: (IRC) Implement follower service and OnNewFollower
+        // public event EventHandler<OnNewFollowerEventArgs>                    OnUserFollowed;                                
 
-        public TwitchIrcClient(string oauth_token)
+        /// <summary>
+        /// Raised when an unknown command is sent to Twitch.
+        /// </summary>
+        public event EventHandler<IrcMessageEventArgs>                          OnUnknownCommand;
+
+        /// <summary>
+        /// Raised when the client received a 'RECONNECT' from the Twitch IRC.
+        /// </summary>
+        public event EventHandler<IrcMessageEventArgs>                          OnReconnect;
+
+        /// <summary>
+        /// Raised when a whisper message has been received in a channel that the client has joined.
+        /// </summary>
+        public event EventHandler<WhisperEventArgs>                             OnWhisper;        
+
+        /// <summary>
+        /// Raised when a user gets timed out in a channel or when the chat room histroy gets cleared. Requires 'commands' to be requested.
+        /// </summary>
+        public event EventHandler<ClearChatEventArgs>                           OnClearChat;
+
+        /// <summary>
+        /// Raised when a user successfully logs in. Requires 'commands' to be requested.
+        /// </summary>
+        public event EventHandler<GlobalUserStateEventArgs>                     OnGlobalUserState;
+
+        /// <summary>
+        /// Raised when a user subscribes to a channel that the client has joined. This event includes subs, resubs, and charity. Requires 'commands' to be requested.
+        /// </summary>
+        public event EventHandler<UserNoticeEventArgs>                          OnUserNotice;
+
+        /// <summary>
+        /// Raised when a user joins a channel or the state of a room gets changed.
+        /// </summary>
+        public event EventHandler<RoomStateEventArgs>                           OnRoomState;
+
+        /// <summary>
+        /// Raised when a user the state of a room is changed. Only the changes state tag is returned.
+        /// </summary>
+        public event EventHandler<RoomStateChangeEventArgs>                     OnRoomStateChange;
+
+        /// <summary>
+        /// Raised when a user joins a room or sends a PRIVMSG to a channel.
+        /// </summary>
+        public event EventHandler<UserStateEventArgs>                           OnUserState;
+
+        /// <summary>
+        /// Raised when a general message is sent from the server about a channel.
+        /// </summary>
+        public event EventHandler<NoticeEventArgs>                              OnNotice;
+
+        /// <summary>
+        /// Raised when a channel stops hosting another channel.
+        /// </summary>
+        public event EventHandler<HostTargetEndEventArgs>                       OnHostTargetEnd;
+
+        /// <summary>
+        /// Raised when a channel starts hosting another channel.
+        /// </summary>
+        public event EventHandler<HostTargetStartEventArgs>                     OnHostTargetStart;
+
+        #endregion
+
+        #region Properties
+
+        // public
+
+        /// <summary>
+        /// The user id of the Twitch account associasted with the irc client.
+        /// </summary>
+        public string                                                           user_id { get; private set; }
+
+        /// <summary>
+        /// The name of the Twitch account associasted with the irc client.
+        /// </summary>
+        public string                                                           user_name { get; private set; }
+
+        /// <summary>
+        /// The formatted display name of the Twitch account associasted with the irc client.
+        /// </summary>
+        public string                                                           display_name { get; private set; }
+
+        #endregion
+
+        #region Constructors
+
+        public TwitchIrcClient(IrcUser irc_user, bool ssl = false) : base("irc.chat.twitch.tv", ssl == false ? 6667 : 443, irc_user)
         {
-            OAUTH_TOKEN = oauth_token;
-            twitch_api = new TwitchApiOAuth(OAUTH_TOKEN);
-            user = twitch_api.GetUser();
+            user = new TwitchApiOAuth(irc_user.pass).GetUser();
 
-            _id = user._id;
-            name = user.name;
+            ResetSettings();
+
+            OnConnected += new EventHandler<EventArgs>(Callback_OnConnected);
+            OnDisconnected += new EventHandler<EventArgs>(Callback_OnDisconnected);
+            OnPing += new EventHandler<IrcMessageEventArgs>(Callback_OnPing);
+            OnIrcMessage += new EventHandler<IrcMessageEventArgs>(Callback_OnIrcMessage);
+
+            user_id = user._id;
+            user_name = user.name;
             display_name = user.display_name;
 
-            irc_user = new IrcUser(name, name, "oauth:" + oauth_token);
-            irc_client = new IrcClient(IP_ADRESS + ":" + PORT, irc_user);            
-            irc_client.ConnectionComplete += new EventHandler<EventArgs>(OnConnectionComplete);
-            irc_client.RawMessageRecieved += new EventHandler<RawMessageEventArgs>(OnIrcMessageReceived);
+            privmsg_queue = new Queue<PrivmsgTemplate>();
+            whisper_queue = new Queue<WhisperTemplate>();
 
-            //TODO: (IRC) Have the user connect themselves.
-            irc_client.ConnectAsync();              
-        }
+            privmsg_queue_timer = new Timer(1500);
+            privmsg_queue_timer.Elapsed += ProcressEnqueuedChatCommands;
 
-        //TODO: (IRC) Connect().
-        //TODO: (IRC) ConnectAsync().
-        //TODO: (IRC) Reonnect().
-        //TODO: (IRC) ReconnectAsync().
-        //TODO: (IRC) Disconnect().
-        //TODO: (IRC) DisconnectAsync().
+            whisper_queue_timer = new Timer(1500);
+            whisper_queue_timer.Elapsed += ProcressEnqueuedWhispers;
+        }       
 
-        private void OnConnectionComplete(object sender, EventArgs e)
-        {   
-            //TODO: (IRC) Give the user an option to request tags/membership/commands or not
-            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/tags");
-            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/membership");
-            irc_client.SendRawMessage("CAP REQ :{0}", "twitch.tv/commands");
 
-            //TODO: (IRC) Modify OnSuccessfulConnection
-            OnConnect.RaiseAsync(this, new EventArgs());            
-        }
-
-        private void OnIrcMessageReceived(object sender, RawMessageEventArgs e)
+        /// <summary>
+        /// Sets all settings back to their default values.
+        /// </summary>
+        public void ResetSettings()
         {
-            //use our IrcMessage because ChatSharp can't successfully parse the raw message, Twitch never sent '005' while logging in
-            //TODO: (IRC) OnIrcMessageReceived
-            Models.Messages.IRC.IrcMessage irc_message = new Models.Messages.IRC.IrcMessage(e.Message);
+            auto_reconnect = true;
 
-            switch (irc_message.command)
+            request_tags = true;
+            request_commands = true;
+            request_membership = true;
+        }
+
+        #endregion      
+
+        #region Event handling
+
+        /// <summary>
+        /// Fired when the client successfuly connects to Twitch IRC.
+        /// Handles auto requesting tags, commands, and membership and handles reconnecting.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event parameters.</param>
+        private void Callback_OnConnected(object sender, EventArgs e)
+        {
+            privmsg_queue_timer.Enabled = true;
+            whisper_queue_timer.Enabled = true;
+
+            if (request_tags)
             {
-                case "PRIVMSG":
-                    {
-                        //NOTE: (IRC) IRC Command - PRIVMSG tags only sent when / tags is requested
-                        Models.Messages.Private.PrivateMessage private_message = new Models.Messages.Private.PrivateMessage(irc_message, OAUTH_TOKEN);
+                RequestTags();
+            }
 
-                        if (private_message.sender.name == "twitchnotify")
-                        {
-                            if (private_message.body.IndexOf("just subscribed") != -1)
-                            {
-                                UserSubcribedMessage subscriber_message = new UserSubcribedMessage(private_message);
-                                OnUserSubscribed.RaiseAsync(this, new UserSubscribedEventArgs
-                                {
-                                    subscriber_message = subscriber_message
-                                });
-                            }
-                        }
-                        else
-                        {
-                            OnPrivateMessageReceived.RaiseAsync(this, new PrivateMessageReceivedEventArgs
-                            {
-                                private_message = private_message
-                            });
-                        }
-                    }
-                    break;
+            if (request_commands)
+            {
+                RequestCommands();
+            }
+
+            if (request_membership)
+            {
+                RequestMembership();
+            }
+        }
+
+        private void Callback_OnDisconnected(object sender, EventArgs e)
+        {
+            privmsg_queue.Clear();
+            whisper_queue.Clear();
+
+            privmsg_queue_timer.Enabled = false;
+            whisper_queue_timer.Enabled = false;
+        }
+
+        private void Callback_OnPing(object sender, IrcMessageEventArgs e)
+        {
+            if (auto_pong)
+            {
+                Ping(e.irc_message);
+            }
+        }
+
+        /// <summary>
+        /// Fired when a message is receieved from the Twitch IRC.
+        /// The message is parsed and processed according to what irc command it contains.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event parameters.</param>
+        private void Callback_OnIrcMessage(object sender, IrcMessageEventArgs e)
+        {
+            LibraryDebug.Header(TimeStamp.TimeLong, "IRC message received from Twitch IRC. Processing Starting...");
+
+            LibraryDebug.PrintLine(e.irc_message.command + " recieved from Twitch IRC");
+            switch (e.irc_message.command)
+            {
+                #region Requires no requests to be sent
+                
                 case "WHISPER":
                     {
-                        WhisperMessage whisper_message = new WhisperMessage(irc_message, OAUTH_TOKEN);
-                        OnWhisperMessageReceived.RaiseAsync(this, new WhisperMessageReceivedEventArgs
-                        {
-                            whisper_message = whisper_message
-                        });
+                        // NOTE: (TwitchIrcClient) IRC Command - WHISPER tags only sent when /tags is requested
+                        OnWhisper.Raise(this, new WhisperEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
+
+                #endregion
+
+                #region Requires 'commands' to be requested
+
                 case "USERNOTICE":
                     {
-                        //NOTE: (IRC) IRC Command - USERNOTICE requires /commands
-                        //NOTE: (IRC) IRC Command - USERNOTICE tags only sent when /tags is requested
-                        ResubscriberMessage subscriber_message = new ResubscriberMessage(irc_message, OAUTH_TOKEN);
-                        OnUserResubscribed.RaiseAsync(this, new UseResubscriberEventArgs
-                        {
-                            subscriber_message = subscriber_message
-                        });
-                    }
-                    break;
-                case "JOIN":
-                    {
-                        //NOTE: (IRC) IRC Command - JOIN requires /membership
-
-                        //TODO: (IRC) IRC Command - JOIN, OnUserJoinedReceived
-
-                    }
-                    break;
-                case "PART":
-                    {
-                        //NOTE: (IRC) IRC Command - PART requires /membership
-
-                        //TODO: (IRC) IRC Command - PART, OnUserPartReceived
-                    }
-                    break;
-                case "MODE":
-                    {
-                        //NOTE: (IRC) IRC Command - MODE requires /membership
-
-                        //NOTE: (IRC) IRC Command - MODE, OnUserModded EXTEMELY unreliable
-
-                        //TODO: (IRC) IRC Command - MODE, OnUserModdedReceived
-
-                        //NOTE: (IRC) IRC Command - MODE, OnUserUnmodded EXTEMELY unreliable
-
-                        //TODO: (IRC) IRC Command - MODE, OnUserUnmoddedReceived
-                    }
-                    break;
-                case "353":
-                    {
-                        //NOTE: (IRC) IRC Command - 353 (NAMES) requires /membership, will only list OP users is number of users in the room > 1000
-                        if (!names.isValid())
-                        {
-                            names = new List<string>();
-                        }
-
-                        foreach(string name in irc_message.trailing)
-                        {
-                            names.Add(name);
-                        }
-                    }
-                    break;
-                case "366":
-                    {
-                        //NOTE: (IRC) IRC Command - 366 (NAMES) requires /membership
-                        //NOTE: (IRC) IRC Command - 366 (NAMES) once this line is recieved, the stored names from 353 should be raised and then emptied for the next 353
-                        OnNamesReceived.RaiseAsync(this, new NamesReceivedEventArgs
-                        {
-                            names = names
-                        });
-
-                        names = new List<string>();
+                        // NOTE: (TwitchIrcClient) IRC Command - USERNOTICE requires /commands, tags only sent when /tags is requested
+                        OnUserNotice.Raise(this, new UserNoticeEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "CLEARCHAT":
                     {
-                        //NOTE: (IRC) IRC Command - CLEARCHAT requires /commands
-                        //NOTE: (IRC) IRC Command - CLEARCHAT tags only sent when /tags is requested
-
-                        //TODO: (IRC) IRC Command - CLEARCHAT, OnChatClearedReceived
+                        // NOTE: (TwitchIrcClient) IRC Command - CLEARCHAT requires /commands, tags only sent when /tags is requested
+                        OnClearChat.Raise(this, new ClearChatEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "GLOBALUSERSTATE":
                     {
-                        //NOTE: (IRC) IRC Command - GLOBALUSERSTATE tags only sent when /tags is requested
-                        //NOTE: (IRC) IRC Command - GLOBALUSERSTATE is possibly already handled by ChatSharp, may not need this or add independent event
-
-                        //TODO: (IRC) IRC Command - GLOBALUSERSTATE, OnGlobalUserstateReceived/OnSuccessfulLogin?
+                        // NOTE: (TwitchIrcClient) IRC Command - GLOBALUSERSTATE requires /commands, tags only sent when /tags is requested
+                        // TODO: (TwitchIrcClient) IRC Command - GLOBALUSERSTATE check to make sure the model matches what is being received through the IRC
+                        OnGlobalUserState.Raise(this, new GlobalUserStateEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "ROOMSTATE":
                     {
-                        //NOTE: (IRC) IRC Command - ROOMSTATE requires /commands
-                        //NOTE: (IRC) IRC Command - ROOMSTATE tags only sent when /tags is requested
-                        //NOTE: (IRC) IRC Command - ROOMSTATE is sent when a user joins a channel room with all settings in the tag
-                        //NOTE: (IRC) IRC Command - ROOMSTATE is sent when a room setting is changed only with the relevant tag
-                        
-                        //TODO: (IRC) IRC Command - ROOMSTATE, OnRoomStateReceived
+                        // NOTE: (TwitchIrcClient) IRC Command - ROOMSTATE requires /commands, tags only sent when /tags is requested
+                        // NOTE: (TwitchIrcClient) IRC Command - ROOMSTATE this will break if Twitch ever includes more than just the room-id and the changed state tags
+                        if (e.irc_message.contains_tags && e.irc_message.tags.Count == 2)
+                        {
+                            OnRoomStateChange.Raise(this, new RoomStateChangeEventArgs(e.raw_message , e.irc_message));
+                        }
+                        else
+                        {
+                            OnRoomState.Raise(this, new RoomStateEventArgs(e.raw_message , e.irc_message));
+                        }
                     }
                     break;
-                case "USERSTATE ":
+                case "USERSTATE":
                     {
-                        //NOTE: (IRC) IRC Command - USERSTATE requires /commands
-                        //NOTE: (IRC) IRC Command - USERSTATE tags only sent when /tags is requested
-                        //NOTE: (IRC) IRC Command - USERSTATE is sent when a user joins a channel room just like ROOMSTATE
-                        //NOTE: (IRC) IRC Command - USERSTATE is also sent a user sends a message in a channel room but with different tags
-
-                        //TODO: (IRC) IRC Command - USERSTATE, OnUserStateReceived
+                        // NOTE: (TwitchIrcClient) IRC Command - USERSTATE requires /commands, tags only sent when /tags is requested
+                        OnUserState.Raise(this, new UserStateEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "RECONNECT":
                     {
-                        //NOTE: (IRC) IRC Command - RECONNECT requires /commands
-                        //NOTE: (IRC) IRC Command - RECONNECT when this is received from the server, the client needs to recconnect
+                        // NOTE: (TwitchIrcClient) IRC Command - RECONNECT requires /commands
+                        // TODO: (TwitchIrcClient) Reimplement Reconnect();
 
-                        //TODO: (IRC) IRC Command - RECONNECT, OnReconnectReceived
+                        if (auto_reconnect)
+                        {
+                            Reconnect();
+                        }
+
+                        OnReconnect.Raise(this, new IrcMessageEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "NOTICE":
                     {
-                        //NOTE: (IRC) IRC Command - NOTICE requires /commands
-
-                        //TODO: (IRC) IRC Command - NOTICE, OnNoticeReceived
+                        // NOTE: (TwitchIrcClient) IRC Command - NOTICE requires /commands
+                        OnNotice.Raise(this, new NoticeEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 case "HOSTTARGET":
                     {
-                        //NOTE: (IRC) IRC Command - HOSTTARGET requires /commands
-                        //NOTE: (IRC) IRC Command - HOSTTARGET is sent when the CLIENT either hosts or unhosts someone, not when the client is hosted (i think)
+                        // NOTE: (TwitchIrcClient) IRC Command - HOSTTARGET requires /commands
+                        if (e.irc_message.trailing[0] == "-")
+                        {
+                            OnHostTargetEnd.Raise(this, new HostTargetEndEventArgs(e.raw_message , e.irc_message));
+                        }
+                        else
+                        {
+                            OnHostTargetStart.Raise(this, new HostTargetStartEventArgs(e.raw_message, e.irc_message));
+                        }
+                    }
+                    break;
 
-                        //TODO: (IRC) IRC Command - HOSTTARGET, OnHostTargetReceived
+                #endregion
+
+                #region Error handling
+
+                case "421":
+                    {
+                        LibraryDebug.PrintLine("Unkown command recieved from Twitch IRC");
+                        OnUnknownCommand.Raise(this, new IrcMessageEventArgs(e.raw_message, e.irc_message));
                     }
                     break;
                 default:
                     {
-                        OnUnsupportedMessageReceived.RaiseAsync(this, new UnsupportedMessageReceivedEventArgs
-                        {
-                            message = e.Message,
-                            irc_message = irc_message
-                        });
+                        
                     }
                     break;
 
+                #endregion
             }
         }
+        
+        #endregion               
 
-        private void ClearNames(TaskStatus status)
+        #region Twitch requests
+
+        public void RequestTags()
         {
-            LibraryDebug.PrintLine("Called back");
-            names = new List<string>();
+            LibraryDebug.PrintLine("Requesting 'tags' from Twitch IRC.");
+            Send("CAP REQ :twitch.tv/tags");
         }
+
+        public void RequestCommands()
+        {
+            LibraryDebug.PrintLine("Requesting 'commands' from Twitch IRC.");
+            Send("CAP REQ :twitch.tv/commands");
+        }
+
+        public void RequestMembership()
+        {
+            LibraryDebug.PrintLine("Requesting 'membership' from Twitch IRC.");
+            Send("CAP REQ :twitch.tv/membership");
+        }
+
+        #endregion
+
+        #region Twitch chat commands
+
+        // TODO: (TwitchIrcClient) Twitch commands - Re-test these to make sure I didn't break these
+
+        // TODO: (TwitchIrcClient) Chat Command - IgnoreUser - Not possible directly through IRC?
+        // TODO: (TwitchIrcClient) Chat Command - UnignoreUser - Not possible directly through IRC? 
+
+        #region Basic commands
+
+        /// <summary>
+        /// Display a list of all chat moderators for that channel the client is associated with.
+        /// The list will not pop in in any chat room, but a NOTICE will be received with the list of mods.
+        /// </summary>
+        public void Mods()
+        {
+            Mods(user_name);
+        }
+
+        /// <summary>
+        /// Display a list of all chat moderators for that specific channel.
+        /// The list will not pop in in any chat room, but a NOTICE will be received with the list of mods.
+        /// </summary>
+        /// <param name="room_name">The room to check for mods in.</param>
+        public void Mods(string room_name)
+        {
+            EnqueuePrivmsg(room_name, ".mods");
+        }
+
+        /// <summary>
+        /// Changes the display name color of the client in Twitch chat.
+        /// Can be used by any client, regardless if the associated user has Turbo/Twitch Prime or not.
+        /// Chat windows need to be refreshed for the changes to take effect.
+        /// </summary>
+        /// <param name="color">The color to change the display name too.</param>
+        public void Color(DisplayColor color)
+        {
+            string display_color = color.ToString().ToLower();
+            Color(display_color);
+        }
+
+        /// <summary>
+        /// Changes the display name color of the client in Twitch chat.
+        /// This can only be used by clients associated with a user that has turbo or Twitch Prime.
+        /// If a user associated with the client does not have Tubro or Twitch Prime, the action will not succeed.
+        /// Chat windows need to be refreshed for the changes to take effect.
+        /// </summary>
+        /// <param name="color">The color to change the display name too.</param>
+        public void Color(Color color)
+        {
+            string html_color = ColorTranslator.ToHtml(color);
+            Color(html_color);
+        }
+
+        /// <summary>
+        /// Changes the display name color of the client in Twitch chat.
+        /// The color can be either a string version of <see cref="DisplayColor"/> for any client or an html hex color value for clients with Turbo or Twitch Prime.
+        /// If a client that is not associated with a user with Turbo or Twitch Prime attempts to use a html hex color, the action will fail.
+        /// Chat windows need to be refreshed for the changes to take effect.
+        /// </summary>
+        /// <param name="color">
+        /// The color to change the display name too.
+        /// This can be either a string version of <see cref="DisplayColor"/> or an html hex color value.
+        /// </param>
+        public void Color(string color)
+        {
+            EnqueuePrivmsg(user_name.ToLower(), ".color", color);
+        }
+
+        /// <summary>
+        /// Sends a message with the color based on your chat name color,
+        /// </summary>
+        /// <param name="room_name">The room to send the channel too.</param>
+        /// <param name="message">The message to be sent to the room.</param>
+        public void Me(string room_name, string message)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".me", message);
+        }
+
+        /// <summary>
+        /// Disconnects the cliuent from the chat server but remains connected to the IRC.
+        /// </summary>
+        public void DisconnectChat()
+        {
+            EnqueuePrivmsg(user_name.ToLower(), ".disconnect");
+        }
+
+        #endregion
+
+        #region Moderator commands
+
+        /// <summary>
+        /// Purges a user in a specific room for 1 second with an optional reason.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to purge the user in.</param>
+        /// <param name="user_name">The user to purge.</param>
+        /// <param name="reason">Reason for the purge.</param>
+        public void Purge(string room_name, string user_name, string reason = "")
+        {
+            Timeout(room_name, user_name, 1, reason);
+        }
+
+        /// <summary>
+        /// Times out a user in a specific room for a specified amount of time with an optional reason.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to timout the user in.</param>
+        /// <param name="user_name">The user to time out.</param>
+        /// <param name="seconds">The length of the time outs in seconds. Default is 600 seconds (10 minutes), minimum is 1 second.</param>
+        /// <param name="reason">Reason for the time out.</param>
+        public void Timeout(string room_name, string user_name, int seconds = 600, string reason = "")
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".timeout", user_name.ToLower(), seconds.ClampMin(1, 1), reason);
+        }
+
+        /// <summary>
+        /// Bans a user in a specific room with an optional reason
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to ban the user in.</param>
+        /// <param name="user_name">The user to ban.</param>
+        /// <param name="reason">Reason for the ban.</param>
+        public void Ban(string room_name, string user_name, string reason = "")
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".ban", user_name.ToLower(), reason);
+        }
+
+        /// <summary>
+        /// Unbans a user in a specific room.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to unban the user in.</param>
+        /// <param name="user_name">The user to unban.</param>
+        public void Unban(string room_name, string user_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".unban", user_name.ToLower());
+        }
+
+        /// <summary>
+        /// Puts a room into slow mode.
+        /// Restricts users to only be able to send one message every so often.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put into slow mode.</param>
+        /// <param name="seconds">How frequently users are allowed to send messages. Default is 1 second, minumum is 1 second.</param>
+        public void Slow(string room_name, int seconds)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".slow", seconds.ClampMin(1, 1));
+        }
+
+        /// <summary>
+        /// Disables slow mode in a room where slow mode is enabled.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put take out of slow mode.</param>
+        public void SlowOff(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".slowoff");
+        }
+
+        /// <summary>
+        /// Puts a room into followers only mode.
+        /// Only followers of the channel can speak in chat.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put take out of into followers only mode.</param>
+        /// <param name="time">
+        /// How long a user has to befflowed in order to talk.
+        /// Default is 0 minutes, minumum is 0 minutes, maximum is 3 months (90 days).
+        /// Twitch consideres 1 month to be 30 days.
+        /// Only the minutes, hours, and days are considered.</param>
+        public void FollowersOnly(string room_name, TimeSpan time = default(TimeSpan))
+        {
+            TimeSpan min = TimeSpan.FromMinutes(0);
+            TimeSpan max = TimeSpan.FromDays(90);
+            time = time.Clamp(min, max, min);
+            string time_string = time.Minutes + " minutes " + time.Hours + " hours " + time.Days + " days";
+
+            EnqueuePrivmsg(room_name.ToLower(), ".followers", time_string);
+        }
+
+        /// <summary>
+        /// Disables followers only mode in a room where followers only mode is enabled. 
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to take out of follower only mode.</param>
+        public void FollowersOnlyOff(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".followersoff");
+        }
+
+        /// <summary>
+        /// Puts a room into subscribers only mode.
+        /// Only subscribers of the channel can speak in chat.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put into subsribers only mode.</param>
+        public void SubscribersOnly(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".subscribers");
+        }
+
+        /// <summary>
+        /// Disables subscribers only mode in a room where subscribers only mode is enabled. 
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to take out of subsribers only mode.</param>
+        public void SubscribersOnlyOff(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".subscribersoff");
+        }
+
+        /// <summary>
+        /// Clears the chat history for a room.
+        /// This can fail if a user has browser add-ons that prevents chat clearing.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to clear the chat history from.</param>
+        public void ClearChat(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".clear");
+        }
+
+        /// <summary>
+        /// Puts a room into R9KBeta mode.
+        /// Users are forced to send "unique" messages. 
+        /// Twitch will check for a minimum of 9 characters that are not symbol unicode characters and then purges and repetitive chat lines beyond that
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put into R9KBeta mode.</param>
+        public void R9KBeta(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".r9kbeta");
+        }
+
+        /// <summary>
+        /// Disables R9KBeta mode in a room where R9KBeta mode is enabled. 
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to take out of R9KBeta mode.</param>
+        public void R9KBetaOff(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".r9kbetaoff");
+        }
+
+        /// <summary>
+        /// Puts a room into emote only mode.
+        /// Users can send messages only containing emotes.
+        /// Moderators, the broadcaster, and those who cheer with bits are exempt from this mode.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to put into emote only mode.</param>
+        public void EmoteOnly(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".emoteonly");
+        }
+
+        /// <summary>
+        /// Disables emote only mode in a room where emote only mode is enabled.
+        /// The client must be a moderator in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">Room to take out of emote only mode.</param>
+        public void EmoteOnlyOff(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".emoteonlyoff");
+        }
+
+        #endregion
+
+        #region Editor commands
+
+        /// <summary>
+        /// Runs a commercial in a room. The default length is 30 seconds. The client must be an editor in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">The room to run the commercial in.</param>
+        /// <param name="length">The length of the commercial. Default is 30 seconds.</param>
+        public void Commercial(string room_name, CommercialLength length = CommercialLength.seconds_30)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".commercial", length.ToString().TextAfter('_'));
+        }
+
+        /// <summary>
+        /// Host another channel. The client must be an editor in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">The room to send the host command in.</param>
+        /// <param name="channel_name">The channel to host.</param>
+        public void Host(string room_name, string channel_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".host", channel_name.ToLower());
+        }
+
+        /// <summary>
+        /// Unhost any channel that is currently being hosted. The client must be an editor in the room or the broadcaster for the command to succeed.
+        /// </summary>
+        /// <param name="room_name">The room to send the unhost command in.</param>
+        public void Unhost(string room_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".unhost");
+        }
+
+        #endregion
+
+        #region Broadcaster commands
+
+        /// <summary>
+        /// Mods a user in a specific room. The client must be the broadcaster for the command to succeed.
+        /// </summary>
+        public void Mod(string room_name, string user_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".mod", user_name.ToLower());
+        }
+
+        /// <summary>
+        /// Unmods a user in a specific room. The client must be the broadcaster for the command to succeed unless the client is un-modding itself.
+        /// </summary>
+        public void Unmod(string room_name, string user_name)
+        {
+            EnqueuePrivmsg(room_name.ToLower(), ".unmod", user_name.ToLower());
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Sending Twitch chat commands
+
+        public void EnqueuePrivmsg(string room_name, params object[] parts)
+        {
+            if (!room_name.isValid())
+            {
+                LibraryDebug.Error("Failed to enqueue Privmsg, " + nameof(room_name).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            if (parts.isValid())
+            {
+                LibraryDebug.Error("Failed to enqueue Privmsg, " + nameof(parts).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            // whispers seem to be treated separately from normal messages and commands, keep them separate
+            privmsg_queue.Enqueue(new PrivmsgTemplate
+            {
+                room_name = room_name,
+                message = parts
+            });
+        }
+
+        /// <summary>
+        /// Dequeues and sends a chat command message if any exist.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event parameters.</param>
+        private void ProcressEnqueuedChatCommands(object sender, ElapsedEventArgs e)
+        {
+            if(privmsg_queue.Count < 1)
+            {
+                return;
+            }
+
+            PrivmsgTemplate chat_command = privmsg_queue.Dequeue();
+            SendPrivmsg(chat_command.room_name, chat_command.message);
+        }
+
+        /// <summary>
+        /// Enqueues a whisper message to be sent to a user.
+        /// </summary>
+        /// <param name="recipient">The ser who receives the whisper.</param>
+        /// <param name="message_parts">The message to be sent to the user.</param>
+        public void EnqueueWhisper(string recipient, params object[] message_parts)
+        {
+            if (!recipient.isValid())
+            {
+                LibraryDebug.Error("Failed to enqueue Whisper, " + nameof(recipient).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            if (message_parts.isValid())
+            {
+                LibraryDebug.Error("Failed to enqueue Whisper, " + nameof(message_parts).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            // whispers seem to be treated separately from normal messages and commands, keep them separate
+            whisper_queue.Enqueue(new WhisperTemplate
+            {
+                recipient = recipient,
+                message = message_parts
+            });
+        }
+
+        /// <summary>
+        /// Sends a whisper message to a user.
+        /// Using this method is dangerous and is not throttled.
+        /// It is recommended to use <see cref="EnqueueWhisper(string, object[])"/> to avoid the chance of getting global banned.
+        /// </summary>
+        /// <param name="recipient">The ser who receives the whisper.</param>
+        /// <param name="message_parts">The message to be sent to the user.</param>
+        public void SendWhisper(string recipient, params object[] message_parts)
+        {
+            if (!recipient.isValid())
+            {
+                LibraryDebug.Error("Failed to send Whisper, " + nameof(recipient).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            if (message_parts.isValid())
+            {
+                LibraryDebug.Error("Failed to send Whisper, " + nameof(message_parts).Wrap("\"", "\"") + " is empty or null.");
+            }
+
+            string message = string.Join(" ", message_parts);
+            Send(string.Format("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message_parts));
+        }
+
+        /// <summary>
+        /// Dequeues and sends a whisper if any exist.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event parameters.</param>
+        private void ProcressEnqueuedWhispers(object sender, ElapsedEventArgs e)
+        {
+            if (whisper_queue.Count < 1)
+            {
+                return;
+            }
+
+            WhisperTemplate whisper = whisper_queue.Dequeue();
+            SendWhisper(whisper.recipient, whisper.message);
+        }
+
+        #endregion
 
         #region Threads
 
@@ -301,7 +821,7 @@ namespace TwitchLibrary.Clients.IRC
 
             while(isConnected())
             {
-                //get new followers once every 5 seconds 
+                // get new followers once every 5 seconds 
                 if(DateTime.Now - last_check < TimeSpan.FromMilliseconds(1000))
                 {
                     Thread.Sleep(50);
@@ -330,191 +850,8 @@ namespace TwitchLibrary.Clients.IRC
 
         #endregion
 
-        #region Commands
+        #region Services
 
-        //TODO: (IRC) Chat Command - Host and OnChannelHosted
-        //TODO: (IRC) Chat Command - Unhost and OnChannelUnhosted
-        //TODO: (IRC) Chat Command - StartCommercial and OnCommercialStarted
-        //TODO: (IRC) Chat Command - Omoteonly and OnOmoteonly
-        //TODO: (IRC) Chat Command - OmoteonlyOff and OnOmoteonlyOff
-        //TODO: (IRC) Chat Command - R9KBeta and OnR9KBeta
-        //TODO: (IRC) Chat Command - R9KBetaOff and OnR9KBetaOff
-        //TODO: (IRC) Chat Command - ClearChat and OnChatCleared
-        //TODO: (IRC) Chat Command - SubscribersOnly and OnSubscribersOnly
-        //TODO: (IRC) Chat Command - SubscribersOnlyOff and OnSubscribersOnlyOff
-        //TODO: (IRC) Chat Command - FollowersOnly and OnFollowersOnly
-        //TODO: (IRC) Chat Command - FollowersOnlyOff and OnFollowersOnlyOff
-        //TODO: (IRC) Chat Command - Slow and OnSlow
-        //TODO: (IRC) Chat Command - SlowOff and OnSlowOff
-        //TODO: (IRC) Chat Command - DisconnectChat and OnDisconnectChat
-        //TODO: (IRC) Chat Command - Me and OnMe
-        //TODO: (IRC) Chat Command - IgnoreUser and OnUserIgnored
-        //TODO: (IRC) Chat Command - UnignoreUser and OnUserUnignored
-        //TODO: (IRC) Chat Command - Color and OnColorChanged
-
-        /// <summary>
-        /// Purges a user in the client's room for 1 second with an optional reason.
-        /// </summary>
-        public void Purge(string user, string reason = "")
-        {
-            Timeout(name, user, 1, reason);
-        }
-
-        /// <summary>
-        /// Purges a user in a specific room for 1 second with an optional reason.
-        /// </summary>
-        public void Purge(string room_name, string user_name, string reason = "")
-        {
-            //TODO: (IRC) Chat Command - OnUserPurged
-            Timeout(room_name, user_name, 1, reason);
-        }
-
-        /// <summary>
-        /// Times out a user in the client's room for a specified amount of time with an optional reason.
-        /// </summary>
-        public void Timeout(string user_name, int seconds, string reason = "")
-        {            
-            Timeout(name, user_name, seconds, reason);
-        }
-
-        /// <summary>
-        /// Times out a user in a specific room for a specified amount of time with an optional reason.
-        /// </summary>
-        public void Timeout(string room_name, string user_name, int seconds, string reason = "")
-        {
-            //TODO: (IRC) Chat Command - OnUserTimedOut
-            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2} {3} {4}", room_name.ToLower(), ".timeout", user_name.ToLower(), seconds, reason);
-        }
-
-        /// <summary>
-        /// Bans a user in the client's room with an optional reason.
-        /// </summary>
-        public void Ban(string user_name, string reason = "")
-        {
-            Ban(name, user_name, reason);
-        }
-
-        /// <summary>
-        /// Bans a user in a specific room with an optional reason
-        /// </summary>
-        public void Ban(string room_name, string user_name, string reason = "")
-        {
-            //TODO: (IRC) Chat Command - OnUserBanned
-            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2} {3}", room_name.ToLower(), ".ban", user_name.ToLower(), reason);
-        }
-
-        /// <summary>
-        /// Unbans a user in the client's room.
-        /// </summary>
-        public void Unban(string user_name)
-        {
-            Unban(name, user_name);
-        }
-
-        /// <summary>
-        /// Unbans a user in a specific room.
-        /// </summary>
-        public void Unban(string room_name, string user_name)
-        {
-            //TODO: (IRC) Chat Command - OnUserUnbanned
-            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name.ToLower(), ".unban", user_name.ToLower());
-        }
-
-        /// <summary>
-        /// Mods a user in the client's room.
-        /// </summary>
-        public void Mod(string user_name)
-        {            
-            Mod(name, user_name);
-        }
-
-        /// <summary>
-        /// Mods a user in a specific room.
-        /// </summary>
-        public void Mod(string room_name, string user_name)
-        {
-            //TODO: (IRC) Chat Command - OnUserModded
-            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name.ToLower(), ".mod", user_name.ToLower());
-        }
-
-        /// <summary>
-        /// Unmods a user in the client's room.
-        /// </summary>
-        public void Unmod(string user_name)
-        {
-            Unmod(name, user_name); 
-        }
-
-        /// <summary>
-        /// Unmods a user in a specific room.
-        /// </summary>
-        public void Unmod(string room_name, string user_name)
-        {
-            //TODO: (IRC) Chat Command - OnUserUnmodded
-            irc_client.SendRawMessage("PRIVMSG #{0} :{1} {2}", room_name, ".unmod", user_name.ToLower());
-        }
-
-        /// <summary>
-        /// Join a channel's room.
-        /// </summary>        
-        public void Join(string channel)
-        {
-            channel = channel.ToLower();
-
-            //TODO: (IRC) Chat Command - OnJoinedChannel
-            irc_client.JoinChannel("#" + channel);            
-
-            LibraryDebug.Notify("Joining room: " + channel, TimeStamp.TimeLong);
-        }
-
-        /// <summary>
-        /// Leave a channel's room.
-        /// </summary>        
-        public void Part(string channel)
-        {
-            channel = channel.ToLower();
-
-            //TODO: (IRC) Chat Command - OnPartChannel
-            irc_client.PartChannel("#" + channel);
-
-            LibraryDebug.Notify("Leaving room: " + channel, TimeStamp.TimeLong);
-        }
-        
-        #endregion
-
-        #region Send messages and whispers
-        /*
-        /// <summary>
-        /// Sends a message to the current chat room.
-        /// </summary>
-        public void SendMessage(string room, string message)
-        {
-            if (!room.isValidString() || !message.isValidString() || !isConnected())
-            {
-                return;
-            }
-
-            writer.WriteLine(":{0}!{0}@{0}.tmi.twitch.tv PRIVMSG #{1} :{2}", name, room.ToLower(), message);
-            writer.Flush();
-        }
-
-        /// <summary>
-        /// Sends a whisper to a specified user.
-        /// </summary>
-        public void SendWhisper(string recipient, string message)
-        {
-            if (!message.isValidString() || !isConnected())
-            {
-                return;
-            }
-
-            writer.WriteLine("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message);
-            writer.Flush();
-        }
-        */
-
-        #endregion
-        
         /*
         /// <summary>
         /// Gets all of the new followers up until a certain <see cref="DateTime"/>.
@@ -534,7 +871,7 @@ namespace TwitchLibrary.Clients.IRC
             {
                 foreach (Follower follower in follower_page.follows)
                 {
-                    //the date followed is equal to or earlier than the date of the most recent recorded follower, guaranteed no new followers passed this point 
+                    // the date followed is equal to or earlier than the date of the most recent recorded follower, guaranteed no new followers passed this point 
                     if (DateTime.Compare(follower.created_at, updated_at_limit) <= 0)
                     {
                         updated_at_limit = follower.created_at;
@@ -565,7 +902,7 @@ namespace TwitchLibrary.Clients.IRC
             }
             while (searching);
 
-            //update the new updated_at limit to check to the newest user that followed 
+            // update the new updated_at limit to check to the newest user that followed 
             if (followers.isValidList())
             {
                 updated_at_limit = followers[0].created_at;
@@ -574,5 +911,7 @@ namespace TwitchLibrary.Clients.IRC
             return followers;
         }
         */
+
+        #endregion
     }
 }

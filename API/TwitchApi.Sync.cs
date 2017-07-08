@@ -1,9 +1,9 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.Net;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;
@@ -30,9 +30,9 @@ using TwitchLibrary.Models.API.Teams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
 
-//TODO: (API) Implement exceptions when Twitch reports an error, the status is not 200 or 204, or when the response is not what was expected
-//TODO: (API) Refactor method names
-//TODO: (API, Models) Refactor model names used with API methods
+// TODO: (API) Implement exceptions when Twitch reports an error, the status is not 200 or 204, or when the response is not what was expected
+// TODO: (API) Refactor method names
+// TODO: (API, Models) Refactor model names used with API methods
 
 namespace TwitchLibrary.API
 {

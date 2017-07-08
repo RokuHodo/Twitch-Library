@@ -1,7 +1,7 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Collections

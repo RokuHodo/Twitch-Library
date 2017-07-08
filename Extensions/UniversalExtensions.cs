@@ -1,16 +1,16 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Enums.Extensions;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Extensions
@@ -34,7 +34,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Verifies that an <see cref="Array"/> is not null and has a length of at leats 1.
+        /// Verifies that an <see cref="Array"/> is not null and has a length of at least 1.
         /// </summary>
         /// <param name="array">The <see cref="Array"/> to be validated.</param>
         /// <returns>
@@ -48,7 +48,7 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Verifies that a <see cref="List{T}"/> is not null and has a length of at leats 1.
+        /// Verifies that a <see cref="List{T}"/> is not null and has a length of at least 1.
         /// </summary>
         /// <typeparam name="type">The type of the list.</typeparam>
         /// <param name="list">The <see cref="List{T}"/> to be validated.</param>
@@ -111,6 +111,71 @@ namespace TwitchLibrary.Extensions
 
         #region Arithmetic operations
 
+        public static TimeSpan ClampMin(this TimeSpan value, TimeSpan minimum)
+        {
+            if (value < minimum)
+            {
+                value = minimum;
+            }
+
+            return value;
+        }
+
+        public static TimeSpan ClampMin(this TimeSpan value, TimeSpan minimum, TimeSpan default_value)
+        {
+            // in case the user is an idiot
+            default_value.ClampMin(minimum);
+
+            if (value < minimum)
+            {
+                value = default_value.isNull() ? minimum : default_value;
+            }
+
+            return value;
+        }
+
+        public static TimeSpan ClampMax(this TimeSpan value, TimeSpan maximum)
+        {
+            if (value > maximum)
+            {
+                value = maximum;
+            }
+
+            return value;
+        }
+
+        public static TimeSpan ClampMax(this TimeSpan value, TimeSpan maximum, TimeSpan default_value)
+        {
+            // in case the user is an idiot
+            default_value.ClampMin(maximum);
+
+            if (value > maximum)
+            {
+                value = default_value.isNull() ? maximum : default_value;
+            }
+
+            return value;
+        }
+
+        public static TimeSpan Clamp(this TimeSpan value, TimeSpan minimum, TimeSpan maximum)
+        {
+            value = value.ClampMin(minimum);
+            value = value.ClampMax(maximum);
+
+            return value;
+        }
+
+        public static TimeSpan Clamp(this TimeSpan value, TimeSpan minimum, TimeSpan maximum, TimeSpan default_value)
+        {
+            // in case the user is an idiot
+            default_value.Clamp(minimum, maximum);
+
+            value = value.ClampMin(minimum, default_value);
+            value = value.ClampMax(maximum, default_value);
+
+            return value;
+        }
+
         /// <summary>
         /// Clamps the value of an <see cref="int"/> to a minimum value.
         /// </summary>
@@ -145,7 +210,7 @@ namespace TwitchLibrary.Extensions
         /// </returns>
         public static int ClampMin(this int value, int minimum, int default_value)
         {
-            //in case the user is an idiot
+            // in case the user is an idiot
             default_value.ClampMin(minimum);
 
             if (value < minimum)
@@ -190,7 +255,7 @@ namespace TwitchLibrary.Extensions
         /// </returns>
         public static int ClampMax(this int value, int maximum, int default_value)
         {
-            //in case the user is an idiot
+            // in case the user is an idiot
             default_value.ClampMin(maximum);
 
             if (value > maximum)
@@ -236,7 +301,7 @@ namespace TwitchLibrary.Extensions
         /// </returns>
         public static int Clamp(this int value, int minimum, int maximum, int default_value)
         {
-            //in case the user is an idiot
+            // in case the user is an idiot
             default_value.Clamp(minimum, maximum);
 
             value = value.ClampMin(minimum, default_value);
@@ -280,7 +345,7 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
                 LibraryDebug.PrintLine("String is empty, null, or whitespace");
 
                 return result;
@@ -291,9 +356,9 @@ namespace TwitchLibrary.Extensions
                 int index_start = str.IndexOf(start, offset_index);
                 if (index_start < 0)
                 {
-                    LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
+                    LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
                     LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLine(nameof(str), str);
+                    LibraryDebug.PrintLineFormatted(nameof(str), str);
 
                     return result;
                 }
@@ -303,10 +368,10 @@ namespace TwitchLibrary.Extensions
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(str), str);
-                LibraryDebug.PrintLine(nameof(offset_index), offset_index.ToString());
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(offset_index), offset_index.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;
@@ -343,7 +408,7 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text before " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.Error("Failed to find text before " + end.Wrap("\"", "\""));
                 LibraryDebug.PrintLine("String is empty, null, or whitespace");
 
                 return result;
@@ -354,9 +419,9 @@ namespace TwitchLibrary.Extensions
                 int index_end = str.IndexOf(end, index_offset);
                 if (index_end < 0)
                 {
-                    LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                    LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""));
                     LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLine(nameof(str), str);
+                    LibraryDebug.PrintLineFormatted(nameof(str), str);
 
                     return result;
                 }
@@ -365,10 +430,10 @@ namespace TwitchLibrary.Extensions
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(str), str);
-                LibraryDebug.PrintLine(nameof(index_offset), index_offset.ToString());
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""));
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;
@@ -407,7 +472,7 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
                 LibraryDebug.PrintLine("String is empty, null, or whitespace");
 
                 return result;
@@ -419,16 +484,16 @@ namespace TwitchLibrary.Extensions
                 int index_end = str.IndexOf(end, index_start + start.Length);
                 if (index_start < 0 || index_end < 0)
                 {
-                    LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
+                    LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
 
                     if (index_start < 0)
                     {
-                        LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found", TimeStamp.TimeLong);
+                        LibraryDebug.PrintLine(TimeStamp.TimeLong, "Starting point " + start.Wrap("\"", "\"") + " could not be found");
                     }
 
                     if (index_end < 0)
                     {
-                        LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found", TimeStamp.TimeLong);
+                        LibraryDebug.PrintLine(TimeStamp.TimeLong, "Ending point " + end.Wrap("\"", "\"") + " could not be found");
                     }
 
                     return result;
@@ -439,10 +504,10 @@ namespace TwitchLibrary.Extensions
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""), TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(str), str);
-                LibraryDebug.PrintLine(nameof(offset_index), offset_index.ToString());
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(offset_index), offset_index.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;
@@ -487,7 +552,7 @@ namespace TwitchLibrary.Extensions
             {
                 if (!element.CanCovertTo<type>())
                 {
-                    LibraryDebug.Error("Could not convert " + element.Wrap("\"", "\"") + " from " + typeof(string).Name + " to " + typeof(string).Name, TimeStamp.TimeLong);
+                    LibraryDebug.Error("Could not convert " + element.Wrap("\"", "\"") + " from " + typeof(string).Name + " to " + typeof(string).Name);
                     continue;
                 }
 
@@ -620,8 +685,8 @@ namespace TwitchLibrary.Extensions
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "str", LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(str), str);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(str), str);
             }
 
             return value;
@@ -640,13 +705,13 @@ namespace TwitchLibrary.Extensions
         /// Returns an empty <see cref="string"/> if the object could not be serialized or if the <see cref="Task.Run(Action)"/> failed.
         /// Returns the serialized <see cref="string"/> of the <see cref="object"/> otherwise.
         /// </returns>
-        public static async Task<string> TrySerializeObjectAsync<type>(this type obj)
+        public static Task<string> SerializeObjectAsync<type>(this type obj)
         {
-            string result = string.Empty;
+            Task<string> result = default(Task<string>);
 
             try
             {
-                Task<string> task = Task.Run(() =>
+                result = Task.Run(() =>
                 {
                     try
                     {
@@ -655,25 +720,16 @@ namespace TwitchLibrary.Extensions
                     catch (Exception exception)
                     {
                         LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                        LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                        LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
 
                         return string.Empty;
                     }
                 });
-
-                result = await task;
-
-                if (task.IsFaulted)
-                {
-                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
-                    LibraryDebug.PrintLine(nameof(task.Id), task.Id.ToString());
-                    LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
-                }
             }
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;
@@ -703,7 +759,7 @@ namespace TwitchLibrary.Extensions
                     catch (Exception exception)
                     {
                         LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                        LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                        LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
 
                         return default(type);
                     }
@@ -714,14 +770,14 @@ namespace TwitchLibrary.Extensions
                 if (task.IsFaulted)
                 {
                     LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
-                    LibraryDebug.PrintLine(nameof(task.Id), task.Id.ToString());
-                    LibraryDebug.PrintLine(nameof(task.Exception), task.Exception.Message);
+                    LibraryDebug.PrintLineFormatted(nameof(task.Id), task.Id.ToString());
+                    LibraryDebug.PrintLineFormatted(nameof(task.Exception), task.Exception.Message);
                 }
             }
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.DESERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
             }
 
             return result;

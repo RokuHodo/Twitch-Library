@@ -1,4 +1,4 @@
-﻿//imported .dll's
+﻿// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Chat
@@ -26,7 +26,7 @@ namespace TwitchLibrary.Models.API.Chat
         [JsonProperty("turbo")]
         public Badge turbo { get; protected set; }
 
-        //not implemented by Twitch yet, only a matter of time
+        // not implemented by Twitch yet, only a matter of time
         [JsonProperty("premium")]
         public Badge premium { get; protected set; }
     }

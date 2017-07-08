@@ -1,4 +1,4 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System.Collections.Generic;
 
 namespace TwitchLibrary.Helpers
@@ -41,7 +41,7 @@ namespace TwitchLibrary.Helpers
               
             word = word.ToLower();
 
-            //always start at the root node
+            // always start at the root node
             Node current_node = root;
 
             for (int index = 0; index < word.Length; ++index)
@@ -50,15 +50,15 @@ namespace TwitchLibrary.Helpers
 
                 Node child;
 
-                //check to see if the letter already exists in the children nodes
+                // check to see if the letter already exists in the children nodes
                 if(!current_node.children.TryGetValue(letter, out child))
                 {
-                    //the letter did not exist in the current nodes, add the letter
+                    // the letter did not exist in the current nodes, add the letter
                     child = new Node();                    
                     current_node.children.Add(letter, child);
                 }
 
-                //update the node and iterate
+                // update the node and iterate
                 current_node = child;
             }
 
@@ -119,19 +119,19 @@ namespace TwitchLibrary.Helpers
         /// </summary>
         private bool Delete(Node current_node, string word, int index)
         {
-            //only applicable for the node directly after the last letter in the word
+            // only applicable for the node directly after the last letter in the word
             if (index == word.Length)
             {
-                //the word was never instered into the trie, don't do anything
+                // the word was never instered into the trie, don't do anything
                 if (!current_node.complete_word)
                 {
                     return false;
                 }
 
-                //set the node to false to "delete" the word
+                // set the node to false to "delete" the word
                 current_node.complete_word = false;
 
-                //delete the current node if it has no children
+                // delete the current node if it has no children
                 return current_node.children.Count == 0;
             }
 
@@ -141,16 +141,16 @@ namespace TwitchLibrary.Helpers
 
             if (!current_node.children.TryGetValue(letter, out child))
             {
-                //no node has the character associated with it, do nothing
+                // no node has the character associated with it, do nothing
                 return false;
             }
 
-            //the child node can safely be deleted
+            // the child node can safely be deleted
             if (Delete(child, word, index + 1))
             {                
                 current_node.children.Remove(letter);
 
-                //delete the current node if it has no children
+                // delete the current node if it has no children
                 return current_node.children.Count == 0;
             }
 

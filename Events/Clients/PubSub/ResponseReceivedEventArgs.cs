@@ -1,7 +1,7 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Models.Clients.PubSub.Response;
 
 namespace TwitchLibrary.Events.Clients.PubSub

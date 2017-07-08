@@ -1,10 +1,10 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Extensions;
 
 namespace TwitchLibrary.Helpers.Paging
@@ -28,10 +28,10 @@ namespace TwitchLibrary.Helpers.Paging
         {
             List<Model> list = new List<Model>();
 
-            //paging
+            // paging
             FieldInfo paging_cursor_info = paging.GetType().GetField("cursor");
 
-            //requested page
+            // requested page
             PageResult requested_page = await GetPage(channel_id, paging);
             PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
             PropertyInfo requested_page_cursor_info = requested_page.GetType().GetProperty("_cursor");
@@ -47,7 +47,7 @@ namespace TwitchLibrary.Helpers.Paging
                 }
             }
 
-            //requested page values
+            // requested page values
             string requested_page_cursor_value = (string)requested_page_cursor_info.GetValue(requested_page);
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
@@ -62,10 +62,10 @@ namespace TwitchLibrary.Helpers.Paging
 
                 if (requested_page_cursor_value.isValid())
                 {
-                    //update the paging cursor property to properly request the next page
+                    // update the paging cursor property to properly request the next page
                     paging_cursor_info.SetValue(paging, requested_page_cursor_value);
 
-                    //request the new page and update the associated property variables
+                    // request the new page and update the associated property variables
                     requested_page = await GetPage(channel_id, paging);
                     requested_page_cursor_value = (string)requested_page_cursor_info.GetValue(requested_page);
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
@@ -94,10 +94,10 @@ namespace TwitchLibrary.Helpers.Paging
         {
             List<Model> list = new List<Model>();
 
-            //paging
+            // paging
             FieldInfo paging_cursor_info = paging.GetType().GetField("cursor");
 
-            //requested page
+            // requested page
             PageResult requested_page = await GetPage(paging);
             PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
             PropertyInfo requested_page_cursor_info = requested_page.GetType().GetProperty("_cursor");
@@ -113,7 +113,7 @@ namespace TwitchLibrary.Helpers.Paging
                 }
             }
 
-            //requested page values
+            // requested page values
             string requested_page_cursor_value = (string)requested_page_cursor_info.GetValue(requested_page);
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
@@ -128,10 +128,10 @@ namespace TwitchLibrary.Helpers.Paging
 
                 if (requested_page_cursor_value.isValid())
                 {
-                    //update the paging cursor property to properly request the next page
+                    // update the paging cursor property to properly request the next page
                     paging_cursor_info.SetValue(paging, requested_page_cursor_value);
 
-                    //request the new page and update the associated property variables
+                    // request the new page and update the associated property variables
                     requested_page = await GetPage(paging);
                     requested_page_cursor_value = (string)requested_page_cursor_info.GetValue(requested_page);
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
@@ -165,36 +165,36 @@ namespace TwitchLibrary.Helpers.Paging
         {
             List<Model> list = new List<Model>();
 
-            //paging
+            // paging
             FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
             PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
             PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");            
 
-            //requested page
+            // requested page
             PageResult requested_page = await GetPage(channel_id, paging);
             PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
             PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
 
-            //page didn't actually have a "_total" property
+            // page didn't actually have a "_total" property
             if (requested_page_total_info.isNull())
             {
                 return list;
             }            
 
-            //paging values
+            // paging values
             int paging_offset_max_value = Convert.ToInt32(paging_offset_max_info.GetValue(paging));
             int paging_limit_value = Convert.ToInt32(paging_limit_info.GetValue(paging));
 
-            //requested page values
+            // requested page values
             int requested_page_total_value = Convert.ToInt32(requested_page_total_info.GetValue(requested_page));
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
-            //calculate the max number of pages that would be returned based on requested_page._total and paging.limit
+            // calculate the max number of pages that would be returned based on requested_page._total and paging.limit
             decimal pages_dec = requested_page_total_value / (decimal)paging_limit_value;
             int pages = Convert.ToInt32(Math.Ceiling(pages_dec));
             int page = 0;
 
-            //the total number of pages could return more results than could be offset, track offset to make sure we don't over request
+            // the total number of pages could return more results than could be offset, track offset to make sure we don't over request
             int offset = 0;
 
             bool requesting = true;
@@ -213,10 +213,10 @@ namespace TwitchLibrary.Helpers.Paging
 
                 if (requesting)
                 {
-                    //set the new offset to request the next page
+                    // set the new offset to request the next page
                     paging_offset_info.SetValue(paging, offset);
 
-                    //request the new page
+                    // request the new page
                     requested_page = await GetPage(channel_id, paging);
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);                    
                 }
@@ -240,36 +240,36 @@ namespace TwitchLibrary.Helpers.Paging
         {
             List<Model> list = new List<Model>();
 
-            //paging
+            // paging
             FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
             PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
             PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");
 
-            //requested page
+            // requested page
             PageResult requested_page = await GetPage(paging);
             PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
             PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
 
-            //page didn't actually have a "_total" property
+            // page didn't actually have a "_total" property
             if (requested_page_total_info.isNull())
             {
                 return list;
             }
 
-            //paging values
+            // paging values
             int paging_offset_max_value = Convert.ToInt32(paging_offset_max_info.GetValue(paging));
             int paging_limit_value = Convert.ToInt32(paging_limit_info.GetValue(paging));
 
-            //requested page values
+            // requested page values
             int requested_page_total_value = Convert.ToInt32(requested_page_total_info.GetValue(requested_page));
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
-            //calculate the max number of pages that would be returned based on requested_page._total and paging.limit
+            // calculate the max number of pages that would be returned based on requested_page._total and paging.limit
             decimal pages_dec = requested_page_total_value / (decimal)paging_limit_value;
             int pages = Convert.ToInt32(Math.Ceiling(pages_dec));
             int page = 0;
 
-            //the total number of pages could return more results than could be offset, track offset to make sure we don't over request
+            // the total number of pages could return more results than could be offset, track offset to make sure we don't over request
             int offset = 0;
 
             bool requesting = true;
@@ -288,10 +288,10 @@ namespace TwitchLibrary.Helpers.Paging
 
                 if (requesting)
                 {
-                    //set the new offset to request the next page
+                    // set the new offset to request the next page
                     paging_offset_info.SetValue(paging, offset);
 
-                    //request the new page
+                    // request the new page
                     requested_page = await GetPage(paging);
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
                 }
@@ -309,12 +309,12 @@ namespace TwitchLibrary.Helpers.Paging
         {
             List<Model> list = new List<Model>();
 
-            //paging
+            // paging
             FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
             PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
             PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");
 
-            //requested page
+            // requested page
             PageResult requested_page = await GetPage(paging);
             PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
 
@@ -323,11 +323,11 @@ namespace TwitchLibrary.Helpers.Paging
                 return list;
             }
 
-            //paging values
+            // paging values
             int paging_offset_max_value = Convert.ToInt32(paging_offset_max_info.GetValue(paging));
             int paging_limit_value = Convert.ToInt32(paging_limit_info.GetValue(paging));
 
-            //requested page values
+            // requested page values
             List<Model> requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
             if (!requested_page_property_loop_list.isValid())
@@ -335,7 +335,7 @@ namespace TwitchLibrary.Helpers.Paging
                 return list;
             }
 
-            //Twitch droppped the ball and didn't include _total or _cursor, just loop until we find nothing
+            // Twitch droppped the ball and didn't include _total or _cursor, just loop until we find nothing
             int page = 0;
             int offset = 0;
 
@@ -351,19 +351,19 @@ namespace TwitchLibrary.Helpers.Paging
                 ++page;
                 offset = paging_limit_value * page;
 
-                //initial request check
+                // initial request check
                 requesting = offset <= paging_offset_max_value;
 
                 if (requesting)
                 {
-                    //set the new offset to request the next page
+                    // set the new offset to request the next page
                     paging_offset_info.SetValue(paging, offset);
 
-                    //request the new page
+                    // request the new page
                     requested_page = await GetPage(paging);
                     requested_page_property_loop_list = (List<Model>)requested_page_property_loop_info.GetValue(requested_page);
 
-                    //the page doesn't contain any data, probably reached the end, stop requesting
+                    // the page doesn't contain any data, probably reached the end, stop requesting
                     if (requested_page.isNull() || !requested_page_property_loop_list.isValid())
                     {
                         requesting = false;

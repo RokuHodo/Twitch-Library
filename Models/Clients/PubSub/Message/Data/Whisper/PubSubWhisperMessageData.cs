@@ -1,6 +1,6 @@
 ﻿using System;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.Clients.PubSub.Message.Data.Whisper

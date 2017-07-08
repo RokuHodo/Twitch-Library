@@ -1,12 +1,12 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Models.API.HTTP;
 using TwitchLibrary.Models.API.Users;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Feed
@@ -26,7 +26,7 @@ namespace TwitchLibrary.Models.API.Feed
         public bool deleted { get; protected set; }
 
         [JsonProperty("embeds")]
-        public List<object> embeds { get; protected set; }  //not sure what the return type is
+        public List<object> embeds { get; protected set; }  // not sure what the return type is
 
         [JsonProperty("emotes")]
         public List<FeedEmote> emotes { get; protected set; }

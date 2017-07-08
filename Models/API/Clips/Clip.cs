@@ -1,9 +1,9 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 
 using TwitchLibrary.Enums.Helpers.Paging;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Clips
@@ -37,8 +37,9 @@ namespace TwitchLibrary.Models.API.Clips
         [JsonProperty("game")]
         public string game { get; protected set; }
 
+        // TODO: (Models) Community - re-implement StreamLanguage once I figure out how to properly handle the - to _ converison
         [JsonProperty("language")]
-        public BroadcasterLanguage language { get; protected set; }
+        private string language { get; set; }
 
         [JsonProperty("title")]
         public string title { get; protected set; }
@@ -54,5 +55,6 @@ namespace TwitchLibrary.Models.API.Clips
 
         [JsonProperty("thumbnails")]
         public Thumbnails thumbnails { get; protected set; }
+
     }
 }

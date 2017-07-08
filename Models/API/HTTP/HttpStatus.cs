@@ -1,4 +1,4 @@
-﻿//imported .dll's
+﻿// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.HTTP
@@ -6,12 +6,12 @@ namespace TwitchLibrary.Models.API.HTTP
     public class HttpStatus
     {
         [JsonProperty("error")]
-        public string http_error { get; protected set; }
-
-        [JsonProperty("status")]
-        public int http_status { get; protected set; }
+        public string status_error { get; protected set; }
 
         [JsonProperty("message")]
-        public string http_message { get; protected set; }
+        public string status_message { get; protected set; }
+
+        [JsonProperty("status")]
+        public int status_code { get; protected set; }
     }    
 }

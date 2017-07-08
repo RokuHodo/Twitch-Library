@@ -1,8 +1,8 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System.Collections.Generic;
 using System.Drawing;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.Clients.PubSub.Message.Data.Whisper
@@ -25,7 +25,7 @@ namespace TwitchLibrary.Models.Clients.PubSub.Message.Data.Whisper
         public bool turbo { get; internal set; }
 
         [JsonProperty("emotes")]
-        public List<PubSubWhisperEmotes> emotes { get; internal set; }
+        public List<PubSubEmotes> emotes { get; internal set; }
 
         [JsonProperty("badges")]
         public List<PubSubWhisperBadges> badges { get; internal set; }

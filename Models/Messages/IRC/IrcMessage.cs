@@ -1,8 +1,8 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Enums.Extensions;
@@ -10,10 +10,11 @@ using TwitchLibrary.Extensions;
 
 namespace TwitchLibrary.Models.Messages.IRC
 {
-    //[Obsolete("Class is depricated. ChatSharp.IrcMessage is now used")]
+    // [Obsolete("Class is depricated. ChatSharp.IrcMessage is now used")]
     public class IrcMessage
     {
         public bool contains_tags { get; private set; }
+        public bool contains_prefix { get; private set; }
 
         public string[] middle { get; private set; }
         public string[] trailing { get; private set; }
@@ -30,7 +31,7 @@ namespace TwitchLibrary.Models.Messages.IRC
 
             tags = GetTags(irc_message, out irc_message_no_tags);
             prefix = GetPrefix(irc_message_no_tags);
-            command = GetCommand(irc_message_no_tags);
+            command = GetCommand(prefix, irc_message_no_tags);
             parameters = GetParameters(command, irc_message);
             middle = GetMiddle(parameters);
             trailing = GetTrailing(parameters);
@@ -45,7 +46,7 @@ namespace TwitchLibrary.Models.Messages.IRC
         {
             Dictionary<string, string> tags = new Dictionary<string, string>();
 
-            //irc message only conmtains tags when it is preceeded with "@"
+            // irc message only conmtains tags when it is preceeded with "@"
             if (!irc_message.StartsWith("@"))
             {
                 contains_tags = false;
@@ -57,10 +58,10 @@ namespace TwitchLibrary.Models.Messages.IRC
 
             contains_tags = true;
 
-            //tags exist between "@" an the first space
+            // tags exist between "@" an the first space
             string tags_extracted = irc_message.TextBetween('@', ' ');
 
-            //tags are delineated by ";"
+            // tags are delineated by ";"
             string[] tags_extracted_array = tags_extracted.StringToArray<string>(';'),
                      tags_array_temp;
 
@@ -70,17 +71,17 @@ namespace TwitchLibrary.Models.Messages.IRC
 
                 try
                 {
-                    //there should never be a situation where this fails, but just in case
+                    // there should never be a situation where this fails, but just in case
                     tags[tags_array_temp[0]] = tags_array_temp[1];
                 }
                 catch (Exception exception)
                 {
                     LibraryDebug.Error(LibraryDebugMethod.GET, "tag", LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLine(nameof(exception), exception.Message);
+                    LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
                 }
             }
 
-            //cut of the tags to make handling the message later easier
+            // cut of the tags to make handling the message later easier
             irc_message_no_tags = irc_message.TextAfter(" ");
 
             return tags;
@@ -91,23 +92,35 @@ namespace TwitchLibrary.Models.Messages.IRC
         /// </summary>
         public string GetPrefix(string irc_message)
         {
-            return irc_message.TextBetween(':', ' ');
+            string _prefix = string.Empty;
+
+            contains_prefix = irc_message.StartsWith(":");
+
+            if (!contains_prefix)
+            {
+                return _prefix;
+            }
+
+            _prefix = irc_message.TextBetween(':', ' ');
+
+            return _prefix;
         }
 
         /// <summary>
         /// Gets the irc message command. The irc message passed must have no tags attached.
         /// </summary>
-        private string GetCommand(string irc_message)
-        {            
-            return irc_message.TextBetween(' ', ' ');
+        private string GetCommand(string _prefix, string irc_message)
+        {
+            // the prefix is optional, need to see if it exists to get the right command
+            return contains_prefix ? irc_message.TextBetween(' ', ' ') : irc_message.TextBefore(' ');
         }
 
         /// <summary>
         /// Gets the parameters after the irc command and parses for the middle and trialing part of the message. The irc message passed must have no tags attached.
         /// </summary>
-        private string GetParameters(string irc_command, string irc_message)
+        private string GetParameters(string _command, string irc_message)
         {
-            return irc_message.TextAfter(irc_command).RemovePadding(Padding.Left);            
+            return irc_message.TextAfter(_command).RemovePadding(Padding.Left);            
         }
 
         private string[] GetMiddle(string parameters)

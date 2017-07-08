@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Extensions;
 
-//improted .dll's
+// improted .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Collections
@@ -43,7 +43,7 @@ namespace TwitchLibrary.Helpers.Paging.Collections
 
             if (containing_item.isValid())
             {
-                //really weird query parameter "video:<video_id>"
+                // really weird query parameter "video:<video_id>"
                 request.AddQueryParameter("containing_item", "video:" + containing_item);
             }
 

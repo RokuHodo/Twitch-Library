@@ -1,11 +1,11 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Channels

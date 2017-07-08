@@ -1,8 +1,8 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System.Collections.Generic;
 using System.Net;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Helpers.Paging.Channels;
 using TwitchLibrary.Helpers.Paging.Clips;

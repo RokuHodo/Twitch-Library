@@ -1,11 +1,11 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.API;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Extensions;
@@ -28,7 +28,7 @@ using TwitchLibrary.Models.API.Streams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.API
@@ -203,7 +203,7 @@ namespace TwitchLibrary.API
         {
             ChannelSubscriber subscriber = await GetChannelSubscriberRelationshipAsync(user_id);
 
-            return subscriber.http_status != 404;
+            return subscriber.status_code != 404;
         }
 
         /// <summary>
@@ -1211,7 +1211,7 @@ namespace TwitchLibrary.API
         {
             UserSubscriber relationship = await GetUserSubscriberRelationshipAsync(user_id, channel_id);
             
-            return relationship.http_status != 404 && relationship.http_status != 422 && relationship.http_status != 403;
+            return relationship.status_code != 404 && relationship.status_code != 422 && relationship.status_code != 403;
         }
 
         /// <summary>
@@ -1600,39 +1600,35 @@ namespace TwitchLibrary.API
 
             FileInfo info = new FileInfo(path);
 
-            //file trying to be uploaded doesn't exist
             if (!info.Exists)
             {
                 return HttpStatusCode.NotFound;
             }
 
-            //file trying to be uploaded is larger than 10GB
             if (info.Length > max_file_size)
             {
                 return HttpStatusCode.RequestEntityTooLarge;
             }
 
-            //create the video upload request
             CreatedVideo created_video = await CreateVideoUploadAsync(channel_name, video_title, description, tags, auto_retry);
 
             int part = 1;
             int chunk_size = 20 * 1024 * 1024;
 
-            //read the file into memory at 20MB parts in case the user doesn't haver a shit ton of RAM
+            // read the file into memory at 20MB parts in case the user doesn't haver a shit ton of RAM
             using (FileStream file = File.OpenRead(path))
             {
                 byte[] buffer = new byte[chunk_size];
 
-                while (file.Read(buffer, 0, buffer.Length) > 0)
+                while (await file.ReadAsync(buffer, 0, buffer.Length) > 0)
                 {
-                    //upload each 20MB part
                     HttpStatusCode upload_part_status = await UploadVideoPartAsync(created_video.video._id, part, created_video.upload.token, buffer);
 
                     ++part;
                 }
             }
 
-            //finish the upload process to twitch
+            // finish the upload process to twitch
             HttpStatusCode upload_video_status = await CompleteVideoUploadAsync(created_video.video._id, created_video.upload.token);
 
             return upload_video_status;

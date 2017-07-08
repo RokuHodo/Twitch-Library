@@ -1,11 +1,11 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Models.API.HTTP;
 using TwitchLibrary.Models.API.Users;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Channels
@@ -17,6 +17,12 @@ namespace TwitchLibrary.Models.API.Channels
 
         [JsonProperty("created_at")]
         public DateTime created_at { get; protected set; }
+
+        [JsonProperty("sub_plan")]
+        public string sub_plan { get; protected set; }
+
+        [JsonProperty("sub_plan_name")]
+        public string sub_plan_name { get; protected set; }
 
         [JsonProperty("user")]
         public User user { get; protected set; }

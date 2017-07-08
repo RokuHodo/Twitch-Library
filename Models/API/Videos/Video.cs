@@ -1,12 +1,12 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Models.API.Channels;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Videos
@@ -22,7 +22,7 @@ namespace TwitchLibrary.Models.API.Videos
         [JsonProperty("broadcast_type")]
         public BroadcastType broadcast_type { get; protected set; }
 
-        //TODO: (Models) API - Videos - Not a full channel object, just the name and display name
+        // TODO: (Models) API - Videos - Not a full channel object, just the name and display name
         [JsonProperty("channel")]
         public Channel channel { get; protected set; }
 
@@ -36,7 +36,7 @@ namespace TwitchLibrary.Models.API.Videos
         public string description_html { get; protected set; }
 
         [JsonProperty("fps")]
-        public Dictionary<string, double> fps { get; protected set; }               //varies by video type and channel 
+        public Dictionary<string, double> fps { get; protected set; }               // varies by video type and channel 
 
         [JsonProperty("game")]
         public string game { get; protected set; }
@@ -57,7 +57,7 @@ namespace TwitchLibrary.Models.API.Videos
         public DateTime published_at { get; protected set; }
 
         [JsonProperty("resolutions")]
-        public Dictionary<string, string> resolutions { get; protected set; }       //could be 1080p or chucked, etc
+        public Dictionary<string, string> resolutions { get; protected set; }       // could be 1080p or chucked, etc
 
         [JsonProperty("status")]
         public string status { get; protected set; }

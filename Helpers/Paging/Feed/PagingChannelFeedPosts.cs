@@ -1,19 +1,19 @@
-﻿//project namespaces
+﻿// project namespaces
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging.Feed
 {   
     public class PagingChannelFeedPosts : PagingLimit, ITwitchPaging
     {
-        //private
+        // private
         private int _comments;
         private int comments_default = 5;
 
-        //public
+        // public
         public readonly int comments_min = 5;
         public readonly int comments_max = 5;
         public int comments

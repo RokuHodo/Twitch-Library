@@ -1,7 +1,7 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System.IO;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 

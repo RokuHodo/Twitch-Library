@@ -1,7 +1,7 @@
-﻿//project namespaces
+﻿// project namespaces
 using TwitchLibrary.Enums.API;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Interfaces.API

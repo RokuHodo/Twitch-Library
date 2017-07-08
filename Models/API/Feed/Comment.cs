@@ -1,12 +1,12 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Models.API.HTTP;
 using TwitchLibrary.Models.API.Users;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Feed

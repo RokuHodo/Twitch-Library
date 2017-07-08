@@ -1,8 +1,8 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System.Collections.Generic;
 using System.Drawing;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.Clients.PubSub.Message.Data.Whisper

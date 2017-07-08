@@ -1,13 +1,15 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Debug;
 using TwitchLibrary.Enums.Debug;
+using TwitchLibrary.Enums.Messages;
 using TwitchLibrary.Extensions;
-using TwitchLibrary.Models.Messages.Tags;
+using TwitchLibrary.Models.Messages.IRC.Tags;
 
 namespace TwitchLibrary.Helpers.Messages
 {
@@ -17,7 +19,7 @@ namespace TwitchLibrary.Helpers.Messages
         {
             type value = default(type);            
 
-            if (!key.isValid())
+            if (!key.isValid() || !tags.ContainsKey(key))
             {
                 return value;
             }
@@ -41,8 +43,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch(Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_string), value_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
             }
 
             return value;
@@ -52,7 +54,7 @@ namespace TwitchLibrary.Helpers.Messages
         {
             bool value = default(bool);
 
-            //we need to convert it to an int first before we can convert to a bool
+            // we need to convert it to an int first before we can convert to a bool
             int value_int = ToGeneric<int>(tags, key);
 
             try
@@ -62,8 +64,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_int), value_int.ToString());
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_int), value_int.ToString());
             }
 
             return value;
@@ -82,8 +84,8 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(color_string), color_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(color_string), color_string);
             }
 
             return value;
@@ -93,7 +95,7 @@ namespace TwitchLibrary.Helpers.Messages
         {
             type value = default(type);
 
-            if (!key.isValid())
+            if (!key.isValid() || !tags.ContainsKey(key))
             {
                 return value;
             }
@@ -119,48 +121,66 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 LibraryDebug.Error(LibraryDebugMethod.CONVERT, "value", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLine(nameof(exception), exception.Message);
-                LibraryDebug.PrintLine(nameof(value_string), value_string);
+                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
             }
 
             return value;
         }
 
-        public static Dictionary<string, string> ToBadges(Dictionary<string, string> tags, string key)
+        public static UserType ToUserType(Dictionary<string, string> tags, string key, List<Badge> badges)
         {
-            Dictionary<string, string> badges = new Dictionary<string, string>();
+            UserType user_type = ToEnum<UserType>(tags, key);
+            foreach (Badge badge in badges)
+            {
+                if (badge.name == "broadcaster")
+                {
+                    user_type = UserType.broadcaster;
+                }
+            }
 
-            if (!key.isValid())
+            return user_type;
+        }
+
+        public static List<Badge> ToBadges(Dictionary<string, string> tags, string key)
+        {
+            List<Badge> badges = new List<Badge>();
+
+            if (!key.isValid() || !tags.ContainsKey(key))
             {
                 return badges;
             }
 
-            //split the tag into each badge and it's version number            
-            //badge/version,badge/verison...
-            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    //[0] badge/verison     [1] badge/version       [n] ...
+            // split the tag into each badge and it's version number            
+            // badge/version,badge/verison...
+            string[] badges_array = ToGeneric<string>(tags, key).StringToArray<string>(',');    // [0] badge/verison     [1] badge/version       [n] ...
 
             if (!badges_array.isValid())
             {
                 return badges;
             }
 
-            //split each badge into it's name and version number
+            // split each badge into it's name and version number
             foreach(string element in badges_array)
             {
-                string[] info = element.StringToArray<string>('/');                             //[0] badge             [1] version
+                string[] info = element.StringToArray<string>('/');                             // [0] badge             [1] version
 
-                badges[info[0]] = info[1];
+                badges.Add(new Badge
+                {
+                    name = info[0],
+                    version = Convert.ToInt16(info[1])
+                });
             }
 
             return badges;
         }
 
-        public static MessageEmotes ToEmotes(Dictionary<string, string> tags, string key)
+        public static List<Emote> ToEmotes(Dictionary<string, string> tags, string key)
         {
-            MessageEmotes emotes = new MessageEmotes();
+            List<Emote> emotes = new List<Emote>();
 
-            //get every unique emote with all ranges where the emote was used in the body of message
-            //emote_id:start-end,start-end,.../emote_id:start-end,start-end,...
+            // get every unique emote with all ranges where the emote was used in the body of message
+            // emote_id:start-end,start-end,.../emote_id:start-end,start-end,...
             string[] emotes_array = ToGeneric<string>(tags, key).StringToArray<string>('/');
 
             if (!emotes_array.isValid())
@@ -168,47 +188,46 @@ namespace TwitchLibrary.Helpers.Messages
                 return emotes;
             }
 
-            int count_total = 0;
-
-            List<MessageEmote> emotes_list = new List<MessageEmote>();
-
             foreach (string emote_element in emotes_array)
             {
-                List<MessageEmoteRange> ranges = new List<MessageEmoteRange>();
+                List<EmoteRange> ranges = new List<EmoteRange>();
 
-                string[] emote_data = emote_element.StringToArray<string>(':');     //[0] emote_id      [1] start-end,start-end,...
-                string[] emote_ranges = emote_data[1].StringToArray<string>(',');   //[0] start-end     [1] start-end    [n] ....
+                string[] emote_data = emote_element.StringToArray<string>(':');     // [0] emote_id      [1] start-end,start-end,...
+                string[] emote_ranges = emote_data[1].StringToArray<string>(',');   // [0] start-end     [1] start-end    [n] ....
 
                 foreach (string range_element in emote_ranges)
                 {
                     int[] emote_range = range_element.StringToArray<int>('-');
 
-                    MessageEmoteRange range = new MessageEmoteRange                 //[0] start         [1] end
+                    ranges.Add(new EmoteRange                                       // [0] start         [1] end
                     {
                         start = emote_range[0],
                         end = emote_range[1]
-                    };
-
-                    ranges.Add(range);
-
-                    ++count_total;
+                    });
                 }
 
-                MessageEmote emote = new MessageEmote
+                emotes.Add(new Emote
                 {
-                    count = ranges.Count,
-                    emote_id = emote_data[0],
-                    ranges = ranges.ToArray()
-                };
-
-                emotes_list.Add(emote);
+                    id = emote_data[0],
+                    ranges = ranges
+                });
             }
 
-            emotes.emotes = emotes_list.ToArray();
-            emotes.count_total = count_total;
-            emotes.count_unique = emotes_list.Count;
-
             return emotes;
+        }
+
+        public static List<type> ToList<type>(Dictionary<string, string> tags, string key, char separator = ',')
+        {
+            List<type> list = default(List<type>);
+
+            if (!key.isValid() || !tags.ContainsKey(key))
+            {
+                return list;
+            }
+
+            list = tags[key].StringToArray<type>(separator).ToList();
+
+            return list;
         }
     }
 }

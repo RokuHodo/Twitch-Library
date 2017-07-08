@@ -1,21 +1,21 @@
-﻿//project namespaces
+﻿// project namespaces
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Interfaces.Helpers.Paging;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.Helpers.Paging
 {
     public class PagingLimitOffset : PagingLimit, ITwitchPaging
     {
-        //private
+        // private
         private int _offset;
 
-        //protected
+        // protected
         protected readonly int offset_default = 0;
 
-        //public
+        // public
         public readonly int offset_min = 0;
         public readonly int offset_max = 1000;        
         public int offset

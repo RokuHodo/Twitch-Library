@@ -1,7 +1,7 @@
-﻿//project namespaces
+﻿// project namespaces
 using TwitchLibrary.Models.API.HTTP;
 
-//imported .dll's
+// imported .dll's
 using Newtonsoft.Json;
 
 namespace TwitchLibrary.Models.API.Channels

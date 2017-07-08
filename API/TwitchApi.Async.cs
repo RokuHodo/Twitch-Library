@@ -1,10 +1,10 @@
-﻿//standard namespaces
+﻿// standard namespaces
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
-//project namespaces
+// project namespaces
 using TwitchLibrary.Enums.API;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Extensions;
@@ -35,7 +35,7 @@ using TwitchLibrary.Models.API.Teams;
 using TwitchLibrary.Models.API.Users;
 using TwitchLibrary.Models.API.Videos;
 
-//imported .dll's
+// imported .dll's
 using RestSharp;
 
 namespace TwitchLibrary.API
@@ -53,13 +53,13 @@ namespace TwitchLibrary.API
             client_id = _client_id;
             oauth_token = _oauth_token;
                   
-            //generic twitch api endpoints
+            // generic twitch api endpoints
             twitch_api_client = new RestClient("https://api.twitch.tv/kraken");                                    
             twitch_api_client.AddHandler("application/json", new CustomJsonDeserializer());
             twitch_api_client.AddHandler("application/xml", new CustomJsonDeserializer());
             twitch_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v5+json");
 
-            //video upload endpoints
+            // video upload endpoints
             uploads_api_client = new RestClient("https://uploads.twitch.tv/upload");
             uploads_api_client.AddHandler("application/json", new CustomJsonDeserializer());
             uploads_api_client.AddDefaultHeader("Accept", "application/vnd.twitchtv.v4+json");
@@ -438,7 +438,7 @@ namespace TwitchLibrary.API
         /// </summary>
         public async Task<Community> GetCommunityByNameAsync(string community_name)
         {
-            //string is less than minumim length, return an empty model
+            // string is less than minumim length, return an empty model
             if(community_name.Length < 3 || community_name.Length > 25)
             {
                 return default(Community);
@@ -955,7 +955,7 @@ namespace TwitchLibrary.API
         {
             Follow follow = await GetUserFollowerRelationshipAsync(user_id, channel_id);
 
-            return follow.http_status != 404;
+            return follow.status_code != 404;
         }
 
         /// <summary>
@@ -967,7 +967,7 @@ namespace TwitchLibrary.API
         {
             Follow follower = await GetUserFollowerRelationshipAsync(user_id, channel_id);
 
-            return follower.http_status != 404 ? follower.created_at.ToLocalTime() : DateTime.MinValue;
+            return follower.status_code != 404 ? follower.created_at.ToLocalTime() : DateTime.MinValue;
         }
 
         #endregion
