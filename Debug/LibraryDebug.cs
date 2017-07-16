@@ -93,10 +93,19 @@ namespace TwitchLibrary.Debug
         /// <summary>
         /// Prints a custom warning debug message to the command line with an optional time stamp.
         /// </summary>
-        public static void Warning(params string[] lines)
+        public static void Warning(string message)
         {
             // string message = string.Format("[ {0,-7} ] " + text, "Warning");
-            PrintLine(ConsoleColor.Yellow, TimeStamp.None, lines);
+            PrintLine(ConsoleColor.Yellow, TimeStamp.None, message);
+        }
+
+        /// <summary>
+        /// Prints a custom warning debug message to the command line with an optional time stamp.
+        /// </summary>
+        public static void Warning(string message, params object[] format)
+        {
+            message = string.Format(message, format);
+            PrintLine(ConsoleColor.Yellow, TimeStamp.None, message);
         }
 
         /// <summary>
@@ -173,7 +182,7 @@ namespace TwitchLibrary.Debug
                 return;
             }
 
-            lines[0] = lines[0].Wrap("[ ", " ]");
+            //lines[0] = lines[0].Wrap("[ ", " ]");
 
             PrintLine(ConsoleColor.Cyan, stamp, lines);
         }

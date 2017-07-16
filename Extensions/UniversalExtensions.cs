@@ -109,85 +109,20 @@ namespace TwitchLibrary.Extensions
 
         #endregion
 
-        #region Arithmetic operations
-
-        public static TimeSpan ClampMin(this TimeSpan value, TimeSpan minimum)
-        {
-            if (value < minimum)
-            {
-                value = minimum;
-            }
-
-            return value;
-        }
-
-        public static TimeSpan ClampMin(this TimeSpan value, TimeSpan minimum, TimeSpan default_value)
-        {
-            // in case the user is an idiot
-            default_value.ClampMin(minimum);
-
-            if (value < minimum)
-            {
-                value = default_value.isNull() ? minimum : default_value;
-            }
-
-            return value;
-        }
-
-        public static TimeSpan ClampMax(this TimeSpan value, TimeSpan maximum)
-        {
-            if (value > maximum)
-            {
-                value = maximum;
-            }
-
-            return value;
-        }
-
-        public static TimeSpan ClampMax(this TimeSpan value, TimeSpan maximum, TimeSpan default_value)
-        {
-            // in case the user is an idiot
-            default_value.ClampMin(maximum);
-
-            if (value > maximum)
-            {
-                value = default_value.isNull() ? maximum : default_value;
-            }
-
-            return value;
-        }
-
-        public static TimeSpan Clamp(this TimeSpan value, TimeSpan minimum, TimeSpan maximum)
-        {
-            value = value.ClampMin(minimum);
-            value = value.ClampMax(maximum);
-
-            return value;
-        }
-
-        public static TimeSpan Clamp(this TimeSpan value, TimeSpan minimum, TimeSpan maximum, TimeSpan default_value)
-        {
-            // in case the user is an idiot
-            default_value.Clamp(minimum, maximum);
-
-            value = value.ClampMin(minimum, default_value);
-            value = value.ClampMax(maximum, default_value);
-
-            return value;
-        }
+        #region Arithmetic operations and comparisons
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a minimum value.
+        /// Clamps the value to a minimum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="minimum">The lowest value possible.</param>
         /// <returns>
-        /// Returns the minimum value if the value of the <see cref="int"/> is lower than the minumum.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the minimum if the value is lower than the minumum.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int ClampMin(this int value, int minimum)
+        public static type ClampMin<type>(this type value, type minimum) where type : IComparable<type>
         {
-            if (value < minimum)
+            if (value.CompareTo(minimum) < 0)
             {
                 value = minimum;
             }
@@ -196,24 +131,25 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a minimum value.
+        /// Clamps the value to a minimum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="minimum">The lowest value possible.</param>
         /// <param name="default_value">
-        /// The value that will be returned if the the <see cref="int"/> is less than the minimum value.
-        /// The default value is clamped against the minimum to verify that the default value is not less than the minimum.
+        /// The value that will be returned if the the original value is less than the minimum.
+        /// The default value is clamped against the minimum to verify that the default is not less than the minimum.
         /// </param>
         /// <returns>
-        /// Returns the default value if the value of the <see cref="int"/> is lower than the minumum.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the default if the value is lower than the minumum and the default is valid.
+        /// Returns the minumum if the value is lower than the minumum and the default is not valid.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int ClampMin(this int value, int minimum, int default_value)
+        public static type ClampMin<type>(this type value, type minimum, type default_value) where type : IComparable<type>
         {
             // in case the user is an idiot
             default_value.ClampMin(minimum);
 
-            if (value < minimum)
+            if (value.CompareTo(minimum) < 0)
             {
                 value = default_value.isNull() ? minimum : default_value;
             }
@@ -222,17 +158,17 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a maximum value.
+        /// Clamps the value to a maximum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="maximum">The highest value possible.</param>
         /// <returns>
-        /// Returns the maximum value if the value of the <see cref="int"/> is greater than the maximum.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the maximum if the value is higher than the maximum.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int ClampMax(this int value, int maximum)
+        public static type ClampMax<type>(this type value, type maximum) where type : IComparable<type>
         {
-            if (value > maximum)
+            if (value.CompareTo(maximum) > 0)
             {
                 value = maximum;
             }
@@ -241,24 +177,25 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a maximum value.
+        /// Clamps the value to a maximum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="maximum">The highest value possible.</param>
         /// <param name="default_value">
-        /// The value that will be returned if the the <see cref="int"/> is greater than the maximum value.
-        /// The default value is clamped against the maximum to verify that the default value is not greater than the maximum.
+        /// The value that will be returned if the the original value is higher than the maximum.
+        /// The default value is clamped against the maximum to verify that the default is not less than the minimum.
         /// </param>
         /// <returns>
-        /// Returns the default value if the value of the <see cref="int"/> is greater than the maximum.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the default if the value is higher than the maximum and the default is valid.
+        /// Returns the maximum if the value is higher than the maximum and the default is not valid.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int ClampMax(this int value, int maximum, int default_value)
+        public static type ClampMax<type>(this type value, type maximum, type default_value) where type : IComparable<type>
         {
             // in case the user is an idiot
             default_value.ClampMin(maximum);
 
-            if (value > maximum)
+            if (value.CompareTo(maximum) > 0)
             {
                 value = default_value.isNull() ? maximum : default_value;
             }
@@ -267,17 +204,17 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a minimum and maximum value.
+        /// Clamps the value netween a minimum and maximum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
-        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="minimum">The lowest value possible.</param>
+        /// <param name="maximum">The highest value possible.</param>
         /// <returns>
-        /// Returns the minimum value if the value of the <see cref="int"/> is less than the minimum.
-        /// Returns the maximum value if the value of the <see cref="int"/> is greater than the maximum.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the minimum if the original value is less than the minimum.
+        /// Returns the maximum if the original value is greater than the maximum.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int Clamp(this int value, int minimum, int maximum)
+        public static type Clamp<type>(this type value, type minimum, type maximum) where type : IComparable<type>
         {
             value = value.ClampMin(minimum);
             value = value.ClampMax(maximum);
@@ -286,20 +223,21 @@ namespace TwitchLibrary.Extensions
         }
 
         /// <summary>
-        /// Clamps the value of an <see cref="int"/> to a minimum and maximum value.
+        /// Clamps the value between a minimum and maximum value.
         /// </summary>
-        /// <param name="value">The <see cref="int"/> to be clamped.</param>
-        /// <param name="minimum">The lowest value the <see cref="int"/> can be.</param>
-        /// <param name="maximum">The highest value the <see cref="int"/> can be.</param>
+        /// <param name="value">The value to be clamped.</param>
+        /// <param name="minimum">The lowest value possible.</param>
+        /// <param name="maximum">The highest value possible.</param>
         /// <param name="default_value">
-        /// The value that will be returned if the the <see cref="int"/> is out of range.
+        /// The value that will be returned if the the original value is out of range.
         /// The default value is clamped against the minimum and maximum to verify that the default value within the valid range.
         /// </param>
         /// <returns>
-        /// Returns the default value if the value of the <see cref="int"/> is out of range.
-        /// Returns the value of the <see cref="int"/> otherise.
+        /// Returns the default or minimum if the original value is less than the minimum, depending if the default is valid.
+        /// Returns the default or maximum if the original value is greater than the maximum, depeding if the default is valid.
+        /// Returns the original value otherise.
         /// </returns>
-        public static int Clamp(this int value, int minimum, int maximum, int default_value)
+        public static type Clamp<type>(this type value, type minimum, type maximum, type default_value) where type : IComparable<type>
         {
             // in case the user is an idiot
             default_value.Clamp(minimum, maximum);

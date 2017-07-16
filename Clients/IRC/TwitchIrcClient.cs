@@ -239,9 +239,6 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="e">The event parameters.</param>
         private void Callback_OnIrcMessage(object sender, IrcMessageEventArgs e)
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "IRC message received from Twitch IRC. Processing Starting...");
-
-            LibraryDebug.PrintLine(e.irc_message.command + " recieved from Twitch IRC");
             switch (e.irc_message.command)
             {
                 #region Requires no requests to be sent
