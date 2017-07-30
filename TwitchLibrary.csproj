@@ -269,8 +269,7 @@
     <Compile Include="Models\API\Users\User.cs" />
     <Compile Include="Models\API\Users\UserOAuth.cs" />
     <Compile Include="Models\API\Users\UserSubscriber.cs" />
-    <Compile Include="Models\Messages\IRC\Templates\PrivmsgTemplate.cs" />
-    <Compile Include="Models\Messages\IRC\Templates\WhisperTemplate.cs" />
+    <Compile Include="Models\Messages\IRC\Templates\MessageTemplate.cs" />
     <Compile Include="Models\Messages\IRC\Trailing\Body.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

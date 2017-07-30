@@ -78,7 +78,7 @@ namespace TwitchLibrary.Models.Messages.IRC
                 {
                     Log.Error("Failed to get tag",
                                        Error.NORMAL_EXCEPTION,
-                                       Log.FormatAsColumns(nameof(exception), exception.Message));
+                                       Log.FormatColumns(nameof(exception), exception.Message));
                 }
             }
 

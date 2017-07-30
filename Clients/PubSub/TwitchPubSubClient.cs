@@ -38,7 +38,7 @@ namespace TwitchLibrary.Clients.PubSub
         private readonly int                                                PENDING_PONG_LIMIT_MS = 10 * 1000;
         private readonly int                                                PING_FREQUENCY_MS = 4 * 60 * 1000;
 
-        private readonly string                                             WEB_SOCKET = "wss:// pubsub-edge.twitch.tv";
+        private readonly string                                             WEB_SOCKET = "wss://pubsub-edge.twitch.tv";
         private string                                                      id;
         private string                                                      oauth_token;
 
@@ -413,8 +413,8 @@ namespace TwitchLibrary.Clients.PubSub
         private void OnWebSocketSharpError(object sender, ErrorEventArgs e)
         {
             Log.Error(TimeStamp.TimeLong, "Error received from WebSocketSharp.",
-                               Log.FormatAsColumns(nameof(e.Exception), e.Exception.ToString()),
-                               Log.FormatAsColumns(nameof(e.Message), e.Message));
+                               Log.FormatColumns(nameof(e.Exception), e.Exception.ToString()),
+                               Log.FormatColumns(nameof(e.Message), e.Message));
 
             OnError.Raise(this, new ErrorReceivedEventArgs
             {
@@ -590,7 +590,7 @@ namespace TwitchLibrary.Clients.PubSub
                 default:
                     {
                         Log.Error("Unsuported PubSub type recieved",
-                                           Log.FormatAsColumns(nameof(type), type.ToString()));
+                                           Log.FormatColumns(nameof(type), type.ToString()));
 
                         OnUnsupportedMessageType.Raise(this, new UnsupportedMessageTypeReceivedEventArgs
                         {
@@ -701,7 +701,7 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="nonce">An optional unique <see cref="string"/> to identiy the response associated with the request.</param>
         private void SendRequest(PubSubType type, List<string> topics, string nonce = "")
         {
-            Log.Header(TimeStamp.TimeLong, "Starting PubSub Request Process...", Log.FormatAsColumns("request", type.ToString()));            
+            Log.Header(TimeStamp.TimeLong, "Starting PubSub Request Process...", Log.FormatColumns("request", type.ToString()));            
 
             topics = topics.Distinct().ToList();
             if(topics.Count < 1)
@@ -740,7 +740,7 @@ namespace TwitchLibrary.Clients.PubSub
         private async void SendRequestAsync(PubSubType type, List<string> topics, string nonce = "")
         {
             Log.Header(TimeStamp.TimeLong, "Starting Async PubSub Request Process...",
-                                Log.FormatAsColumns("request", type.ToString()));
+                                Log.FormatColumns("request", type.ToString()));
 
             topics = topics.AsParallel().Distinct().ToList();
             if (topics.Count < 1)

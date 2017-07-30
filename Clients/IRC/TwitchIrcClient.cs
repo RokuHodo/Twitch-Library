@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Timers;
 
 // project namespaces
@@ -24,94 +25,94 @@ namespace TwitchLibrary.Clients.IRC
         #region Fields
 
         // private
-        
-        private User                                                            user;
 
-        private Queue<PrivmsgTemplate>                                          privmsg_queue;
-        private Queue<WhisperTemplate>                                          whisper_queue;
+        private static string                               twitch_host = "irc.chat.twitch.tv";
 
-        private Timer                                                           privmsg_queue_timer;
-        private Timer                                                           whisper_queue_timer;        
+        private Queue<MessageTemplate>                      privmsg_queue;
+        private Queue<MessageTemplate>                      whisper_queue;
+
+        private Timer                                       privmsg_queue_timer;
+        private Timer                                       whisper_queue_timer;        
 
         // public               
 
         /// <summary>
         /// If set to true, the client will automatically reconnect when a 'RECONNECT' message is received from Twitch.
         /// </summary>
-        public bool                                                             auto_reconnect;
+        public bool                                         auto_reconnect;
 
         /// <summary>
         /// If set to true, 'tags' are automatically requested when a successful connected is established.
         /// </summary>
-        public bool                                                             request_tags;
+        public bool                                         request_tags;
 
         /// <summary>
         /// If set to true, 'commands' are automatically requested when a successful connected is established.
         /// </summary>
-        public bool                                                             request_commands;
+        public bool                                         request_commands;
 
         /// <summary>
         /// If set to true, 'membership' is automatically requested when a successful connected is established.
         /// </summary>
-        public bool                                                             request_membership;
+        public bool                                         request_membership;
 
         // TODO: (IRC) Implement follower service and OnNewFollower
-        // public event EventHandler<OnNewFollowerEventArgs>                    OnUserFollowed;                                        
+        // public event EventHandler<OnNewFollowerEventArgs>   OnUserFollowed;                                        
 
         /// <summary>
         /// Raised when the client received a 'RECONNECT' from the Twitch IRC.
         /// </summary>
-        public event EventHandler<IrcMessageEventArgs>                          OnReconnect;
+        public event EventHandler<IrcMessageEventArgs>      OnReconnect;
 
         /// <summary>
         /// Raised when a whisper message has been received in a channel that the client has joined.
         /// </summary>
-        public event EventHandler<WhisperEventArgs>                             OnWhisper;        
+        public event EventHandler<WhisperEventArgs>         OnWhisper;        
 
         /// <summary>
         /// Raised when a user gets timed out in a channel or when the chat room histroy gets cleared. Requires 'commands' to be requested.
         /// </summary>
-        public event EventHandler<ClearChatEventArgs>                           OnClearChat;
+        public event EventHandler<ClearChatEventArgs>       OnClearChat;
 
         /// <summary>
         /// Raised when a user successfully logs in. Requires 'commands' to be requested.
         /// </summary>
-        public event EventHandler<GlobalUserStateEventArgs>                     OnGlobalUserState;
+        public event EventHandler<GlobalUserStateEventArgs> OnGlobalUserState;
 
         /// <summary>
         /// Raised when a user subscribes to a channel that the client has joined. This event includes subs, resubs, and charity. Requires 'commands' to be requested.
         /// </summary>
-        public event EventHandler<UserNoticeEventArgs>                          OnUserNotice;
+        public event EventHandler<UserNoticeEventArgs>      OnUserNotice;
 
         /// <summary>
         /// Raised when a user joins a channel or the state of a room gets changed.
         /// </summary>
-        public event EventHandler<RoomStateEventArgs>                           OnRoomState;
+        public event EventHandler<RoomStateEventArgs>       OnRoomState;
 
         /// <summary>
         /// Raised when a user the state of a room is changed. Only the changes state tag is returned.
         /// </summary>
-        public event EventHandler<RoomStateChangeEventArgs>                     OnRoomStateChange;
+        public event EventHandler<RoomStateChangeEventArgs> OnRoomStateChange;
 
         /// <summary>
         /// Raised when a user joins a room or sends a PRIVMSG to a channel.
         /// </summary>
-        public event EventHandler<UserStateEventArgs>                           OnUserState;
+        public event EventHandler<UserStateEventArgs>       OnUserState;
 
         /// <summary>
         /// Raised when a general message is sent from the server about a channel.
         /// </summary>
-        public event EventHandler<NoticeEventArgs>                              OnNotice;
+        public event EventHandler<NoticeEventArgs>          OnNotice;
 
         /// <summary>
         /// Raised when a channel stops hosting another channel.
         /// </summary>
-        public event EventHandler<HostTargetEndEventArgs>                       OnHostTargetEnd;
+        public event EventHandler<HostTargetEndEventArgs>   OnHostTargetEnd;
 
         /// <summary>
         /// Raised when a channel starts hosting another channel.
         /// </summary>
-        public event EventHandler<HostTargetStartEventArgs>                     OnHostTargetStart;
+        public event EventHandler<HostTargetStartEventArgs> OnHostTargetStart;
 
         #endregion
 
@@ -122,58 +123,67 @@ namespace TwitchLibrary.Clients.IRC
         /// <summary>
         /// The user id of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                                           user_id { get; private set; }
+        public string                                       user_id { get; private set; }
 
         /// <summary>
         /// The name of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                                           user_name { get; private set; }
+        public string                                       user_name { get; private set; }
 
         /// <summary>
         /// The formatted display name of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                                           display_name { get; private set; }
+        public string                                       display_name { get; private set; }
 
         #endregion
 
         #region Constructors
 
-        public TwitchIrcClient(IrcUser irc_user, bool ssl = false) : base("irc.chat.twitch.tv", ssl == false ? 6667 : 443, irc_user)
+        /// <summary>
+        /// Instantiates a <see cref="TwitchIrcClient"/> <see cref="object"/>, a derived class from <see cref="IrcClient"/>.
+        /// </summary>
+        /// <param name="irc_user">The user that will be logged into the IRC.</param>
+        /// <param name="ssl">Determines whether to use the SSL port when logging in.</param>
+        /// <exception cref="ArgumentException">Thrown when the irc_user fields are improperly formatted.</exception>
+        public TwitchIrcClient(IrcUser irc_user, bool ssl = false) : base(twitch_host, ssl == false ? 6667 : 443, irc_user)
         {
-            user = new TwitchApiOAuth(irc_user.pass).GetUser();
+            // allow upper case to not be too strict and just ToLower() it later
+            Regex regex = new Regex("^[a-zA-Z][a-zA-Z0-9_]{3,24}$");
+            if (!regex.IsMatch(irc_user.nick))
+            {
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_TWITCH_NAME, nameof(irc_user.nick));
+            }
+            /*
+            // TODO: (TwitchIrcClient) - require that all tokens be prefixed with "oauth:" rather than adding it ourselves
+            if (!irc_user.pass.StartsWith("oauth:"))
+            {
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_TWITCH_OAUTH, nameof(irc_user.pass));
+            }
+            */
+            auto_reconnect = true;
 
-            ResetSettings();
+            request_tags = true;
+            request_commands = true;
+            request_membership = true;
 
             OnConnected += new EventHandler<EventArgs>(Callback_OnConnected);
             OnDisconnected += new EventHandler<EventArgs>(Callback_OnDisconnected);
             OnIrcMessage += new EventHandler<IrcMessageEventArgs>(Callback_OnIrcMessage);
 
+            User user = new TwitchApiOAuth(irc_user.pass).GetUser();
             user_id = user._id;
             user_name = user.name;
             display_name = user.display_name;
 
-            privmsg_queue = new Queue<PrivmsgTemplate>();
-            whisper_queue = new Queue<WhisperTemplate>();
+            privmsg_queue = new Queue<MessageTemplate>();
+            whisper_queue = new Queue<MessageTemplate>();
 
             privmsg_queue_timer = new Timer(1500);
             privmsg_queue_timer.Elapsed += ProcressEnqueuedChatCommands;
 
             whisper_queue_timer = new Timer(1500);
             whisper_queue_timer.Elapsed += ProcressEnqueuedWhispers;
-        }       
-
-
-        /// <summary>
-        /// Sets all settings back to their default values.
-        /// </summary>
-        public void ResetSettings()
-        {
-            auto_reconnect = true;
-
-            request_tags = true;
-            request_commands = true;
-            request_membership = true;
-        }
+        }               
 
         #endregion      
 
@@ -667,6 +677,11 @@ namespace TwitchLibrary.Clients.IRC
 
         #region Sending Twitch chat commands
 
+        /// <summary>
+        /// Enqueues a Privmsg to be sent to be sent to a channel/room.
+        /// </summary>
+        /// <param name="room_name">The room to send the message to.</param>
+        /// <param name="message">The message to be sent to the channel/room.</param>
         public void EnqueuePrivmsg(string room_name, string message)
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process starting...");
@@ -692,14 +707,14 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             // whispers seem to be treated separately from normal messages and commands, keep them separate
-            privmsg_queue.Enqueue(new PrivmsgTemplate
+            privmsg_queue.Enqueue(new MessageTemplate
             {
-                room_name = room_name,
+                target = room_name,
                 message = message
             });
 
             Log.PrintLine(debug_prefix + "PRIVMSG successfully enqueued",
-                          debug_prefix + Log.FormatAsColumns(nameof(message), message));
+                          debug_prefix + Log.FormatColumns(nameof(message), message));
             Log.Header(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process completed");
             Log.BlankLine();
         }
@@ -717,8 +732,8 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Dequeuing and sending PRIVMSG...");
-            PrivmsgTemplate chat_command = privmsg_queue.Dequeue();
-            SendPrivmsg(chat_command.room_name, chat_command.message);
+            MessageTemplate privmsg = privmsg_queue.Dequeue();
+            SendPrivmsg(privmsg.target, privmsg.message);
         }
 
         /// <summary>
@@ -747,14 +762,14 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             // whispers seem to be treated separately from normal messages and commands, keep them separate
-            whisper_queue.Enqueue(new WhisperTemplate
+            whisper_queue.Enqueue(new MessageTemplate
             {
-                recipient = recipient,
+                target = recipient,
                 message = message
             });
 
             Log.PrintLine(debug_prefix + "WHISPER successfully enqueued",
-                          debug_prefix + Log.FormatAsColumns(nameof(message), message));
+                          debug_prefix + Log.FormatColumns(nameof(message), message));
             Log.Header(TimeStamp.TimeLong, debug_prefix + "WHISPER enqueue process completed");
             Log.BlankLine();
         }
@@ -772,8 +787,8 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Dequeuing and sending WHISPER...");
-            WhisperTemplate whisper = whisper_queue.Dequeue();
-            SendWhisper(whisper.recipient, whisper.message);
+            MessageTemplate whisper = whisper_queue.Dequeue();
+            SendWhisper(whisper.target, whisper.message);
         }
 
         /// <summary>

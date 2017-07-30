@@ -31,14 +31,12 @@ namespace TwitchLibrary.Clients.IRC
 
         private Dictionary<string, List<string>>        names;
 
+        private Encoding                                encoding;
         private Socket                                  socket;
         private NetworkStream                           stream;
-
         private Thread                                  reader_thread;
 
         private IrcUser                                 user;
-
-        private Encoding                                encoding;
 
         // Protected
 
@@ -107,7 +105,7 @@ namespace TwitchLibrary.Clients.IRC
         public event EventHandler<MessageEventArgs>     OnMessageSent;
 
         /// <summary>
-        /// Raised when an unknown command is sent to Twitch.
+        /// Raised when an unknown command is sent to the IRC.
         /// </summary>
         public event EventHandler<IrcMessageEventArgs> OnUnknownCommand;
 
@@ -124,9 +122,42 @@ namespace TwitchLibrary.Clients.IRC
 
         #region Constructors
 
-        public IrcClient(string host, int port, IrcUser user)
+        /// <summary>
+        /// Instantiates an <see cref="IrcClient"/> <see cref="object"/>.
+        /// </summary>
+        /// <param name="host">The name of the remove host.</param>
+        /// <param name="port">The port of the remote host.</param>
+        /// <param name="irc_user">The user that will be logged into the IRC.</param>
+        /// <exception cref="ArgumentNullException">Thrown when any of the passed arguments are null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the host or irc_user fileds are empty or white space.</exception>
+        public IrcClient(string host, int port, IrcUser irc_user)
         {
-            this.user = user;
+            if (irc_user.isNull())
+            {
+                throw new ArgumentNullException(nameof(irc_user));
+            }
+
+            if (irc_user.nick.isNull())
+            {
+                throw new ArgumentNullException(nameof(irc_user.nick));
+            }
+
+            if (!irc_user.nick.isValid())
+            {
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(irc_user.nick));
+            }
+
+            if (irc_user.pass.isNull())
+            {
+                throw new ArgumentNullException(nameof(irc_user.pass));
+            }            
+
+            if (!irc_user.pass.isValid())
+            {
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(irc_user.nick));
+            }
+
+            this.user = irc_user;
 
             this.port = port;
             this.host = host;
@@ -167,8 +198,8 @@ namespace TwitchLibrary.Clients.IRC
             try
             {
                 Log.PrintLine(debug_prefix + "Connecting to socket...",
-                              debug_prefix + Log.FormatAsColumns(nameof(host), host),
-                              debug_prefix + Log.FormatAsColumns(nameof(port), port.ToString()));
+                              debug_prefix + Log.FormatColumns(nameof(host), host),
+                              debug_prefix + Log.FormatColumns(nameof(port), port.ToString()));
 
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.Connect(host, port);
@@ -181,7 +212,7 @@ namespace TwitchLibrary.Clients.IRC
             {
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to connecting to socket",
                                               debug_prefix + Error.NORMAL_EXCEPTION,
-                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + Log.FormatColumns(nameof(exception), exception.Message),
                                               debug_prefix + "Connection process aborted");
                 Log.BlankLine();
 
@@ -210,8 +241,8 @@ namespace TwitchLibrary.Clients.IRC
             state = TwitchClientState.Connecting;
 
             Log.PrintLine(debug_prefix + "Asynchronously connecting to socket...",
-                          debug_prefix + Log.FormatAsColumns(nameof(host), host),
-                          debug_prefix + Log.FormatAsColumns(nameof(port), port.ToString()));
+                          debug_prefix + Log.FormatColumns(nameof(host), host),
+                          debug_prefix + Log.FormatColumns(nameof(port), port.ToString()));
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.BeginConnect(host, port, Callback_OnSocketConnected, null);
@@ -332,7 +363,7 @@ namespace TwitchLibrary.Clients.IRC
 
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to disconnect from socket",
                                               debug_prefix + Error.NORMAL_EXCEPTION,
-                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + Log.FormatColumns(nameof(exception), exception.Message),
                                               debug_prefix + "Disconnection process aborted");
                 Log.BlankLine();
             }
@@ -388,8 +419,7 @@ namespace TwitchLibrary.Clients.IRC
         /// End the reader stream thread and closes the stream and socket.
         /// </summary>
         /// <param name="async">
-        /// Whether this is called form an async process.
-        /// Only used when reconnecting.
+        /// Whether this is called from an async process.
         /// Determines whether to reconnect normally or asynchronously.
         /// </param>
         private void CompleteSocketDisconnect(bool async)
@@ -630,7 +660,7 @@ namespace TwitchLibrary.Clients.IRC
 
                         string message = encoding.GetString(buffer, 0, byte_index - 2);
                         Log.PrintLine(debug_prefix + "Data successfully converted from bytes into a string",
-                                      debug_prefix + Log.FormatAsColumns(nameof(message), message));
+                                      debug_prefix + Log.FormatColumns(nameof(message), message));
                         ProcessIrcMessage(message);                        
 
                         Buffer.BlockCopy(buffer, byte_index, buffer, 0, byte_count - byte_index);
@@ -785,103 +815,41 @@ namespace TwitchLibrary.Clients.IRC
 
         #endregion
 
-        #region Sending data and commands              
+        #region Sending data and commands                      
 
-        public void Send(string message, params object[] format)
-        {
-            Log.Header(TimeStamp.TimeLong, debug_prefix + "Send proccess starting...");
-
-            message = string.Format(message, format);
-            if (!CanSendMessage(message))
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Send process aborted");
-                Log.BlankLine();
-
-                return;
-            }
-
-            try
-            {
-                byte[] bytes = encoding.GetBytes(message + "\r\n");
-                stream.Write(bytes, 0, bytes.Length);
-                stream.Flush();
-
-                Log.PrintLine(debug_prefix + "Message sent to Irc",
-                              debug_prefix + Log.FormatAsColumns(nameof(message), message));
-
-                OnMessageSent.Raise(this, new MessageEventArgs(message));
-
-                Log.Header(debug_prefix + "Send proccess completed");
-            }
-            catch(Exception exception)
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to send message",
-                                              debug_prefix + Error.NORMAL_EXCEPTION,
-                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
-                                              debug_prefix + "Send process aborted");
-            }
-            
-            Log.BlankLine();
-        }
-
-        public async void SendAsync(string message, params object[] format)
-        {
-            Log.Header(TimeStamp.TimeLong, debug_prefix + "Asyn send proccess starting...");
-
-            message = string.Format(message, format);
-            if (!CanSendMessage(message))
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async send process aborted");
-                Log.BlankLine();
-
-                return;
-            }
-
-            try
-            {
-                byte[] bytes = encoding.GetBytes(message + "\r\n");
-                await stream.WriteAsync(bytes, 0, bytes.Length);
-                stream.Flush();
-
-                Log.PrintLine(debug_prefix + "Message asynchronously sent to Irc",
-                              debug_prefix + Log.FormatAsColumns(nameof(message), message));
-
-                OnMessageSent.Raise(this, new MessageEventArgs(message));
-
-                Log.Header(TimeStamp.TimeLong, debug_prefix + "Async send proccess completed");
-            }
-            catch(Exception exception)
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to asynchronously send message",
-                                              debug_prefix + Error.NORMAL_EXCEPTION,
-                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
-                                              debug_prefix + "Async send process aborted");
-            }
-            
-            Log.BlankLine();
-        }        
-
-        public void SendPrivmsg(string channel, string message)
-        {
-            Send("PRIVMSG #{0}: {1}", channel.ToLower(), message);
-        }
-
+        /// <summary>
+        /// Sends a PRIVMSG to the IRC.
+        /// </summary>
+        /// <param name="channel">The channel/room to send the message to.</param>
+        /// <param name="message">The message to be sent.</param>
+        /// <param name="format">An object array that contains zero or more object to format.</param>
         public void SendPrivmsg(string channel, string message, params object[] format)
         {
-            message = string.Join(message, format);
-            SendPrivmsg(channel.ToLower(), message);
+            message = string.Format(message, format);
+            Send("PRIVMSG #{0} :{1}", channel.ToLower(), message);
         }
 
+        /// <summary>
+        /// Sends a PONG message to the IRC.
+        /// </summary>
         public void Pong()
         {
             Send("PONG");
         }
 
+        /// <summary>
+        /// Sends a PONG message to the IRC.
+        /// </summary>
+        /// <param name="parmaters">Parameteres that would normally be found in an <see cref="IrcMessage"/>.</param>
         public void Pong(string parmaters)
         {
             Send("PONG: {0}", parmaters);
         }
 
+        /// <summary>
+        /// Sends a PONG message to the IRC.
+        /// </summary>
+        /// <param name="irc_message">The <see cref="IrcMessage"/> that contains the parameters to be sent with the PONG.</param>
         public void Pong(IrcMessage irc_message)
         {
             Pong(irc_message.parameters);
@@ -925,6 +893,95 @@ namespace TwitchLibrary.Clients.IRC
             Part(channel_names);
         }
 
+        /// <summary>
+        /// Sends a message to the IRC.
+        /// </summary>
+        /// <param name="message">The message to be sent.</param>
+        /// <param name="format">An object array that contains zero or more object to format.</param>
+        protected void Send(string message, params object[] format)
+        {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Send proccess starting...");
+
+            message = string.Format(message, format).RemovePadding();
+            if (!CanSendMessage(message))
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Send process aborted");
+                Log.BlankLine();
+
+                return;
+            }
+
+            try
+            {
+                byte[] bytes = encoding.GetBytes(message + "\r\n");
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush();
+
+                Log.PrintLine(debug_prefix + "Message sent to Irc",
+                              debug_prefix + Log.FormatColumns(nameof(message), message));
+
+                OnMessageSent.Raise(this, new MessageEventArgs(message));
+
+                Log.Header(debug_prefix + "Send proccess completed");
+            }
+            catch (Exception exception)
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to send message",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Send process aborted");
+            }
+
+            Log.BlankLine();
+        }
+
+        /// <summary>
+        /// Asynchronously sends a message to the IRC.
+        /// </summary>
+        /// <param name="message">The message to be sent.</param>
+        /// <param name="format">An object array that contains zero or more object to format.</param>
+        protected async void SendAsync(string message, params object[] format)
+        {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Asyn send proccess starting...");
+
+            message = string.Format(message, format).RemovePadding();
+            if (!CanSendMessage(message))
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async send process aborted");
+                Log.BlankLine();
+
+                return;
+            }
+
+            try
+            {
+                byte[] bytes = encoding.GetBytes(message + "\r\n");
+                await stream.WriteAsync(bytes, 0, bytes.Length);
+                stream.Flush();
+
+                Log.PrintLine(debug_prefix + "Message asynchronously sent to Irc",
+                              debug_prefix + Log.FormatColumns(nameof(message), message));
+
+                OnMessageSent.Raise(this, new MessageEventArgs(message));
+
+                Log.Header(TimeStamp.TimeLong, debug_prefix + "Async send proccess completed");
+            }
+            catch (Exception exception)
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to asynchronously send message",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Async send process aborted");
+            }
+
+            Log.BlankLine();
+        }
+
+        /// <summary>
+        /// Performs checks and determines whether or not the message can be sent.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         private bool CanSendMessage(string message)
         {
             bool result = true;

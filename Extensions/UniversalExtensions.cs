@@ -707,7 +707,7 @@ namespace TwitchLibrary.Extensions
 
                 if (task.IsFaulted)
                 {
-                    Log.Error("Failed to deserialize " + typeof(type).Name, Error.NORMAL_FAULTED);
+                    Log.Error("Failed to deserialize " + typeof(type).Name, Error.NORMAL_TASK_FAULTED);
                     Log.PrintLineColumns(nameof(task.Id), task.Id.ToString());
                     Log.PrintLineColumns(nameof(task.Exception), task.Exception.Message);
                 }

@@ -349,7 +349,7 @@ namespace TwitchLibrary.Debug
 
         #region Formatting
 
-        public static string FormatAsColumns(object column_1, object column_2, int column_1_align = -20, int column_2_align = -20)
+        public static string FormatColumns(object column_1, object column_2, int column_1_align = -20, int column_2_align = -20)
         {
             return string.Format("{0,"+column_1_align+"} {1,"+column_2_align+"}", column_1, column_2);
         }

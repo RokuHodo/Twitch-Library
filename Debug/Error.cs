@@ -2,35 +2,25 @@
 {
     public static class Error
     {
-        public static string NORMAL_NULL = "object cannot be null",
-                             NORMAL_UNKNOWN = "unknown error",
-                             NORMAL_FAULTED = "task has faulted",
-                             NORMAL_EXCEPTION = "compiler exception",
-                             NORMAL_EXISTS_NO = "object does not exist",
-                             NORMAL_EXISTS_YES = "object already exists",
-                             NORMAL_SYNTAX = "bad syntax",
-                             NORMAL_PERMANENT = "object is permanent",
-                             NORMAL_CONVERT = "could not convert the object to desired type",
-                             NORMAL_OUT_OF_BOUNDS = "index out of bounds",
-                             NORMAL_DESERIALIZE = "failed to deserialize the object",
-                             NORMAL_SERIALIZE = "failed to serialize the object",
-                             NORMAL_EQUAL = "values are equal",
-                             NORMAL_MODIFIER_NO = "no modifier provided";
+        #region Normal logging messages
 
+        public static string NORMAL_NULL                        = "Value cannot be null.";
+        public static string NORMAL_TASK_FAULTED                = "Task has faulted.";
+        public static string NORMAL_EXCEPTION                   = "Compiler exception";
+        public static string NORMAL_CONVERT                     = "Could not convert the object to desired type.";
+        public static string NORMAL_OUT_OF_BOUNDS               = "Index is out of bounds.";
+        public static string NORMAL_DESERIALIZE                 = "Failed to deserialize the object.";
+        public static string NORMAL_SERIALIZE                   = "Failed to serialize the object.";
 
-        public static string SYNTAX_NULL = "bad syntax, cannot be null",
-                             SYNTAX_UNKNOWN = "bad syntax, unknown error",
-                             SYNTAX_SQUARE_BRACKETS_NO = "bad syntax, cannot contain square brackets",
-                             SYNTAX_SQUARE_BRACKETS_ENCLOSED_YES = "must be enclosed in square brackets",
-                             SYNTAX_BRACKETS_NO = "bad syntax, cannot contain brackets",
-                             SYNTAX_BRACKETS_ENCLOSED_YES = "bad syntax, must be enclosed in brackets",
-                             SYNTAX_EQUAL_SIGN_NO = "bad syntax, cannot contain equal signs",
-                             SYNTAX_SPACES_NO = "bad syntax, cannot contain spaces",
-                             SYNTAX_EXCLAMATION_POINT_LEAD_YES = "bad syntax, must be lead by an exclamation point",
-                             SYNTAX_LENGTH = "bad syntax, incorrect length",
-                             SYNTAX_PARENTHESIS_NO = "bad syntax, cannot contain parenthesis",
-                             SYNTAX_PARENTHESIS_YES = "bad syntax, must contain parenthesis",
-                             SYNTAX_OUR_OF_BOUNDS = "bad syntax, index out of bounds",
-                             SYNTAX_POSITIVE_YES = "bad syntax, value must be positive or zero";
+        #endregion
+
+        #region Exception messages
+
+        public static string EXCEPTION_ARGUMENT_EMPTY           = "Value is empty or whitespace.";
+        public static string EXCEPTION_ARGUMENT_TWITCH_NAME     = "The Twitch NICK must start with a letter, contain only letters, numbers, or underscores, and must be between 3 and 25 characters (inclusive).";
+        public static string EXCEPTION_ARGUMENT_TWITCH_OAUTH    = "The Twitch OAuth token must be prefixed with \"oauth:\".";
+
+        #endregion
     }
 }
+
