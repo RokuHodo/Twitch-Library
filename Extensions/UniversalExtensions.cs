@@ -283,8 +283,8 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
-                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+                Log.Error("Failed to find text after " + start.Wrap("\"", "\""));
+                Log.PrintLine("String is empty, null, or whitespace");
 
                 return result;
             }
@@ -294,9 +294,9 @@ namespace TwitchLibrary.Extensions
                 int index_start = str.IndexOf(start, offset_index);
                 if (index_start < 0)
                 {
-                    LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
-                    LibraryDebug.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+                    Log.Error("Failed to find text after " + start.Wrap("\"", "\""));
+                    Log.PrintLine("Starting point " + start.Wrap("\"", "\"") + " could not be found");
+                    Log.PrintLineColumns(nameof(str), str);
 
                     return result;
                 }
@@ -306,10 +306,10 @@ namespace TwitchLibrary.Extensions
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error("Failed to find text after " + start.Wrap("\"", "\""));
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(offset_index), offset_index.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to find text after " + start.Wrap("\"", "\""));
+                Log.PrintLineColumns(nameof(str), str);
+                Log.PrintLineColumns(nameof(offset_index), offset_index.ToString());
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
             return result;
@@ -346,8 +346,8 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text before " + end.Wrap("\"", "\""));
-                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+                Log.Error("Failed to find text before " + end.Wrap("\"", "\""));
+                Log.PrintLine("String is empty, null, or whitespace");
 
                 return result;
             }
@@ -357,9 +357,9 @@ namespace TwitchLibrary.Extensions
                 int index_end = str.IndexOf(end, index_offset);
                 if (index_end < 0)
                 {
-                    LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""));
-                    LibraryDebug.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found");
-                    LibraryDebug.PrintLineFormatted(nameof(str), str);
+                    Log.Error("Failed to find text after " + end.Wrap("\"", "\""));
+                    Log.PrintLine("Ending point " + end.Wrap("\"", "\"") + " could not be found");
+                    Log.PrintLineColumns(nameof(str), str);
 
                     return result;
                 }
@@ -368,10 +368,10 @@ namespace TwitchLibrary.Extensions
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error("Failed to find text after " + end.Wrap("\"", "\""));
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(index_offset), index_offset.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to find text after " + end.Wrap("\"", "\""));
+                Log.PrintLineColumns(nameof(str), str);
+                Log.PrintLineColumns(nameof(index_offset), index_offset.ToString());
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
             return result;
@@ -410,8 +410,8 @@ namespace TwitchLibrary.Extensions
 
             if (!str.isValid())
             {
-                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
-                LibraryDebug.PrintLine("String is empty, null, or whitespace");
+                Log.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
+                Log.PrintLine("String is empty, null, or whitespace");
 
                 return result;
             }
@@ -422,16 +422,16 @@ namespace TwitchLibrary.Extensions
                 int index_end = str.IndexOf(end, index_start + start.Length);
                 if (index_start < 0 || index_end < 0)
                 {
-                    LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
+                    Log.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
 
                     if (index_start < 0)
                     {
-                        LibraryDebug.PrintLine(TimeStamp.TimeLong, "Starting point " + start.Wrap("\"", "\"") + " could not be found");
+                        Log.PrintLine(TimeStamp.TimeLong, "Starting point " + start.Wrap("\"", "\"") + " could not be found");
                     }
 
                     if (index_end < 0)
                     {
-                        LibraryDebug.PrintLine(TimeStamp.TimeLong, "Ending point " + end.Wrap("\"", "\"") + " could not be found");
+                        Log.PrintLine(TimeStamp.TimeLong, "Ending point " + end.Wrap("\"", "\"") + " could not be found");
                     }
 
                     return result;
@@ -442,10 +442,10 @@ namespace TwitchLibrary.Extensions
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
-                LibraryDebug.PrintLineFormatted(nameof(offset_index), offset_index.ToString());
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to find text between " + start.Wrap("\"", "\"") + " and " + end.Wrap("\"", "\""));
+                Log.PrintLineColumns(nameof(str), str);
+                Log.PrintLineColumns(nameof(offset_index), offset_index.ToString());
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
             return result;
@@ -490,7 +490,7 @@ namespace TwitchLibrary.Extensions
             {
                 if (!element.CanCovertTo<type>())
                 {
-                    LibraryDebug.Error("Could not convert " + element.Wrap("\"", "\"") + " from " + typeof(string).Name + " to " + typeof(string).Name);
+                    Log.Error("Could not convert " + element.Wrap("\"", "\"") + " from " + typeof(string).Name + " to " + typeof(string).Name);
                     continue;
                 }
 
@@ -622,9 +622,9 @@ namespace TwitchLibrary.Extensions
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.CONVERT, "str", LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(str), str);
+                Log.Error("Failed to convert " + nameof(str), Error.NORMAL_EXCEPTION);
+                Log.PrintLineColumns(nameof(exception), exception.Message);
+                Log.PrintLineColumns(nameof(str), str);
             }
 
             return value;
@@ -657,8 +657,8 @@ namespace TwitchLibrary.Extensions
                     }
                     catch (Exception exception)
                     {
-                        LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                        LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                        Log.Error("Failed to serialize " + typeof(type).Name, Error.NORMAL_EXCEPTION);
+                        Log.PrintLineColumns(nameof(exception), exception.Message);
 
                         return string.Empty;
                     }
@@ -666,8 +666,8 @@ namespace TwitchLibrary.Extensions
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to serialize " + typeof(type).Name, Error.NORMAL_EXCEPTION);
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
             return result;
@@ -696,8 +696,8 @@ namespace TwitchLibrary.Extensions
                     }
                     catch (Exception exception)
                     {
-                        LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                        LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                        Log.Error("Failed to deserialize " + typeof(type).Name, Error.NORMAL_EXCEPTION);
+                        Log.PrintLineColumns(nameof(exception), exception.Message);
 
                         return default(type);
                     }
@@ -707,15 +707,15 @@ namespace TwitchLibrary.Extensions
 
                 if (task.IsFaulted)
                 {
-                    LibraryDebug.Error(LibraryDebugMethod.SERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_FAULTED);
-                    LibraryDebug.PrintLineFormatted(nameof(task.Id), task.Id.ToString());
-                    LibraryDebug.PrintLineFormatted(nameof(task.Exception), task.Exception.Message);
+                    Log.Error("Failed to deserialize " + typeof(type).Name, Error.NORMAL_FAULTED);
+                    Log.PrintLineColumns(nameof(task.Id), task.Id.ToString());
+                    Log.PrintLineColumns(nameof(task.Exception), task.Exception.Message);
                 }
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.DESERIALIZE, typeof(type).Name, LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to deserialize " + typeof(type).Name, Error.NORMAL_EXCEPTION);
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
             return result;

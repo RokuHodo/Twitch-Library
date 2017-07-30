@@ -9,7 +9,7 @@ using TwitchLibrary.Models.Messages.IRC.Tags;
 using TwitchLibrary.Models.Messages.IRC.Trailing;
 
 /*
-// Example
+// WHISPER Example
 // @badges=premium/1;
 // color=#FF0000;
 // display-name=RokuHodo_;
@@ -18,8 +18,8 @@ using TwitchLibrary.Models.Messages.IRC.Trailing;
 // thread-id=45947671_51012150;
 // turbo=1;
 // user-id=45947671;
-user-type= 
-:rokuhodo_!rokuhodo_ @rokuhodo_.tmi.twitch.tv WHISPER rokubotto :test
+// user-type= 
+// :rokuhodo_!rokuhodo_@rokuhodo_.tmi.twitch.tv WHISPER rokubotto :test
 */
 namespace TwitchLibrary.Models.Messages.IRC.Commands.Twitch
 {

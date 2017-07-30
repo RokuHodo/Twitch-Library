@@ -1,6 +1,6 @@
 ﻿namespace TwitchLibrary.Debug
 {
-    public static class LibraryDebugError
+    public static class Error
     {
         public static string NORMAL_NULL = "object cannot be null",
                              NORMAL_UNKNOWN = "unknown error",

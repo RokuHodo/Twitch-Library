@@ -27,8 +27,7 @@ namespace TwitchLibrary.Clients.IRC
 
         private int                                     port;
 
-        private string                                  host;
-        private string                                  debug_prefix;
+        private string                                  host;        
 
         private Dictionary<string, List<string>>        names;
 
@@ -40,6 +39,10 @@ namespace TwitchLibrary.Clients.IRC
         private IrcUser                                 user;
 
         private Encoding                                encoding;
+
+        // Protected
+
+        protected string                                debug_prefix;
 
         // Public
 
@@ -104,9 +107,9 @@ namespace TwitchLibrary.Clients.IRC
         public event EventHandler<MessageEventArgs>     OnMessageSent;
 
         /// <summary>
-        /// Raised when an unsupported IRC command has been received and cannot be processed by the library.
+        /// Raised when an unknown command is sent to Twitch.
         /// </summary>
-        public event EventHandler<IrcMessageEventArgs>  OnUnsupportedCommand;
+        public event EventHandler<IrcMessageEventArgs> OnUnknownCommand;
 
         #endregion
 
@@ -128,7 +131,7 @@ namespace TwitchLibrary.Clients.IRC
             this.port = port;
             this.host = host;
 
-            debug_prefix = "IrcClint " + user.nick.Wrap("\"", "\"") + " - ";
+            debug_prefix = "IrcClient " + user.nick.Wrap("\"", "\"") + " - ";
 
             reconnecting = false;
             auto_pong = true;
@@ -149,12 +152,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void Connect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Connection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Connection process starting...");
 
             if (!CanConnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Connection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Connection process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -163,23 +166,24 @@ namespace TwitchLibrary.Clients.IRC
 
             try
             {
-                LibraryDebug.PrintLine(debug_prefix + "Connecting to socket...",
-                                       LibraryDebug.FormatAsColumns(nameof(host), host),
-                                       LibraryDebug.FormatAsColumns(nameof(port), port.ToString()));
+                Log.PrintLine(debug_prefix + "Connecting to socket...",
+                              debug_prefix + Log.FormatAsColumns(nameof(host), host),
+                              debug_prefix + Log.FormatAsColumns(nameof(port), port.ToString()));
 
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.Connect(host, port);
 
-                LibraryDebug.PrintLine(debug_prefix + "Connected to socket");
+                Log.PrintLine(debug_prefix + "Connected to socket");
 
                 CompleteSocketConnect();
             }
             catch(Exception exception)
             {
-                LibraryDebug.PrintLine(debug_prefix + "Failed to connecting to socket",
-                                       LibraryDebug.FormatAsColumns(nameof(exception), exception.Message));
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Connection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to connecting to socket",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Connection process aborted");
+                Log.BlankLine();
 
                 socket.Close();
                 socket.Dispose();
@@ -193,21 +197,21 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void ConnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Async connection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Async connection process starting...");
 
             if (!CanConnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Async connection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async connection process aborted");
+                Log.BlankLine();
 
                 return;
             }
 
             state = TwitchClientState.Connecting;
 
-            LibraryDebug.PrintLine(debug_prefix + "Asynchronously connecting to socket...",
-                                   LibraryDebug.FormatAsColumns(nameof(host), host),
-                                   LibraryDebug.FormatAsColumns(nameof(port), port.ToString()));
+            Log.PrintLine(debug_prefix + "Asynchronously connecting to socket...",
+                          debug_prefix + Log.FormatAsColumns(nameof(host), host),
+                          debug_prefix + Log.FormatAsColumns(nameof(port), port.ToString()));
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.BeginConnect(host, port, Callback_OnSocketConnected, null);
@@ -222,7 +226,7 @@ namespace TwitchLibrary.Clients.IRC
         {
             if (result.IsCompleted)
             {
-                LibraryDebug.PrintLine(debug_prefix + "Asynchronously connected to socket");
+                Log.PrintLine(debug_prefix + "Asynchronously connected to socket");
 
                 CompleteSocketConnect();
             }
@@ -234,9 +238,9 @@ namespace TwitchLibrary.Clients.IRC
                 socket.Close();
                 socket.Dispose();
 
-                LibraryDebug.PrintLine(debug_prefix + "Failed to asynchronously connect to socket");
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Async connection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to asynchronously connect to socket",
+                                              debug_prefix + "Async connection process aborted");
+                Log.BlankLine();
 
                 state = TwitchClientState.Disconnected;
             }
@@ -252,7 +256,7 @@ namespace TwitchLibrary.Clients.IRC
 
             stream = new NetworkStream(socket);
 
-            LibraryDebug.PrintLine(debug_prefix + "Signing into IRC " + host.Wrap("\"", "\""));
+            Log.PrintLine(debug_prefix + "Signing into IRC " + host.Wrap("\"", "\""));
 
             Send("PASS oauth:" + user.pass);
             Send("NICK " + user.nick);
@@ -271,17 +275,17 @@ namespace TwitchLibrary.Clients.IRC
             {
                 case TwitchClientState.Connected:
                     {
-                        LibraryDebug.Warning(error, "already connected");
+                        Log.Warning(string.Format(error, "already connected"));
                     }
                     break;
                 case TwitchClientState.Connecting:
                     {
-                        LibraryDebug.Warning(error, "already connecting");
+                        Log.Warning(string.Format(error, "already connecting"));
                     }
                     break;
                 case TwitchClientState.Disconnecting:
                     {
-                        LibraryDebug.Warning(error, "currently disconnecting");
+                        Log.Warning(string.Format(error, "currently disconnecting"));
                     }
                     break;
                 case TwitchClientState.Disconnected:
@@ -300,12 +304,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void Disconnect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process starting...");
 
             if (!CanDisconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Disconnection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Disconnection process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -314,11 +318,11 @@ namespace TwitchLibrary.Clients.IRC
 
             try
             {
-                LibraryDebug.PrintLine(debug_prefix + "Disconnecting from socket...");
+                Log.PrintLine(debug_prefix + "Disconnecting from socket...");
 
                 socket.Disconnect(true);
 
-                LibraryDebug.PrintLine(debug_prefix + "Disconnected from socket");
+                Log.PrintLine(debug_prefix + "Disconnected from socket");
 
                 CompleteSocketDisconnect(false);            
             }
@@ -326,10 +330,11 @@ namespace TwitchLibrary.Clients.IRC
             {
                 state = TwitchClientState.Connected;
 
-                LibraryDebug.PrintLine(debug_prefix + "Failed to disconnect from socket",
-                                       LibraryDebug.FormatAsColumns(nameof(exception), exception.Message));
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Disconnection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to disconnect from socket",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Disconnection process aborted");
+                Log.BlankLine();
             }
         }
 
@@ -338,19 +343,19 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void DisconnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process starting...");
 
             if (!CanDisconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Async disconnection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async disconnection process aborted");
+                Log.BlankLine();
 
                 return;
             }
 
             state = TwitchClientState.Disconnecting;
 
-            LibraryDebug.PrintLine(debug_prefix + "Asynchronously disconnecting from socket...");
+            Log.PrintLine(debug_prefix + "Asynchronously disconnecting from socket...");
 
             socket.BeginDisconnect(true, Callback_OnSocketDisconnect, null);
         }
@@ -362,18 +367,17 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="result">The async result of operation.</param>
         private void Callback_OnSocketDisconnect(IAsyncResult result)
         {
-            //if it fails just disconnect synchronously as a fail safe
             if (result.IsCompleted)
             {
-                LibraryDebug.PrintLine(debug_prefix + "Asynchronously disconnected from socket");
+                Log.PrintLine(debug_prefix + "Asynchronously disconnected from socket");
 
                 CompleteSocketDisconnect(true);
             }
             else
-            {
-                LibraryDebug.PrintLine(debug_prefix + "Failed to asynchronously disconnect from socket");
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Disconnection process aborted");
-                LibraryDebug.BlankLine();
+            {                
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to asynchronously disconnect from socket",
+                                              debug_prefix + "Disconnection process aborted");
+                Log.BlankLine();
 
                 state = TwitchClientState.Connected;
             }
@@ -393,7 +397,7 @@ namespace TwitchLibrary.Clients.IRC
             stream.Close();
             stream.Dispose();
 
-            LibraryDebug.PrintLine(debug_prefix + "Waiting for " + nameof(reader_thread).Wrap("\"", "\"") + " to stop...");
+            Log.PrintLine(debug_prefix + "Waiting for " + nameof(reader_thread).Wrap("\"", "\"") + " to stop...");
 
             bool polling = true;
 
@@ -413,46 +417,49 @@ namespace TwitchLibrary.Clients.IRC
 
                 Thread.Sleep(25);
             }
-            while (polling);
-
-            LibraryDebug.PrintLine(debug_prefix + nameof(reader_thread).Wrap("\"", "\"") + " stopped");
+            while (polling);            
 
             socket.Close();
             socket.Dispose();
 
             state = TwitchClientState.Disconnected;
-
+                      
             if (reconnecting)
             {
                 if (async)
                 {
-                    LibraryDebug.Header(TimeStamp.TimeLong,
-                                        debug_prefix + "Async disconnection process completed",
-                                        nameof(OnDisconnected).Wrap("\"", "\"") + " not raised, currently reconnecting");
+                    Log.Success(debug_prefix + "Successfully asynchronously disconnected from " + host.Wrap("\"", "\""),
+                                debug_prefix + nameof(OnDisconnected).Wrap("\"", "\"") + " not raised, currently reconnecting");
+
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process completed");
+                                        
                     ConnectAsync();
                 }
                 else
                 {
-                    LibraryDebug.Header(TimeStamp.TimeLong,
-                                        debug_prefix + "Disconnection process completed",
-                                        nameof(OnDisconnected).Wrap("\"", "\"") + " not raised, currently reconnecting");
+                    Log.Success(debug_prefix + "Successfully disconnected from " + host.Wrap("\"", "\""),
+                                debug_prefix + nameof(OnDisconnected).Wrap("\"", "\"") + " not raised, currently reconnecting");
+
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process completed");
                     Connect();
                 }
             }
             else
-            {
+            {               
                 OnDisconnected.Raise(this, EventArgs.Empty);
 
                 if (async)
                 {
-                    LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process completed");
+                    Log.Success(debug_prefix + "Successfully asynchronously disconnected from " + host.Wrap("\"", "\""));
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process completed");
                 }
                 else
                 {
-                    LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process completed");
+                    Log.Success(debug_prefix + "Successfully disconnected from " + host.Wrap("\"", "\""));
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process completed");
                 }
 
-                LibraryDebug.BlankLine();
+                Log.BlankLine();
             }
         }
 
@@ -469,17 +476,17 @@ namespace TwitchLibrary.Clients.IRC
             {
                 case TwitchClientState.Connecting:
                     {
-                        LibraryDebug.Warning(error, "currently connecting");
+                        Log.Warning(string.Format(error, "currently connecting"));
                     }
                     break;
                 case TwitchClientState.Disconnecting:
                     {
-                        LibraryDebug.Warning(error, "currently disconnecting");
+                        Log.Warning(string.Format(error, "currently disconnecting"));
                     }
                     break;
                 case TwitchClientState.Disconnected:
                     {
-                        LibraryDebug.Warning(error, "already disconnected");
+                        Log.Warning(string.Format(error, "already disconnected"));
                     }
                     break;
                 case TwitchClientState.Connected:
@@ -498,12 +505,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void Reconnect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Reconnection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Reconnection process starting...");
 
             if (!CanReconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Resconnection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Resconnection process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -525,12 +532,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void ReconnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, debug_prefix + "Async reconnection process starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Async reconnection process starting...");
 
             if (!CanReconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, debug_prefix + "Async resconnection process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async resconnection process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -560,12 +567,12 @@ namespace TwitchLibrary.Clients.IRC
             {
                 case TwitchClientState.Connecting:
                     {
-                        LibraryDebug.Warning(error, "currently connecting");
+                        Log.Warning(string.Format(error, "currently connecting"));
                     }
                     break;
                 case TwitchClientState.Disconnecting:
                     {
-                        LibraryDebug.Warning(error, "currently disconnecting");
+                        Log.Warning(string.Format(error, "currently disconnecting"));
                     }
                     break;
                 case TwitchClientState.Connected:
@@ -595,11 +602,11 @@ namespace TwitchLibrary.Clients.IRC
                     byte[] buffer = new byte[1024 * 2];
                     int byte_count = await stream.ReadAsync(buffer, 0, buffer.Length);
 
-                    LibraryDebug.Header(debug_prefix + "Data receievd from Irc. Processing starting...");
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Data receievd from Irc. Processing starting...");
 
                     if (!buffer.isValid() || byte_count <= 0)
                     {
-                        LibraryDebug.Warning(debug_prefix + "Data was null or empty");
+                        Log.Warning(debug_prefix + "Data was null or empty");
 
                         continue;
                     }
@@ -613,8 +620,8 @@ namespace TwitchLibrary.Clients.IRC
                         // This is for when shit hits the fan and some funky shit happened
                         if (byte_index < 0)
                         {
-                            LibraryDebug.Warning(debug_prefix + "Data was incomplete and did not contain \\n");
-                            LibraryDebug.BlankLine();
+                            Log.Warning(debug_prefix + "Data was incomplete and did not contain \\n");
+                            Log.BlankLine();
 
                             break;
                         }
@@ -622,8 +629,8 @@ namespace TwitchLibrary.Clients.IRC
                         byte_index++;
 
                         string message = encoding.GetString(buffer, 0, byte_index - 2);
-                        LibraryDebug.PrintLine(debug_prefix + "Data successfully converted from bytes into a string",
-                                               LibraryDebug.FormatAsColumns(nameof(message), message));
+                        Log.PrintLine(debug_prefix + "Data successfully converted from bytes into a string",
+                                      debug_prefix + Log.FormatAsColumns(nameof(message), message));
                         ProcessIrcMessage(message);                        
 
                         Buffer.BlockCopy(buffer, byte_index, buffer, 0, byte_count - byte_index);
@@ -631,19 +638,23 @@ namespace TwitchLibrary.Clients.IRC
                     }
                     while (byte_count > 0);
 
-                    LibraryDebug.Header(debug_prefix + "Irc data processing complete");
-                    LibraryDebug.BlankLine();
+                    Log.Header(TimeStamp.TimeLong, debug_prefix + "Irc data processing complete");
                 }
                 catch (Exception exception)
                 {
                     // only an error if the client is not disconnecting
                     if(state != TwitchClientState.Disconnecting)
                     {
-                        LibraryDebug.Error(debug_prefix + "Error while reading from stream",
-                                           nameof(exception), exception.Message);
+                        Log.Error(TimeStamp.TimeLong, debug_prefix + "Error while reading from stream, messages skipped",
+                                                      debug_prefix + Error.NORMAL_EXCEPTION,
+                                                      debug_prefix + nameof(exception), exception.Message);
                     }
                 }
+                
+                Log.BlankLine();
             }
+
+            Log.Warning(debug_prefix + nameof(reader_thread).Wrap("\"", "\"") + " stopped");
 
             stream.Close();
             stream.Dispose();
@@ -661,8 +672,9 @@ namespace TwitchLibrary.Clients.IRC
         {
             // TODO: (IrcClient) Move messages that are not a PING to a process queue so any PING that comes in can be handled right away.
 
+            Log.PrintLine(debug_prefix + "Irc message receieved. Processing starting...");
+
             IrcMessage irc_message = new IrcMessage(raw_message);
-            LibraryDebug.Notify(debug_prefix + "Irc message receieved. Processing starting...");
             OnIrcMessage.Raise(this, new IrcMessageEventArgs(raw_message, irc_message));
 
             switch (irc_message.command)
@@ -671,30 +683,35 @@ namespace TwitchLibrary.Clients.IRC
                     {
                         state = TwitchClientState.Connected;
 
+                        Log.Success(debug_prefix + "Successfully connected to " + host.Wrap("\"", "\""));                        
+
                         if (reconnecting)
                         {
+                            Log.Success(debug_prefix + "Successfully reconnected to " + host.Wrap("\"", "\""),
+                                        debug_prefix + nameof(OnConnected) + " not called due to reconnection process");
+
                             reconnecting = false;
                             OnReconnected.Raise(this, new IrcMessageEventArgs(raw_message, irc_message));
 
-                            LibraryDebug.Header(debug_prefix + "Connection process completed",
-                                                nameof(OnConnected) + " not called due to reconnection process1");
-                            LibraryDebug.Header(debug_prefix + "Reconnection process completed");
-                            LibraryDebug.BlankLine();
+                            Log.Header(debug_prefix + "Reconnection process completed");
+                            Log.Header(debug_prefix + "Connection process completed");
                         }
                         else
                         {
                             OnConnected.Raise(this, EventArgs.Empty);
 
-                            LibraryDebug.Header(debug_prefix + "Connection process completed");
-                            LibraryDebug.BlankLine();
+                            Log.Header(debug_prefix + "Connection process completed");
                         }
+
+                        Log.BlankLine();
                     }
                     break;
                 case "PING":
                     {
                         if (auto_pong)
                         {
-                            Ping(irc_message);
+                            Log.Header(debug_prefix + "Sending auto pong...");
+                            Pong(irc_message);
                         }
 
                         OnPing.Raise(this, new IrcMessageEventArgs(raw_message, irc_message));
@@ -750,15 +767,20 @@ namespace TwitchLibrary.Clients.IRC
                         names[channel_name].Clear();
                     }
                     break;
-                default:
+
+                #region Unknown command
+
+                case "421":
                     {
-                        LibraryDebug.PrintLine("Unsupported command recieved from Twitch IRC");
-                        OnUnsupportedCommand.Raise(this, new IrcMessageEventArgs(raw_message, irc_message));
+                        Log.PrintLine("Unkown command recieved from Twitch IRC");
+                        OnUnknownCommand.Raise(this, new IrcMessageEventArgs(raw_message, irc_message));
                     }
                     break;
+
+                #endregion
             }
 
-            LibraryDebug.Notify(debug_prefix + "Irc message processing completed");
+            Log.PrintLine(debug_prefix + "Irc message processing completed");
         }
 
         #endregion
@@ -767,13 +789,13 @@ namespace TwitchLibrary.Clients.IRC
 
         public void Send(string message, params object[] format)
         {
-            LibraryDebug.Header(debug_prefix + "Send proccess starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Send proccess starting...");
 
             message = string.Format(message, format);
             if (!CanSendMessage(message))
             {
-                LibraryDebug.Error(debug_prefix + "Send process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Send process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -784,30 +806,33 @@ namespace TwitchLibrary.Clients.IRC
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Flush();
 
-                LibraryDebug.PrintLine(debug_prefix + "Message sent to Irc",
-                                       LibraryDebug.FormatAsColumns(nameof(message), message));
+                Log.PrintLine(debug_prefix + "Message sent to Irc",
+                              debug_prefix + Log.FormatAsColumns(nameof(message), message));
 
                 OnMessageSent.Raise(this, new MessageEventArgs(message));
+
+                Log.Header(debug_prefix + "Send proccess completed");
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error(debug_prefix + "Send process aborted, compiler exception",
-                                   LibraryDebug.FormatAsColumns(nameof(exception), exception.Message));
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to send message",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Send process aborted");
             }
-
-            LibraryDebug.Header(debug_prefix + "Send proccess completed");
-            LibraryDebug.BlankLine();
+            
+            Log.BlankLine();
         }
 
         public async void SendAsync(string message, params object[] format)
         {
-            LibraryDebug.Header(debug_prefix + "Asyn send proccess starting...");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Asyn send proccess starting...");
 
             message = string.Format(message, format);
             if (!CanSendMessage(message))
             {
-                LibraryDebug.Error(debug_prefix + "Async send process aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async send process aborted");
+                Log.BlankLine();
 
                 return;
             }
@@ -818,30 +843,27 @@ namespace TwitchLibrary.Clients.IRC
                 await stream.WriteAsync(bytes, 0, bytes.Length);
                 stream.Flush();
 
-                LibraryDebug.PrintLine(debug_prefix + "Message asynchronously sent to Irc",
-                                       LibraryDebug.FormatAsColumns(nameof(message), message));
+                Log.PrintLine(debug_prefix + "Message asynchronously sent to Irc",
+                              debug_prefix + Log.FormatAsColumns(nameof(message), message));
 
                 OnMessageSent.Raise(this, new MessageEventArgs(message));
+
+                Log.Header(TimeStamp.TimeLong, debug_prefix + "Async send proccess completed");
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error(debug_prefix + "Async send process aborthed, compiler exception",
-                                   LibraryDebug.FormatAsColumns(nameof(exception), exception.Message));
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to asynchronously send message",
+                                              debug_prefix + Error.NORMAL_EXCEPTION,
+                                              debug_prefix + Log.FormatAsColumns(nameof(exception), exception.Message),
+                                              debug_prefix + "Async send process aborted");
             }
-
-            LibraryDebug.Header(debug_prefix + "Async send proccess completed");
-            LibraryDebug.BlankLine();
+            
+            Log.BlankLine();
         }        
 
         public void SendPrivmsg(string channel, string message)
         {
             Send("PRIVMSG #{0}: {1}", channel.ToLower(), message);
-        }
-
-        public void SendPrivmsg(string channel, params object[] parts)
-        {
-            string message = string.Join(" ", parts);
-            SendPrivmsg(channel.ToLower(), message);
         }
 
         public void SendPrivmsg(string channel, string message, params object[] format)
@@ -850,19 +872,19 @@ namespace TwitchLibrary.Clients.IRC
             SendPrivmsg(channel.ToLower(), message);
         }
 
-        public void Ping()
+        public void Pong()
         {
-            Send("PING");
+            Send("PONG");
         }
 
-        public void Ping(string parmaters)
+        public void Pong(string parmaters)
         {
-            Send("PING: {0}", parmaters);
+            Send("PONG: {0}", parmaters);
         }
 
-        public void Ping(IrcMessage irc_message)
+        public void Pong(IrcMessage irc_message)
         {
-            Ping(irc_message.parameters);
+            Pong(irc_message.parameters);
         }
 
         /// <summary>
@@ -871,7 +893,7 @@ namespace TwitchLibrary.Clients.IRC
         public void Join(params string[] channels)
         {
             string channel_names = string.Join(",#", channels).ToLower();
-            LibraryDebug.Notify("Joining room(s): #" + channel_names);
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Joining room(s): #" + channel_names);
             Send("JOIN #" + channel_names);
         }
 
@@ -890,7 +912,7 @@ namespace TwitchLibrary.Clients.IRC
         public void Part(params string[] channels)
         {
             string channel_names = string.Join(",#", channels).ToLower();
-            LibraryDebug.Notify("Leaving room(s): #" + channel_names);
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Leaving room(s): #" + channel_names);
             Send("PART #" + channel_names.ToLower());
         }
 
@@ -911,25 +933,25 @@ namespace TwitchLibrary.Clients.IRC
 
             if (!socket.Connected || socket.isNull())
             {
-                LibraryDebug.Warning(error, "socket is not connected or has been closed");
+                Log.Warning(string.Format(error, "socket is not connected or has been closed"));
 
                 result = false;
             }
             else if (stream.isNull())
             {
-                LibraryDebug.Warning(error, "stream is closed or null");
+                Log.Warning(string.Format(error, "stream is closed or null"));
 
                 result = false;
             }
             else if (!message.isValid())
             {
-                LibraryDebug.Warning(error, "message is empty or null");
+                Log.Warning(string.Format(error, "message is empty or null"));
 
                 result = false;
             }
             else if (message.Length > 512)
             {
-                LibraryDebug.Warning(error, "message is greater than 512 characters");
+                Log.Warning(string.Format(error, "message is greater than 512 characters"));
 
                 result = false;
             }

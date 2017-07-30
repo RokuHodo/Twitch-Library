@@ -155,18 +155,18 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void ConnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Async Connection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Async Connection Process Starting...");
 
             if (!CanConnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Async Connection Process Aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Async Connection Process Aborted");
+                Log.BlankLine();
                 return;
             }
 
             ping_sent_time = DateTime.Now;
 
-            LibraryDebug.PrintLine("Asynchronously connecting to PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
+            Log.PrintLine("Asynchronously connecting to PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
             web_socket.ConnectAsync();
         }
 
@@ -176,18 +176,18 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void Connect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Connection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Connection Process Starting...");
 
             if (!CanConnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Connection Process Aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Connection Process Aborted");
+                Log.BlankLine();
                 return;
             }
 
             ping_sent_time = DateTime.Now;
 
-            LibraryDebug.PrintLine("Connecting to PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
+            Log.PrintLine("Connecting to PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
             web_socket.Connect();
         }
 
@@ -201,7 +201,7 @@ namespace TwitchLibrary.Clients.PubSub
             // can't do WebSocketState.Connecting because it's the default state for some reason
             if (web_socket.ReadyState == WebSocketState.Open)
             {
-                LibraryDebug.Warning("Cannot connect to PubSub socket, already connected.");
+                Log.Warning("Cannot connect to PubSub socket, already connected.");
                 result = false;
             }
 
@@ -213,16 +213,16 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void DisconnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Async Disonnection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Async Disonnection Process Starting...");
 
             if (!CanDisconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Async Disconnection Process Aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Async Disconnection Process Aborted");
+                Log.BlankLine();
                 return;
             }
 
-            LibraryDebug.PrintLine("Asynchronously disconnecting from PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
+            Log.PrintLine("Asynchronously disconnecting from PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
             web_socket.CloseAsync();
         }
 
@@ -231,16 +231,16 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void Disconnect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Disonnection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Disonnection Process Starting...");
 
             if (!CanDisconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Disconnection Process Aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Disconnection Process Aborted");
+                Log.BlankLine();
                 return;
             }
 
-            LibraryDebug.PrintLine("Disconnecting from PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
+            Log.PrintLine("Disconnecting from PubSub socket " + WEB_SOCKET.Wrap("\"", "\"") + "...");
             web_socket.Close();
         }
 
@@ -253,12 +253,12 @@ namespace TwitchLibrary.Clients.PubSub
 
             if (web_socket.ReadyState == WebSocketState.Closed)
             {
-                LibraryDebug.Warning("Cannot discconect from PubSub socket, already disconnected.");
+                Log.Warning("Cannot discconect from PubSub socket, already disconnected.");
                 result = false;
             } 
             else if (web_socket.ReadyState == WebSocketState.Closing)
             {
-                LibraryDebug.Warning("Cannot discconect from PubSub socket, already disconnecting.");
+                Log.Warning("Cannot discconect from PubSub socket, already disconnecting.");
                 result = false;
             }
 
@@ -271,12 +271,12 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void ReconnectAsync()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Async Reconnection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Async Reconnection Process Starting...");
 
             if (!CanReconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Async Reconnection Process Aborted");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Async Reconnection Process Aborted");
+                Log.BlankLine();
                 return;
             }
 
@@ -298,12 +298,12 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         public void Reconnect()
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Reconnection Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub Reconnection Process Starting...");
 
             if (!CanReconnect())
             {
-                LibraryDebug.Error(TimeStamp.TimeLong, "PubSub Reconnection Process Aborted.");
-                LibraryDebug.BlankLine();
+                Log.Error(TimeStamp.TimeLong, "PubSub Reconnection Process Aborted.");
+                Log.BlankLine();
                 return;
             }
 
@@ -327,12 +327,12 @@ namespace TwitchLibrary.Clients.PubSub
 
             if (web_socket.ReadyState == WebSocketState.Closing)
             {
-                LibraryDebug.Warning("Cannot recconect to PubSub socket, currently disconnecting.");
+                Log.Warning("Cannot recconect to PubSub socket, currently disconnecting.");
                 return false;
             }
             else if (web_socket.ReadyState == WebSocketState.Connecting)
             {
-                LibraryDebug.Warning("Cannot reconnect to PubSub socket, currently connecting.");
+                Log.Warning("Cannot reconnect to PubSub socket, currently connecting.");
                 return false;
             }
 
@@ -361,20 +361,20 @@ namespace TwitchLibrary.Clients.PubSub
 
             if (reconnecting)
             {
-                LibraryDebug.Success("Reconnected to PubSub socket.");
+                Log.Success("Reconnected to PubSub socket.");
                 OnReconnected.Raise(this, EventArgs.Empty);
                 reconnecting = false;
 
-                LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Reconnection Process Completed");
-                LibraryDebug.BlankLine();
+                Log.Header(TimeStamp.TimeLong, "PubSub Reconnection Process Completed");
+                Log.BlankLine();
             }
             else
             {
-                LibraryDebug.Success("Connected to PubSub socket.");
+                Log.Success("Connected to PubSub socket.");
                 OnConnected.Raise(this, EventArgs.Empty);
 
-                LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Connection Process Completed");
-                LibraryDebug.BlankLine();
+                Log.Header(TimeStamp.TimeLong, "PubSub Connection Process Completed");
+                Log.BlankLine();
             }
         }
 
@@ -385,7 +385,7 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="e">The event parameters.</param>
         private void OnWebSocketSharpClose(object sender, CloseEventArgs e)
         {
-            LibraryDebug.PrintLine("Discconnected from PubSub socket.");
+            Log.PrintLine("Discconnected from PubSub socket.");
             auto_ping_timer.Dispose();
             pending_pong_timer.Dispose();
 
@@ -400,8 +400,8 @@ namespace TwitchLibrary.Clients.PubSub
 
                 OnDisconnected.Raise(this, EventArgs.Empty);
 
-                LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Disonnection Process Completed");
-                LibraryDebug.BlankLine();
+                Log.Header(TimeStamp.TimeLong, "PubSub Disonnection Process Completed");
+                Log.BlankLine();
             }
         }
 
@@ -412,9 +412,9 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="e">The event parameters.</param>
         private void OnWebSocketSharpError(object sender, ErrorEventArgs e)
         {
-            LibraryDebug.Error(TimeStamp.TimeLong, "Error received from WebSocketSharp.",
-                               LibraryDebug.FormatAsColumns(nameof(e.Exception), e.Exception.ToString()),
-                               LibraryDebug.FormatAsColumns(nameof(e.Message), e.Message));
+            Log.Error(TimeStamp.TimeLong, "Error received from WebSocketSharp.",
+                               Log.FormatAsColumns(nameof(e.Exception), e.Exception.ToString()),
+                               Log.FormatAsColumns(nameof(e.Message), e.Message));
 
             OnError.Raise(this, new ErrorReceivedEventArgs
             {
@@ -430,7 +430,7 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="e">The event parameters.</param>
         private async void OnWebSocketSharpMessage(object sender, MessageEventArgs e)
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "Message Data Recieved from PubSub socket. Processing Starting...");
+            Log.Header(TimeStamp.TimeLong, "Message Data Recieved from PubSub socket. Processing Starting...");
 
             #region Fake messages
             /*
@@ -491,7 +491,7 @@ namespace TwitchLibrary.Clients.PubSub
             {
                 case PubSubType.PONG:
                     {
-                        LibraryDebug.PrintLine("PONG recieved from PubSub");
+                        Log.PrintLine("PONG recieved from PubSub");
                         pending_pong_timer.Enabled = false;
 
                         OnPong.Raise(this, new MessageTypeEventArgs
@@ -503,7 +503,7 @@ namespace TwitchLibrary.Clients.PubSub
                     break;
                 case PubSubType.RECONNECT:
                     {
-                        LibraryDebug.PrintLine("RECONNECT recieved from PubSub");
+                        Log.PrintLine("RECONNECT recieved from PubSub");
 
                         if (auto_reconnect)
                         {
@@ -519,7 +519,7 @@ namespace TwitchLibrary.Clients.PubSub
                     break;
                 case PubSubType.RESPONSE:
                     {
-                        LibraryDebug.PrintLine("RESPONSE recieved from PubSub");
+                        Log.PrintLine("RESPONSE recieved from PubSub");
                         // LibraryDebug.PrintObject(e.Data);
 
                         PubSubResponse response = await e.Data.TryDeserializeObjectAsync<PubSubResponse>();
@@ -532,7 +532,7 @@ namespace TwitchLibrary.Clients.PubSub
                     break;
                 case PubSubType.MESSAGE:
                     {
-                        LibraryDebug.PrintLine("MESSAGE recieved from PubSub");
+                        Log.PrintLine("MESSAGE recieved from PubSub");
 
                         PubSubMessage message = await e.Data.TryDeserializeObjectAsync<PubSubMessage>();
                         OnMessage.Raise(this, new MessageReceivedEventArgs
@@ -547,7 +547,7 @@ namespace TwitchLibrary.Clients.PubSub
                         {
                             case "whispers":
                                 {
-                                    LibraryDebug.PrintLine("Whisper message recieved from PubSub");
+                                    Log.PrintLine("Whisper message recieved from PubSub");
 
                                     PubSubWhisperMessage whisper_message = JsonConvert.DeserializeObject<PubSubWhisperMessage>(message.data.message);
                                     PubSubWhisperMessageData whisper_message_data = JsonConvert.DeserializeObject<PubSubWhisperMessageData>(whisper_message.data);
@@ -562,7 +562,7 @@ namespace TwitchLibrary.Clients.PubSub
                                 break;
                             case "channel-bits-events-v1":
                                 {
-                                    LibraryDebug.PrintLine("Bits message recieved from PubSub");
+                                    Log.PrintLine("Bits message recieved from PubSub");
                                     PubSubBitsMessage bits_message = JsonConvert.DeserializeObject<PubSubBitsMessage>(message.data.message);
 
                                     OnBits.Raise(this, new BitsReceivedEventArgs
@@ -574,7 +574,7 @@ namespace TwitchLibrary.Clients.PubSub
                                 break;
                             case "channel-subscribe-events-v1":
                                 {
-                                    LibraryDebug.PrintLine("Subscription message recieved from PubSub");
+                                    Log.PrintLine("Subscription message recieved from PubSub");
                                     PubSubSubscriptionsMessage subscription_message = JsonConvert.DeserializeObject<PubSubSubscriptionsMessage>(message.data.message);
 
                                     OnSubscription.Raise(this, new SubscriptionReceivedEventArgs
@@ -589,8 +589,8 @@ namespace TwitchLibrary.Clients.PubSub
                     break;
                 default:
                     {
-                        LibraryDebug.Error("Unsuported PubSub type recieved",
-                                           LibraryDebug.FormatAsColumns(nameof(type), type.ToString()));
+                        Log.Error("Unsuported PubSub type recieved",
+                                           Log.FormatAsColumns(nameof(type), type.ToString()));
 
                         OnUnsupportedMessageType.Raise(this, new UnsupportedMessageTypeReceivedEventArgs
                         {
@@ -601,8 +601,8 @@ namespace TwitchLibrary.Clients.PubSub
                     break;
             }
 
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Message Data Processing Completed");
-            LibraryDebug.BlankLine();
+            Log.Header(TimeStamp.TimeLong, "PubSub Message Data Processing Completed");
+            Log.BlankLine();
         }
 
         #endregion
@@ -701,14 +701,14 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="nonce">An optional unique <see cref="string"/> to identiy the response associated with the request.</param>
         private void SendRequest(PubSubType type, List<string> topics, string nonce = "")
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "Starting PubSub Request Process...", LibraryDebug.FormatAsColumns("request", type.ToString()));            
+            Log.Header(TimeStamp.TimeLong, "Starting PubSub Request Process...", Log.FormatAsColumns("request", type.ToString()));            
 
             topics = topics.Distinct().ToList();
             if(topics.Count < 1)
             {
-                LibraryDebug.Warning("No new topics to reuest");
-                LibraryDebug.Header(TimeStamp.TimeLong, "Request to PubSub Aborted");
-                LibraryDebug.BlankLine();
+                Log.Warning("No new topics to reuest");
+                Log.Header(TimeStamp.TimeLong, "Request to PubSub Aborted");
+                Log.BlankLine();
                 return;
             }
 
@@ -726,9 +726,9 @@ namespace TwitchLibrary.Clients.PubSub
             string request_serialized = JsonConvert.SerializeObject(request);
             web_socket.Send(request_serialized);
 
-            LibraryDebug.Success("Request successfully sent to PubSub");
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Request Process Completed");
-            LibraryDebug.BlankLine();
+            Log.Success("Request successfully sent to PubSub");
+            Log.Header(TimeStamp.TimeLong, "PubSub Request Process Completed");
+            Log.BlankLine();
         }
 
         /// <summary>
@@ -739,15 +739,15 @@ namespace TwitchLibrary.Clients.PubSub
         /// <param name="nonce">An optional unique <see cref="string"/> to identiy the response associated with the request.</param>
         private async void SendRequestAsync(PubSubType type, List<string> topics, string nonce = "")
         {
-            LibraryDebug.Header(TimeStamp.TimeLong, "Starting Async PubSub Request Process...",
-                                LibraryDebug.FormatAsColumns("request", type.ToString()));
+            Log.Header(TimeStamp.TimeLong, "Starting Async PubSub Request Process...",
+                                Log.FormatAsColumns("request", type.ToString()));
 
             topics = topics.AsParallel().Distinct().ToList();
             if (topics.Count < 1)
             {
-                LibraryDebug.Warning("No new topics to reuest");
-                LibraryDebug.Header(TimeStamp.TimeLong, "Request to PubSub Aborted");
-                LibraryDebug.BlankLine();
+                Log.Warning("No new topics to reuest");
+                Log.Header(TimeStamp.TimeLong, "Request to PubSub Aborted");
+                Log.BlankLine();
                 return;
             }
 
@@ -770,15 +770,15 @@ namespace TwitchLibrary.Clients.PubSub
         {
             if (completed)
             {
-                LibraryDebug.Success("Request successfully sent to PubSub");
+                Log.Success("Request successfully sent to PubSub");
             }
             else
             {
-                LibraryDebug.Error("Failed to send request to PubSub");
+                Log.Error("Failed to send request to PubSub");
             }
             
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub Request Process Completed");
-            LibraryDebug.BlankLine();
+            Log.Header(TimeStamp.TimeLong, "PubSub Request Process Completed");
+            Log.BlankLine();
         }
         #endregion
 
@@ -804,7 +804,7 @@ namespace TwitchLibrary.Clients.PubSub
         public void Ping()
         {
             // native Ping() in the WebSocketSharp doesn't operate as requested by Twitch, send the raw string ourselves
-            LibraryDebug.Header(TimeStamp.TimeLong, "PubSub PING Process Starting...");
+            Log.Header(TimeStamp.TimeLong, "PubSub PING Process Starting...");
             web_socket.Send("{\"type\": \"PING\"}");
 
             FinishPing();
@@ -816,7 +816,7 @@ namespace TwitchLibrary.Clients.PubSub
         public void PingAsync()
         {
             // native Ping() in the WebSocketSharp doesn't operate as requested by Twitch, send the raw string ourselves
-            LibraryDebug.Header(TimeStamp.TimeLong, "Sending Async PING to PubSub...");
+            Log.Header(TimeStamp.TimeLong, "Sending Async PING to PubSub...");
             web_socket.SendAsync("{\"type\": \"PING\"}", PingCallback);
         }
 
@@ -833,7 +833,7 @@ namespace TwitchLibrary.Clients.PubSub
             }
             else
             {
-                LibraryDebug.Error("Failed to send async PING to PubSub.");
+                Log.Error("Failed to send async PING to PubSub.");
                 OnPingFailed.Raise(this, EventArgs.Empty);
             }
         }
@@ -847,11 +847,11 @@ namespace TwitchLibrary.Clients.PubSub
             ping_sent_time = DateTime.Now;
             pending_pong_timer.Enabled = true;
 
-            LibraryDebug.Success("PING successfuly sent to PubSub");
+            Log.Success("PING successfuly sent to PubSub");
             OnPing.Raise(this, EventArgs.Empty);
 
-            LibraryDebug.Header("PubSub PING Processes Completed");
-            LibraryDebug.BlankLine();
+            Log.Header("PubSub PING Processes Completed");
+            Log.BlankLine();
         }
 
         /// <summary>
@@ -864,8 +864,8 @@ namespace TwitchLibrary.Clients.PubSub
         {
             if (DateTime.Now - ping_sent_time > TimeSpan.FromMilliseconds(PENDING_PONG_LIMIT_MS))
             {
-                LibraryDebug.Warning(TimeStamp.TimeLong, "PING sent to PubSub but did not receive a PONG after 10s. Issuing reconnect...");
-                LibraryDebug.BlankLine();
+                Log.Warning(TimeStamp.TimeLong, "PING sent to PubSub but did not receive a PONG after 10s. Issuing reconnect...");
+                Log.BlankLine();
                 ReconnectAsync();
             }
         }

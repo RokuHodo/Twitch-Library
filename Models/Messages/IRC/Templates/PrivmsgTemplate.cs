@@ -8,8 +8,8 @@ namespace TwitchLibrary.Models.Messages.IRC.Templates
 {
     internal class PrivmsgTemplate
     {
-        internal string     room_name   { get; set; }
+        internal string room_name   { get; set; }
 
-        internal object[]   message     { get; set; }        
+        internal string message     { get; set; }        
     }
 }

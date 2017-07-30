@@ -76,8 +76,9 @@ namespace TwitchLibrary.Models.Messages.IRC
                 }
                 catch (Exception exception)
                 {
-                    LibraryDebug.Error(LibraryDebugMethod.GET, "tag", LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                    Log.Error("Failed to get tag",
+                                       Error.NORMAL_EXCEPTION,
+                                       Log.FormatAsColumns(nameof(exception), exception.Message));
                 }
             }
 

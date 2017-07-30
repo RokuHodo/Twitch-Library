@@ -29,27 +29,27 @@ namespace TwitchLibrary.Extensions.Events
             Delegate[] listeners = handler.GetInvocationList();
             Task[] tasks = new Task[listeners.Length];
 
-            LibraryDebug.Notify(handler.Method.Name + " Raise Starting...");
+            Log.PrintLine(handler.Method.Name + " Raise Starting...");
 
             foreach (Delegate listener in listeners)
             {
                 EventHandler<type> method = (EventHandler<type>)listener;
                 string method_name = method.Method.Name.Wrap("\"", "\"");
-                LibraryDebug.PrintLine("Calling " + method_name + "...");
+                Log.PrintLine("Calling " + method_name + "...");
 
                 try
                 {
                     method(sender, args);
-                    LibraryDebug.PrintLine(method_name + " successfully called");
+                    Log.PrintLine(method_name + " successfully called");
                 }
                 catch(Exception exception)
                 {
-                    LibraryDebug.Error(LibraryDebugMethod.RAISE, method_name, LibraryDebugError.NORMAL_EXCEPTION);
-                    LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                    Log.Error("Failled to raise " +  method_name, Error.NORMAL_EXCEPTION);
+                    Log.PrintLineColumns(nameof(exception), exception.Message);
                 }
             }
 
-            LibraryDebug.Notify(handler.Method.Name + " raise completed.");
+            Log.PrintLine(handler.Method.Name + " raise completed.");
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace TwitchLibrary.Extensions.Events
                 EventHandler<type> method = (EventHandler<type>)listener;
                 
                 method.BeginInvoke(sender, args, EndAsyncRaise<type>, null);
-                // LibraryDebug.Notify(method.Method.Name + " raise starting...", TimeStamp.TimeLong);
+                // LibraryDebug.PrintLine(method.Method.Name + " raise starting...", TimeStamp.TimeLong);
             }
         }
 
@@ -94,12 +94,12 @@ namespace TwitchLibrary.Extensions.Events
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.RAISE, "event", LibraryDebugError.NORMAL_EXCEPTION);
-                LibraryDebug.PrintLineFormatted(nameof(type), typeof(type).Name);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
+                Log.Error("Failed to asynchronously raise " + method.Method.Name, Error.NORMAL_EXCEPTION);
+                Log.PrintLineColumns(nameof(type), typeof(type).Name);
+                Log.PrintLineColumns(nameof(exception), exception.Message);
             }
 
-            // LibraryDebug.Notify(method.Method.Name + " raise finished", TimeStamp.TimeLong);
+            // LibraryDebug.PrintLine(method.Method.Name + " raise finished", TimeStamp.TimeLong);
         }
     }
 }

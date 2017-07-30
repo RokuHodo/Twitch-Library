@@ -60,13 +60,13 @@
     <Compile Include="Clients\IRC\IrcClient.cs" />
     <Compile Include="Clients\IRC\TwitchIrcClient.cs" />
     <Compile Include="Clients\PubSub\TwitchPubSubClient.cs" />
-    <Compile Include="Debug\LibraryDebug.cs" />
-    <Compile Include="Debug\LibraryDebugError.cs" />
+    <Compile Include="Debug\Log.cs" />
+    <Compile Include="Debug\Error.cs" />
     <Compile Include="Enums\API\ApiVersion.cs" />
     <Compile Include="Enums\Clients\IRC\DisplayColor.cs" />
     <Compile Include="Enums\Clients\IRC\TwitchClientState.cs" />
     <Compile Include="Enums\Clients\PubSub\PubSubType.cs" />
-    <Compile Include="Enums\Debug\LibraryDebugMethod.cs" />
+    <Compile Include="Enums\Debug\LogLevel.cs" />
     <Compile Include="Enums\Debug\TimeStamp.cs" />
     <Compile Include="Enums\Extensions\Padding.cs" />
     <Compile Include="Enums\Helpers\Paging\CommercialLength.cs" />

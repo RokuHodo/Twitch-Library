@@ -8,8 +8,8 @@ namespace TwitchLibrary.Models.Messages.IRC.Templates
 {
     internal class WhisperTemplate
     {
-        internal string     recipient   { get; set; }
+        internal string recipient   { get; set; }
 
-        internal object[]   message   { get; set; }        
+        internal string message   { get; set; }        
     }
 }

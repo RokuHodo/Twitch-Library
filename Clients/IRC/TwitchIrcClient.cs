@@ -24,8 +24,6 @@ namespace TwitchLibrary.Clients.IRC
         #region Fields
 
         // private
-
-        private int                                                             port;
         
         private User                                                            user;
 
@@ -58,12 +56,7 @@ namespace TwitchLibrary.Clients.IRC
         public bool                                                             request_membership;
 
         // TODO: (IRC) Implement follower service and OnNewFollower
-        // public event EventHandler<OnNewFollowerEventArgs>                    OnUserFollowed;                                
-
-        /// <summary>
-        /// Raised when an unknown command is sent to Twitch.
-        /// </summary>
-        public event EventHandler<IrcMessageEventArgs>                          OnUnknownCommand;
+        // public event EventHandler<OnNewFollowerEventArgs>                    OnUserFollowed;                                        
 
         /// <summary>
         /// Raised when the client received a 'RECONNECT' from the Twitch IRC.
@@ -153,7 +146,6 @@ namespace TwitchLibrary.Clients.IRC
 
             OnConnected += new EventHandler<EventArgs>(Callback_OnConnected);
             OnDisconnected += new EventHandler<EventArgs>(Callback_OnDisconnected);
-            OnPing += new EventHandler<IrcMessageEventArgs>(Callback_OnPing);
             OnIrcMessage += new EventHandler<IrcMessageEventArgs>(Callback_OnIrcMessage);
 
             user_id = user._id;
@@ -197,7 +189,7 @@ namespace TwitchLibrary.Clients.IRC
         {
             privmsg_queue_timer.Enabled = true;
             whisper_queue_timer.Enabled = true;
-
+            
             if (request_tags)
             {
                 RequestTags();
@@ -214,6 +206,11 @@ namespace TwitchLibrary.Clients.IRC
             }
         }
 
+        /// <summary>
+        /// Fired when the client successfuly disconnects from the Twitch IRC.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event parameters.</param>
         private void Callback_OnDisconnected(object sender, EventArgs e)
         {
             privmsg_queue.Clear();
@@ -221,14 +218,6 @@ namespace TwitchLibrary.Clients.IRC
 
             privmsg_queue_timer.Enabled = false;
             whisper_queue_timer.Enabled = false;
-        }
-
-        private void Callback_OnPing(object sender, IrcMessageEventArgs e)
-        {
-            if (auto_pong)
-            {
-                Ping(e.irc_message);
-            }
         }
 
         /// <summary>
@@ -296,11 +285,9 @@ namespace TwitchLibrary.Clients.IRC
                 case "RECONNECT":
                     {
                         // NOTE: (TwitchIrcClient) IRC Command - RECONNECT requires /commands
-                        // TODO: (TwitchIrcClient) Reimplement Reconnect();
-
                         if (auto_reconnect)
                         {
-                            Reconnect();
+                            ReconnectAsync();
                         }
 
                         OnReconnect.Raise(this, new IrcMessageEventArgs(e.raw_message, e.irc_message));
@@ -327,22 +314,6 @@ namespace TwitchLibrary.Clients.IRC
                     break;
 
                 #endregion
-
-                #region Error handling
-
-                case "421":
-                    {
-                        LibraryDebug.PrintLine("Unkown command recieved from Twitch IRC");
-                        OnUnknownCommand.Raise(this, new IrcMessageEventArgs(e.raw_message, e.irc_message));
-                    }
-                    break;
-                default:
-                    {
-                        
-                    }
-                    break;
-
-                #endregion
             }
         }
         
@@ -352,19 +323,19 @@ namespace TwitchLibrary.Clients.IRC
 
         public void RequestTags()
         {
-            LibraryDebug.PrintLine("Requesting 'tags' from Twitch IRC.");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Requesting 'tags' from Twitch IRC.");
             Send("CAP REQ :twitch.tv/tags");
         }
 
         public void RequestCommands()
         {
-            LibraryDebug.PrintLine("Requesting 'commands' from Twitch IRC.");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Requesting 'commands' from Twitch IRC.");
             Send("CAP REQ :twitch.tv/commands");
         }
 
         public void RequestMembership()
         {
-            LibraryDebug.PrintLine("Requesting 'membership' from Twitch IRC.");
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Requesting 'membership' from Twitch IRC.");
             Send("CAP REQ :twitch.tv/membership");
         }
 
@@ -435,7 +406,7 @@ namespace TwitchLibrary.Clients.IRC
         /// </param>
         public void Color(string color)
         {
-            EnqueuePrivmsg(user_name.ToLower(), ".color", color);
+            EnqueuePrivmsg(user_name.ToLower(), ".color " + color);
         }
 
         /// <summary>
@@ -445,7 +416,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="message">The message to be sent to the room.</param>
         public void Me(string room_name, string message)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".me", message);
+            EnqueuePrivmsg(room_name.ToLower(), ".me " + message);
         }
 
         /// <summary>
@@ -482,7 +453,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="reason">Reason for the time out.</param>
         public void Timeout(string room_name, string user_name, int seconds = 600, string reason = "")
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".timeout", user_name.ToLower(), seconds.ClampMin(1, 1), reason);
+            EnqueuePrivmsg(room_name.ToLower(), ".timeout " + user_name.ToLower() + " " + seconds.ClampMin(1, 1) + " " + reason);
         }
 
         /// <summary>
@@ -494,7 +465,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="reason">Reason for the ban.</param>
         public void Ban(string room_name, string user_name, string reason = "")
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".ban", user_name.ToLower(), reason);
+            EnqueuePrivmsg(room_name.ToLower(), ".ban " + user_name.ToLower() + " " + reason);
         }
 
         /// <summary>
@@ -505,7 +476,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="user_name">The user to unban.</param>
         public void Unban(string room_name, string user_name)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".unban", user_name.ToLower());
+            EnqueuePrivmsg(room_name.ToLower(), ".unban " + user_name.ToLower());
         }
 
         /// <summary>
@@ -517,7 +488,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="seconds">How frequently users are allowed to send messages. Default is 1 second, minumum is 1 second.</param>
         public void Slow(string room_name, int seconds)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".slow", seconds.ClampMin(1, 1));
+            EnqueuePrivmsg(room_name.ToLower(), ".slow " + seconds.ClampMin(1, 1));
         }
 
         /// <summary>
@@ -548,7 +519,7 @@ namespace TwitchLibrary.Clients.IRC
             time = time.Clamp(min, max, min);
             string time_string = time.Minutes + " minutes " + time.Hours + " hours " + time.Days + " days";
 
-            EnqueuePrivmsg(room_name.ToLower(), ".followers", time_string);
+            EnqueuePrivmsg(room_name.ToLower(), ".followers " + time_string);
         }
 
         /// <summary>
@@ -648,7 +619,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="length">The length of the commercial. Default is 30 seconds.</param>
         public void Commercial(string room_name, CommercialLength length = CommercialLength.seconds_30)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".commercial", length.ToString().TextAfter('_'));
+            EnqueuePrivmsg(room_name.ToLower(), ".commercial " + length.ToString().TextAfter('_'));
         }
 
         /// <summary>
@@ -658,7 +629,7 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="channel_name">The channel to host.</param>
         public void Host(string room_name, string channel_name)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".host", channel_name.ToLower());
+            EnqueuePrivmsg(room_name.ToLower(), ".host " + channel_name.ToLower());
         }
 
         /// <summary>
@@ -679,7 +650,7 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void Mod(string room_name, string user_name)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".mod", user_name.ToLower());
+            EnqueuePrivmsg(room_name.ToLower(), ".mod " + user_name.ToLower());
         }
 
         /// <summary>
@@ -687,7 +658,7 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public void Unmod(string room_name, string user_name)
         {
-            EnqueuePrivmsg(room_name.ToLower(), ".unmod", user_name.ToLower());
+            EnqueuePrivmsg(room_name.ToLower(), ".unmod " + user_name.ToLower());
         }
 
         #endregion
@@ -696,24 +667,41 @@ namespace TwitchLibrary.Clients.IRC
 
         #region Sending Twitch chat commands
 
-        public void EnqueuePrivmsg(string room_name, params object[] parts)
+        public void EnqueuePrivmsg(string room_name, string message)
         {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process starting...");
+
             if (!room_name.isValid())
             {
-                LibraryDebug.Error("Failed to enqueue Privmsg, " + nameof(room_name).Wrap("\"", "\"") + " is empty or null.");
+                Log.Warning(debug_prefix + "Cannot enqueue PRIVMSG, " + nameof(room_name).Wrap("\"", "\"") + " is empty or null.");
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process aborted");
+                Log.BlankLine();
+
+                return;
             }
 
-            if (parts.isValid())
+            message = message.RemovePadding();
+
+            if (!message.isValid())
             {
-                LibraryDebug.Error("Failed to enqueue Privmsg, " + nameof(parts).Wrap("\"", "\"") + " is empty or null.");
+                Log.Warning(debug_prefix + "Cannot enqueue PRIVMSG, " + nameof(message).Wrap("\"", "\"") + " is empty or null.");
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process aborted");
+                Log.BlankLine();
+
+                return;
             }
 
             // whispers seem to be treated separately from normal messages and commands, keep them separate
             privmsg_queue.Enqueue(new PrivmsgTemplate
             {
                 room_name = room_name,
-                message = parts
+                message = message
             });
+
+            Log.PrintLine(debug_prefix + "PRIVMSG successfully enqueued",
+                          debug_prefix + Log.FormatAsColumns(nameof(message), message));
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "PRIVMSG enqueue process completed");
+            Log.BlankLine();
         }
 
         /// <summary>
@@ -728,6 +716,7 @@ namespace TwitchLibrary.Clients.IRC
                 return;
             }
 
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Dequeuing and sending PRIVMSG...");
             PrivmsgTemplate chat_command = privmsg_queue.Dequeue();
             SendPrivmsg(chat_command.room_name, chat_command.message);
         }
@@ -736,48 +725,38 @@ namespace TwitchLibrary.Clients.IRC
         /// Enqueues a whisper message to be sent to a user.
         /// </summary>
         /// <param name="recipient">The ser who receives the whisper.</param>
-        /// <param name="message_parts">The message to be sent to the user.</param>
-        public void EnqueueWhisper(string recipient, params object[] message_parts)
+        /// <param name="message">The message to be sent to the user.</param>
+        public void EnqueueWhisper(string recipient, string message)
         {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "WHISPER enqueue process starting...");
+
             if (!recipient.isValid())
             {
-                LibraryDebug.Error("Failed to enqueue Whisper, " + nameof(recipient).Wrap("\"", "\"") + " is empty or null.");
+                Log.Warning(debug_prefix + "Cannot enqueue WHISPER, " + nameof(recipient).Wrap("\"", "\"") + " is empty or null.");
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "WHISPER enqueue process aborted");
+
+                return;
             }
 
-            if (message_parts.isValid())
+            if (!message.isValid())
             {
-                LibraryDebug.Error("Failed to enqueue Whisper, " + nameof(message_parts).Wrap("\"", "\"") + " is empty or null.");
+                Log.Warning(debug_prefix + "Cannot enqueue WHISPER, " + nameof(message).Wrap("\"", "\"") + " is empty or null.");
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "WHISPER enqueue process aborted");
+
+                return;
             }
 
             // whispers seem to be treated separately from normal messages and commands, keep them separate
             whisper_queue.Enqueue(new WhisperTemplate
             {
                 recipient = recipient,
-                message = message_parts
+                message = message
             });
-        }
 
-        /// <summary>
-        /// Sends a whisper message to a user.
-        /// Using this method is dangerous and is not throttled.
-        /// It is recommended to use <see cref="EnqueueWhisper(string, object[])"/> to avoid the chance of getting global banned.
-        /// </summary>
-        /// <param name="recipient">The ser who receives the whisper.</param>
-        /// <param name="message_parts">The message to be sent to the user.</param>
-        public void SendWhisper(string recipient, params object[] message_parts)
-        {
-            if (!recipient.isValid())
-            {
-                LibraryDebug.Error("Failed to send Whisper, " + nameof(recipient).Wrap("\"", "\"") + " is empty or null.");
-            }
-
-            if (message_parts.isValid())
-            {
-                LibraryDebug.Error("Failed to send Whisper, " + nameof(message_parts).Wrap("\"", "\"") + " is empty or null.");
-            }
-
-            string message = string.Join(" ", message_parts);
-            Send(string.Format("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message_parts));
+            Log.PrintLine(debug_prefix + "WHISPER successfully enqueued",
+                          debug_prefix + Log.FormatAsColumns(nameof(message), message));
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "WHISPER enqueue process completed");
+            Log.BlankLine();
         }
 
         /// <summary>
@@ -792,8 +771,21 @@ namespace TwitchLibrary.Clients.IRC
                 return;
             }
 
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Dequeuing and sending WHISPER...");
             WhisperTemplate whisper = whisper_queue.Dequeue();
             SendWhisper(whisper.recipient, whisper.message);
+        }
+
+        /// <summary>
+        /// Sends a whisper message to a user.
+        /// Using this method is dangerous and is not throttled.
+        /// It is recommended to use <see cref="EnqueueWhisper(string, string)"/> to avoid the chance of getting global banned.
+        /// </summary>
+        /// <param name="recipient">The ser who receives the whisper.</param>
+        /// <param name="message">The message to be sent to the user.</param>
+        public void SendWhisper(string recipient, string message)
+        {
+            Send(string.Format("PRIVMSG #jtv :/w {0} {1}", recipient.ToLower(), message));
         }
 
         #endregion

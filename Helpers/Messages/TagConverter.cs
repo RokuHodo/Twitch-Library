@@ -24,27 +24,29 @@ namespace TwitchLibrary.Helpers.Messages
                 return value;
             }
 
-            tags.TryGetValue(key, out string value_string);
+            tags.TryGetValue(key, out string tag_string);
 
-            if (!value_string.isValid())
+            if (!tag_string.isValid())
             {
                 return value;
             }
 
-            if (!value_string.CanCovertTo<type>())
+            if (!tag_string.CanCovertTo<type>())
             {
                 return value;
             }
 
             try
             {
-                value = (type)Convert.ChangeType(value_string, typeof(type));             
+                value = (type)Convert.ChangeType(tag_string, typeof(type));             
             }
             catch(Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
+                Log.Error("Failed to convert tag to " + typeof(type).Name,
+                                   Error.NORMAL_EXCEPTION,
+                                   Log.FormatAsColumns(nameof(key), key),
+                                   Log.FormatAsColumns(nameof(tag_string), tag_string),
+                                   Log.FormatAsColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -63,9 +65,11 @@ namespace TwitchLibrary.Helpers.Messages
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_int), value_int.ToString());
+                Log.Error("Failed to convert tag to " + typeof(bool).Name,
+                                   Error.NORMAL_EXCEPTION,
+                                   Log.FormatAsColumns(nameof(key), key),
+                                   Log.FormatAsColumns(nameof(value_int), value_int),
+                                   Log.FormatAsColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -83,9 +87,11 @@ namespace TwitchLibrary.Helpers.Messages
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.CONVERT, "tag", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(color_string), color_string);
+                Log.Error("Failed to convert tag",
+                                   Error.NORMAL_EXCEPTION,
+                                   Log.FormatAsColumns(nameof(key), key),
+                                   Log.FormatAsColumns(nameof(color_string), color_string),
+                                   Log.FormatAsColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -100,29 +106,31 @@ namespace TwitchLibrary.Helpers.Messages
                 return value;
             }
 
-            string value_string = string.Empty;
+            string enum_value = string.Empty;
 
-            tags.TryGetValue(key, out value_string);
+            tags.TryGetValue(key, out enum_value);
 
-            if (!value_string.isValid())
+            if (!enum_value.isValid())
             {
                 return value;
             }
 
-            if (!value_string.CanCovertTo<type>())
+            if (!enum_value.CanCovertTo<type>())
             {
                 return value;
             }
 
             try
             {
-                Enum.TryParse(value_string, out value);
+                Enum.TryParse(enum_value, out value);
             }
             catch (Exception exception)
             {
-                LibraryDebug.Error(LibraryDebugMethod.CONVERT, "value", LibraryDebugError.NORMAL_EXCEPTION, TimeStamp.TimeLong);
-                LibraryDebug.PrintLineFormatted(nameof(exception), exception.Message);
-                LibraryDebug.PrintLineFormatted(nameof(value_string), value_string);
+                Log.Error("Failed to convert tag to " + typeof(type).Name,
+                                   Error.NORMAL_EXCEPTION,
+                                   Log.FormatAsColumns(nameof(key), key),
+                                   Log.FormatAsColumns(nameof(enum_value), enum_value),
+                                   Log.FormatAsColumns(nameof(exception), exception.Message));
             }
 
             return value;

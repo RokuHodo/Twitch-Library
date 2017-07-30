@@ -10,9 +10,9 @@ using TwitchLibrary.Helpers.Messages;
 using TwitchLibrary.Models.Messages.IRC.Tags;
 using TwitchLibrary.Models.Messages.IRC.Trailing;
 
-// Example
 /*
-// badges=broadcaster/1,premium/1;
+// -- PRIVMSG Example --
+// @badges=broadcaster/1,premium/1;
 // bits=1000;
 // color=#FF0000;
 // display-name=RokuHodo_;
@@ -26,7 +26,7 @@ using TwitchLibrary.Models.Messages.IRC.Trailing;
 // turbo=0;
 // user-id=45947671;
 // user-type=mod 
-:rokuhodo_!rokuhodo_@rokuhodo_.tmi.twitch.tv PRIVMSG #rokuhodo_ :cheer1000
+// :rokuhodo_!rokuhodo_@rokuhodo_.tmi.twitch.tv PRIVMSG #rokuhodo_ :cheer1000
 */
 namespace TwitchLibrary.Models.Messages.IRC.Commands.Native
 {
