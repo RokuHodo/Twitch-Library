@@ -1,6 +1,6 @@
 ﻿// project namespaces
-using TwitchLibrary.Models.Messages.IRC;
-using TwitchLibrary.Models.Messages.IRC.Commands.Twitch;
+using TwitchLibrary.Models.Clients.IRC;
+using TwitchLibrary.Models.Clients.IRC.Commands.Twitch;
 
 namespace TwitchLibrary.Events.Clients.IRC.Commands.Twitch
 {

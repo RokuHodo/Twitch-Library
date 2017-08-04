@@ -12,8 +12,8 @@ namespace TwitchLibrary.Helpers.Paging.Games
 
         public PagingTopGames(int _limit, int _offset) : base(10)
         {
-            limit = _limit;
-            offset = _offset;            
+            limit   = _limit;
+            offset  = _offset;            
         }
     }
 }

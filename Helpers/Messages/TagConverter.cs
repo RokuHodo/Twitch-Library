@@ -6,10 +6,9 @@ using System.Linq;
 
 // project namespaces
 using TwitchLibrary.Debug;
-using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Enums.Messages;
 using TwitchLibrary.Extensions;
-using TwitchLibrary.Models.Messages.IRC.Tags;
+using TwitchLibrary.Models.Clients.IRC.Tags;
 
 namespace TwitchLibrary.Helpers.Messages
 {
@@ -43,10 +42,10 @@ namespace TwitchLibrary.Helpers.Messages
             catch(Exception exception)
             {
                 Log.Error("Failed to convert tag to " + typeof(type).Name,
-                                   Error.NORMAL_EXCEPTION,
-                                   Log.FormatColumns(nameof(key), key),
-                                   Log.FormatColumns(nameof(tag_string), tag_string),
-                                   Log.FormatColumns(nameof(exception), exception.Message));
+                          Error.NORMAL_EXCEPTION,
+                          Log.FormatColumns(nameof(key), key),
+                          Log.FormatColumns(nameof(tag_string), tag_string),
+                          Log.FormatColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -66,10 +65,10 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 Log.Error("Failed to convert tag to " + typeof(bool).Name,
-                                   Error.NORMAL_EXCEPTION,
-                                   Log.FormatColumns(nameof(key), key),
-                                   Log.FormatColumns(nameof(value_int), value_int),
-                                   Log.FormatColumns(nameof(exception), exception.Message));
+                          Error.NORMAL_EXCEPTION,
+                          Log.FormatColumns(nameof(key), key),
+                          Log.FormatColumns(nameof(value_int), value_int),
+                          Log.FormatColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -88,10 +87,10 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 Log.Error("Failed to convert tag",
-                                   Error.NORMAL_EXCEPTION,
-                                   Log.FormatColumns(nameof(key), key),
-                                   Log.FormatColumns(nameof(color_string), color_string),
-                                   Log.FormatColumns(nameof(exception), exception.Message));
+                          Error.NORMAL_EXCEPTION,
+                          Log.FormatColumns(nameof(key), key),
+                          Log.FormatColumns(nameof(color_string), color_string),
+                          Log.FormatColumns(nameof(exception), exception.Message));
             }
 
             return value;
@@ -127,10 +126,10 @@ namespace TwitchLibrary.Helpers.Messages
             catch (Exception exception)
             {
                 Log.Error("Failed to convert tag to " + typeof(type).Name,
-                                   Error.NORMAL_EXCEPTION,
-                                   Log.FormatColumns(nameof(key), key),
-                                   Log.FormatColumns(nameof(enum_value), enum_value),
-                                   Log.FormatColumns(nameof(exception), exception.Message));
+                          Error.NORMAL_EXCEPTION,
+                          Log.FormatColumns(nameof(key), key),
+                          Log.FormatColumns(nameof(enum_value), enum_value),
+                          Log.FormatColumns(nameof(exception), exception.Message));
             }
 
             return value;

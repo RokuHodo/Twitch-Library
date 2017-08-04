@@ -26,16 +26,16 @@ namespace TwitchLibrary.Helpers.Paging
         /// <returns></returns>
         public static async Task<List<Model>> GetPagesByCursorAsync<Model, PageResult, Paging>(Func<string, Paging, Task<PageResult>> GetPage, string channel_id, Paging paging, string property) where Paging : new()
         {
-            List<Model> list = new List<Model>();
+            List<Model>     list                                = new List<Model>();
 
             // paging
-            FieldInfo paging_cursor_info = paging.GetType().GetField("cursor");
+            FieldInfo       paging_cursor_info                  = paging.GetType().GetField("cursor");
 
             // requested page
-            PageResult requested_page = await GetPage(channel_id, paging);
-            PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
-            PropertyInfo requested_page_cursor_info = requested_page.GetType().GetProperty("_cursor");
-            PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
+            PageResult      requested_page                      = await GetPage(channel_id, paging);
+            PropertyInfo    requested_page_total_info           = requested_page.GetType().GetProperty("_total");
+            PropertyInfo    requested_page_cursor_info          = requested_page.GetType().GetProperty("_cursor");
+            PropertyInfo    requested_page_property_loop_info   = requested_page.GetType().GetProperty(property);
 
             if (!requested_page_total_info.isNull())
             {
@@ -92,16 +92,16 @@ namespace TwitchLibrary.Helpers.Paging
         /// <returns></returns>
         public static async Task<List<Model>> GetPagesByCursorAsync<Model, PageResult, Paging>(Func<Paging, Task<PageResult>> GetPage, Paging paging, string property) where Paging : new()
         {
-            List<Model> list = new List<Model>();
+            List<Model>     list                                = new List<Model>();
 
             // paging
-            FieldInfo paging_cursor_info = paging.GetType().GetField("cursor");
+            FieldInfo       paging_cursor_info                  = paging.GetType().GetField("cursor");
 
             // requested page
-            PageResult requested_page = await GetPage(paging);
-            PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
-            PropertyInfo requested_page_cursor_info = requested_page.GetType().GetProperty("_cursor");
-            PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
+            PageResult      requested_page                      = await GetPage(paging);
+            PropertyInfo    requested_page_total_info           = requested_page.GetType().GetProperty("_total");
+            PropertyInfo    requested_page_cursor_info          = requested_page.GetType().GetProperty("_cursor");
+            PropertyInfo    requested_page_property_loop_info   = requested_page.GetType().GetProperty(property);
 
             if (!requested_page_total_info.isNull())
             {
@@ -163,17 +163,17 @@ namespace TwitchLibrary.Helpers.Paging
         /// <returns></returns>
         public static async Task<List<Model>> GetPagesByTotalAsync<Model, PageResult, Paging>(Func<string, Paging, Task<PageResult>> GetPage, string channel_id, Paging paging, string property) where Paging : new()
         {
-            List<Model> list = new List<Model>();
+            List<Model>     list                                = new List<Model>();
 
             // paging
-            FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
-            PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
-            PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");            
+            FieldInfo       paging_offset_max_info              = paging.GetType().GetField("offset_max");
+            PropertyInfo    paging_offset_info                  = paging.GetType().GetProperty("offset");
+            PropertyInfo    paging_limit_info                   = paging.GetType().GetProperty("limit");            
 
             // requested page
-            PageResult requested_page = await GetPage(channel_id, paging);
-            PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
-            PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
+            PageResult      requested_page                      = await GetPage(channel_id, paging);
+            PropertyInfo    requested_page_total_info           = requested_page.GetType().GetProperty("_total");
+            PropertyInfo    requested_page_property_loop_info   = requested_page.GetType().GetProperty(property);
 
             // page didn't actually have a "_total" property
             if (requested_page_total_info.isNull())
@@ -238,17 +238,17 @@ namespace TwitchLibrary.Helpers.Paging
         /// <returns></returns>
         public static async Task<List<Model>> GetPagesByTotalAsync<Model, PageResult, Paging>(Func<Paging, Task<PageResult>> GetPage, Paging paging, string property) where Paging : new()
         {
-            List<Model> list = new List<Model>();
+            List<Model>     list                                = new List<Model>();
 
             // paging
-            FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
-            PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
-            PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");
+            FieldInfo       paging_offset_max_info              = paging.GetType().GetField("offset_max");
+            PropertyInfo    paging_offset_info                  = paging.GetType().GetProperty("offset");
+            PropertyInfo    paging_limit_info                   = paging.GetType().GetProperty("limit");
 
             // requested page
-            PageResult requested_page = await GetPage(paging);
-            PropertyInfo requested_page_total_info = requested_page.GetType().GetProperty("_total");
-            PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
+            PageResult      requested_page                      = await GetPage(paging);
+            PropertyInfo    requested_page_total_info           = requested_page.GetType().GetProperty("_total");
+            PropertyInfo    requested_page_property_loop_info   = requested_page.GetType().GetProperty(property);
 
             // page didn't actually have a "_total" property
             if (requested_page_total_info.isNull())
@@ -307,16 +307,16 @@ namespace TwitchLibrary.Helpers.Paging
 
         public static async Task<List<Model>> GetPagesByOffsetAsync<Model, PageResult, Paging>(Func<Paging, Task<PageResult>> GetPage, Paging paging, string property) where Paging : new()
         {
-            List<Model> list = new List<Model>();
+            List<Model>     list                                = new List<Model>();
 
             // paging
-            FieldInfo paging_offset_max_info = paging.GetType().GetField("offset_max");
-            PropertyInfo paging_offset_info = paging.GetType().GetProperty("offset");
-            PropertyInfo paging_limit_info = paging.GetType().GetProperty("limit");
+            FieldInfo       paging_offset_max_info              = paging.GetType().GetField("offset_max");
+            PropertyInfo    paging_offset_info                  = paging.GetType().GetProperty("offset");
+            PropertyInfo    paging_limit_info                   = paging.GetType().GetProperty("limit");
 
             // requested page
-            PageResult requested_page = await GetPage(paging);
-            PropertyInfo requested_page_property_loop_info = requested_page.GetType().GetProperty(property);
+            PageResult      requested_page                      = await GetPage(paging);
+            PropertyInfo    requested_page_property_loop_info   = requested_page.GetType().GetProperty(property);
 
             if (requested_page.isNull())
             {

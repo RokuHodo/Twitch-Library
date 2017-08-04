@@ -18,9 +18,9 @@ namespace TwitchLibrary.Helpers.Paging.Channels
 
         public PagingChannelSubscribers(int _limit, int _offset, Direction _direction) : base(25)
         {
-            limit = _limit;
-            offset = _offset;
-            direction = _direction;
+            limit       = _limit;
+            offset      = _offset;
+            direction   = _direction;
         }
 
         /// <summary>

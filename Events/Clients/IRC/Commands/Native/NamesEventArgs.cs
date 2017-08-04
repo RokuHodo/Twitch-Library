@@ -1,9 +1,9 @@
 ﻿// standard namespaces
+using TwitchLibrary.Models.Clients.IRC;
 using System.Collections.Generic;
 
 // project namespaces
-using TwitchLibrary.Models.Messages.IRC;
-using TwitchLibrary.Models.Messages.IRC.Commands.Native;
+using TwitchLibrary.Models.Clients.IRC.Commands.Native;
 
 namespace TwitchLibrary.Events.Clients.IRC.Commands.Native
 {

@@ -18,8 +18,8 @@ namespace TwitchLibrary.Helpers.Paging.Feed
 
         public PagingChannelFeedPostComments(int _limit, string _cursor) : base(10)
         {
-            limit = _limit;            
-            cursor = _cursor;
+            limit   = _limit;            
+            cursor  = _cursor;
         }
 
         /// <summary>

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 // project namespaces
 using TwitchLibrary.Debug;
-using TwitchLibrary.Enums.Debug;
 
 namespace TwitchLibrary.Extensions.Events
 {
@@ -44,8 +43,8 @@ namespace TwitchLibrary.Extensions.Events
                 }
                 catch(Exception exception)
                 {
-                    Log.Error("Failled to raise " +  method_name, Error.NORMAL_EXCEPTION);
-                    Log.PrintLineColumns(nameof(exception), exception.Message);
+                    Log.Error("Failled to raise " +  method_name, Error.NORMAL_EXCEPTION,
+                              Log.FormatColumns(nameof(exception), exception.Message));
                 }
             }
 
@@ -60,6 +59,7 @@ namespace TwitchLibrary.Extensions.Events
         /// <param name="handler">The <see cref="EventHandler"/> to raise asynchronously.</param>
         /// <param name="sender">The sender that raised the <see cref="EventHandler"/>.</param>
         /// <param name="args">The <see cref="EventArgs"/> to be passed through with the event.</param>
+        [Obsolete("RaiseAsync should only be used when a event is to be raised in a \"run and forget\" setting without worrying about when the raise actually finishes.")]
         public static void RaiseAsync<type>(this EventHandler<type> handler, object sender, type args) where type : EventArgs
         {
             if (handler.isNull())
@@ -74,7 +74,6 @@ namespace TwitchLibrary.Extensions.Events
                 EventHandler<type> method = (EventHandler<type>)listener;
                 
                 method.BeginInvoke(sender, args, EndAsyncRaise<type>, null);
-                // LibraryDebug.PrintLine(method.Method.Name + " raise starting...", TimeStamp.TimeLong);
             }
         }
 
@@ -94,12 +93,10 @@ namespace TwitchLibrary.Extensions.Events
             }
             catch (Exception exception)
             {
-                Log.Error("Failed to asynchronously raise " + method.Method.Name, Error.NORMAL_EXCEPTION);
-                Log.PrintLineColumns(nameof(type), typeof(type).Name);
-                Log.PrintLineColumns(nameof(exception), exception.Message);
+                Log.Error("Failed to asynchronously raise " + method.Method.Name, Error.NORMAL_EXCEPTION,
+                          Log.FormatColumns(nameof(type), typeof(type).Name),
+                          Log.FormatColumns(nameof(exception), exception.Message));
             }
-
-            // LibraryDebug.PrintLine(method.Method.Name + " raise finished", TimeStamp.TimeLong);
         }
     }
 }

@@ -10,25 +10,25 @@ namespace TwitchLibrary.Helpers.Paging.Videos
 {
     public class PagingTopVideos : PagingLimitOffset, ITwitchPaging
     {
-        public string game;
+        public string           game;
 
-        public PeriodVideos period;
-        public BroadcastType[] broadcast_type;
+        public PeriodVideos     period;
+        public BroadcastType[]  broadcast_type;
 
         public PagingTopVideos() : base(10)
         {
-            game = null;
-            period = PeriodVideos.WEEK;      
-            broadcast_type = new BroadcastType[] { BroadcastType.HIGHLIGHT };            
+            game            = null;
+            period          = PeriodVideos.WEEK;      
+            broadcast_type  = new BroadcastType[] { BroadcastType.HIGHLIGHT };            
         }
 
         public PagingTopVideos(int _limit, int _offset, string _game, PeriodVideos _period, BroadcastType[] _broadcast_type) : base(10)
         {
-            limit = _limit;
-            offset = _offset;
-            game = _game;
-            period = _period;
-            broadcast_type = _broadcast_type;
+            limit           = _limit;
+            offset          = _offset;
+            game            = _game;
+            period          = _period;
+            broadcast_type  = _broadcast_type;
         }
 
         /// <summary>

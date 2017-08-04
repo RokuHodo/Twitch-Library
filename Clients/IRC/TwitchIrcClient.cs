@@ -12,7 +12,7 @@ using TwitchLibrary.Enums.Clients.IRC;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Enums.Helpers.Paging;
 using TwitchLibrary.Events.Clients.IRC;
-using TwitchLibrary.Models.Messages.IRC.Templates;
+using TwitchLibrary.Models.Clients.IRC.Templates;
 using TwitchLibrary.Events.Clients.IRC.Commands.Twitch;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
@@ -123,17 +123,17 @@ namespace TwitchLibrary.Clients.IRC
         /// <summary>
         /// The user id of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                       user_id { get; private set; }
+        public string                                       user_id         { get; private set; }
 
         /// <summary>
         /// The name of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                       user_name { get; private set; }
+        public string                                       user_name       { get; private set; }
 
         /// <summary>
         /// The formatted display name of the Twitch account associasted with the irc client.
         /// </summary>
-        public string                                       display_name { get; private set; }
+        public string                                       display_name    { get; private set; }
 
         #endregion
 
@@ -162,26 +162,26 @@ namespace TwitchLibrary.Clients.IRC
             */
             auto_reconnect = true;
 
-            request_tags = true;
-            request_commands = true;
-            request_membership = true;
+            request_tags                = true;
+            request_commands            = true;
+            request_membership          = true;
 
-            OnConnected += new EventHandler<EventArgs>(Callback_OnConnected);
-            OnDisconnected += new EventHandler<EventArgs>(Callback_OnDisconnected);
-            OnIrcMessage += new EventHandler<IrcMessageEventArgs>(Callback_OnIrcMessage);
+            OnConnected                 += new EventHandler<EventArgs>(Callback_OnConnected);
+            OnDisconnected              += new EventHandler<EventArgs>(Callback_OnDisconnected);
+            OnIrcMessage                += new EventHandler<IrcMessageEventArgs>(Callback_OnIrcMessage);
 
-            User user = new TwitchApiOAuth(irc_user.pass).GetUser();
-            user_id = user._id;
-            user_name = user.name;
-            display_name = user.display_name;
+            User user                   = new TwitchApiOAuth(irc_user.pass).GetUser();
+            user_id                     = user._id;
+            user_name                   = user.name;
+            display_name                = user.display_name;
 
-            privmsg_queue = new Queue<MessageTemplate>();
-            whisper_queue = new Queue<MessageTemplate>();
+            privmsg_queue               = new Queue<MessageTemplate>();
+            whisper_queue               = new Queue<MessageTemplate>();
 
-            privmsg_queue_timer = new Timer(1500);
+            privmsg_queue_timer         = new Timer(1500);
             privmsg_queue_timer.Elapsed += ProcressEnqueuedChatCommands;
 
-            whisper_queue_timer = new Timer(1500);
+            whisper_queue_timer         = new Timer(1500);
             whisper_queue_timer.Elapsed += ProcressEnqueuedWhispers;
         }               
 

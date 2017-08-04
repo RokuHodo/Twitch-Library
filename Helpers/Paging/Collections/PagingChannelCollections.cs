@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 // project namespaces
 using TwitchLibrary.Extensions;
 
@@ -24,8 +19,8 @@ namespace TwitchLibrary.Helpers.Paging.Collections
 
         public PagingChannelCollections(int _limit, string _cursor, string _containing_item) : base(10)
         {
-            limit = _limit;
-            cursor = _cursor;
+            limit           = _limit;
+            cursor          = _cursor;
             containing_item = _containing_item;
         }
 

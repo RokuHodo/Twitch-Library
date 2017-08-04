@@ -1,5 +1,4 @@
 ﻿// project namespaces
-using TwitchLibrary.Enums.Helpers.Paging;
 
 // imported .dll's
 using Newtonsoft.Json;

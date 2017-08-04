@@ -13,29 +13,29 @@ namespace TwitchLibrary.Helpers.Paging.Streams
 {   
     public class PagingStreams : PagingLimitOffset, ITwitchPaging
     {
-        public int[] channel;
+        public string[]         channel;
 
-        public string game;                      
+        public string           game;                      
 
-        public StreamType stream_type;
+        public StreamType       stream_type;
         public StreamLanguage[] language;                      
 
         public PagingStreams() :base(25)
         {
-            channel = null;
-            game = null;
+            channel     = null;
+            game        = null;
             stream_type = StreamType.LIVE;
-            language = Enum.GetValues(typeof(StreamLanguage)) as StreamLanguage[];
+            language    = Enum.GetValues(typeof(StreamLanguage)) as StreamLanguage[];
         }
 
-        public PagingStreams(int[] _channel, int _limit, int _offset, string _game, StreamType _stream_type, StreamLanguage[] _language) : base(25)
+        public PagingStreams(string[] _channel, int _limit, int _offset, string _game, StreamType _stream_type, StreamLanguage[] _language) : base(25)
         {
-            channel = _channel;
-            limit = _limit;
-            offset = _offset;
-            game = _game;
+            channel     = _channel;
+            limit       = _limit;
+            offset      = _offset;
+            game        = _game;
             stream_type = _stream_type;
-            language = _language;
+            language    = _language;
         }
 
         /// <summary>

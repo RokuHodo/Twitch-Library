@@ -10,22 +10,22 @@ namespace TwitchLibrary.Helpers.Paging.Channels
 {
     public class PagingChannelFollowers : PagingLimitOffset, ITwitchPaging
     {
-        public string cursor;
+        public string       cursor;
 
-        public Direction direction = Direction.DESC;
+        public Direction    direction;
 
         public PagingChannelFollowers() : base(25)
         {
-            cursor = string.Empty;
-            direction = Direction.DESC;
+            cursor      = string.Empty;
+            direction   = Direction.DESC;
         }
 
         public PagingChannelFollowers(int _limit, int _offset, string _cursor, Direction _direction) : base(25)
         {
-            limit = _limit;
-            offset = _offset;
-            cursor = _cursor;
-            direction = _direction;
+            limit       = _limit;
+            offset      = _offset;
+            cursor      = _cursor;
+            direction   = _direction;
         }
 
         /// <summary>

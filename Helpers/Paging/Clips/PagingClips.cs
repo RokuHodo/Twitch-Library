@@ -10,34 +10,34 @@ namespace TwitchLibrary.Helpers.Paging.Clips
 {   
     public class PagingClips : PagingClipsGamesFollowed, ITwitchPaging
     {
-        public string[] game;
-        public string[] channel;
-        public BroadcasterLanguage[] language;
+        public string[]                 game;
+        public string[]                 channel;
+        public BroadcasterLanguage[]    language;
 
-        public PeriodClips period;
+        public PeriodClips              period;
 
         public PagingClips()
         {
-            trending = false;
+            trending    = false;
 
-            game = new string[0];
-            channel = new string[0];
-            language = new BroadcasterLanguage[0];
+            game        = new string[0];
+            channel     = new string[0];
+            language    = new BroadcasterLanguage[0];
 
-            cursor = string.Empty;
+            cursor      = string.Empty;
             
-            period = PeriodClips.DAY;
+            period      = PeriodClips.DAY;
         }
 
         public PagingClips(bool _trending, int _limit, string _cursor, string[] _game, string[] _channel, BroadcasterLanguage[] _language, PeriodClips _period) : base(_trending, _limit, _cursor)
         {
-            trending = _trending;
-            limit = _limit;
-            game = _game;
-            cursor = _cursor;
-            channel = _channel;
-            period = _period;
-            language = _language;
+            trending    = _trending;
+            limit       = _limit;
+            game        = _game;
+            cursor      = _cursor;
+            channel     = _channel;
+            period      = _period;
+            language    = _language;
         }
 
         /// <summary>

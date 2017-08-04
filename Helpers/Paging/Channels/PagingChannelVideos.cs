@@ -12,24 +12,24 @@ namespace TwitchLibrary.Helpers.Paging.Channels
 {
     public class PagingChannelVideos : PagingLimitOffset, ITwitchPaging
     {
-        public BroadcastType[] broadcast_type;
-        public BroadcasterLanguage[] language;
-        public Sort sort;
+        public BroadcastType[]          broadcast_type;
+        public BroadcasterLanguage[]    language;
+        public Sort                     sort;
 
         public PagingChannelVideos() : base(10)
         {
-            language = Enum.GetValues(typeof(BroadcasterLanguage)) as BroadcasterLanguage[];
-            broadcast_type = new BroadcastType[] { BroadcastType.HIGHLIGHT };
-            sort = Sort.TIME;
+            language        = Enum.GetValues(typeof(BroadcasterLanguage)) as BroadcasterLanguage[];
+            broadcast_type  = new BroadcastType[] { BroadcastType.HIGHLIGHT };
+            sort            = Sort.TIME;
         }
 
         public PagingChannelVideos(int _limit, int _offset, BroadcastType[] _broadcast_type, BroadcasterLanguage[] _language, Sort _sort) : base(10)
         {
-            limit = _limit;
-            offset = _offset;
-            broadcast_type = _broadcast_type;
-            language = _language;
-            sort = _sort;
+            limit           = _limit;
+            offset          = _offset;
+            broadcast_type  = _broadcast_type;
+            language        = _language;
+            sort            = _sort;
         }
 
         /// <summary>

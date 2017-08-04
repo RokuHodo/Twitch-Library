@@ -4,16 +4,18 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 // project namespaces
 using TwitchLibrary.Debug;
-using TwitchLibrary.Models.Messages.IRC;
 using TwitchLibrary.Enums.Clients.IRC;
 using TwitchLibrary.Enums.Debug;
 using TwitchLibrary.Events.Clients.IRC;
 using TwitchLibrary.Events.Clients.IRC.Commands.Native;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
+using TwitchLibrary.Models.Clients.IRC;
 
 namespace TwitchLibrary.Clients.IRC
 {
@@ -36,7 +38,7 @@ namespace TwitchLibrary.Clients.IRC
         private NetworkStream                           stream;
         private Thread                                  reader_thread;
 
-        private IrcUser                                 user;
+        private IrcUser                                 irc_user;
 
         // Protected
 
@@ -130,48 +132,47 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="irc_user">The user that will be logged into the IRC.</param>
         /// <exception cref="ArgumentNullException">Thrown when any of the passed arguments are null.</exception>
         /// <exception cref="ArgumentException">Thrown when the host or irc_user fileds are empty or white space.</exception>
-        public IrcClient(string host, int port, IrcUser irc_user)
+        public IrcClient(string _host, int _port, IrcUser _irc_user)
         {
-            if (irc_user.isNull())
+            if (_irc_user.isNull())
             {
-                throw new ArgumentNullException(nameof(irc_user));
+                throw new ArgumentNullException(nameof(_irc_user));
             }
 
-            if (irc_user.nick.isNull())
+            if (_irc_user.nick.isNull())
             {
-                throw new ArgumentNullException(nameof(irc_user.nick));
+                throw new ArgumentNullException(nameof(_irc_user.nick));
             }
 
-            if (!irc_user.nick.isValid())
+            if (!_irc_user.nick.isValid())
             {
-                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(irc_user.nick));
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(_irc_user.nick));
             }
 
-            if (irc_user.pass.isNull())
+            if (_irc_user.pass.isNull())
             {
-                throw new ArgumentNullException(nameof(irc_user.pass));
+                throw new ArgumentNullException(nameof(_irc_user.pass));
             }            
 
-            if (!irc_user.pass.isValid())
+            if (!_irc_user.pass.isValid())
             {
-                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(irc_user.nick));
+                throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(_irc_user.nick));
             }
 
-            this.user = irc_user;
+            auto_pong       = true;
+            reconnecting    = false;
 
-            this.port = port;
-            this.host = host;
+            port            = _port;
+            host            = _host;
 
-            debug_prefix = "IrcClient " + user.nick.Wrap("\"", "\"") + " - ";
+            irc_user        = _irc_user;
+            debug_prefix    = "IrcClient " + irc_user.nick.Wrap("\"", "\"") + " - ";
 
-            reconnecting = false;
-            auto_pong = true;
+            encoding        = Encoding.UTF8;
 
-            encoding = Encoding.UTF8;
+            names           = new Dictionary<string, List<string>>();
 
-            names = new Dictionary<string, List<string>>();
-
-            state = TwitchClientState.Disconnected;
+            state           = TwitchClientState.Disconnected;
         }
 
         #endregion
@@ -289,8 +290,8 @@ namespace TwitchLibrary.Clients.IRC
 
             Log.PrintLine(debug_prefix + "Signing into IRC " + host.Wrap("\"", "\""));
 
-            Send("PASS oauth:" + user.pass);
-            Send("NICK " + user.nick);
+            Send("PASS oauth:" + irc_user.pass);
+            Send("NICK " + irc_user.nick);
         }
 
         /// <summary>
@@ -823,46 +824,56 @@ namespace TwitchLibrary.Clients.IRC
         /// <param name="channel">The channel/room to send the message to.</param>
         /// <param name="message">The message to be sent.</param>
         /// <param name="format">An object array that contains zero or more object to format.</param>
-        public void SendPrivmsg(string channel, string message, params object[] format)
+        public bool SendPrivmsg(string channel, string message, params object[] format)
         {
+            bool success = false;
+
             message = string.Format(message, format);
-            Send("PRIVMSG #{0} :{1}", channel.ToLower(), message);
+            success = Send("PRIVMSG #{0} :{1}", channel.ToLower(), message);
+
+            return success;
         }
 
         /// <summary>
         /// Sends a PONG message to the IRC.
         /// </summary>
-        public void Pong()
+        public bool Pong()
         {
-            Send("PONG");
+            return Send("PONG");
         }
 
         /// <summary>
         /// Sends a PONG message to the IRC.
         /// </summary>
         /// <param name="parmaters">Parameteres that would normally be found in an <see cref="IrcMessage"/>.</param>
-        public void Pong(string parmaters)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Pong(string parmaters)
         {
-            Send("PONG: {0}", parmaters);
+            return Send("PONG: {0}", parmaters);
         }
 
         /// <summary>
         /// Sends a PONG message to the IRC.
         /// </summary>
         /// <param name="irc_message">The <see cref="IrcMessage"/> that contains the parameters to be sent with the PONG.</param>
-        public void Pong(IrcMessage irc_message)
+        public bool Pong(IrcMessage irc_message)
         {
-            Pong(irc_message.parameters);
+            return Pong(irc_message.parameters);
         }
 
         /// <summary>
         /// Join a series of channel rooms.
         /// </summary>        
-        public void Join(params string[] channels)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Join(params string[] channels)
         {
+            bool success = false;
+
             string channel_names = string.Join(",#", channels).ToLower();
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Joining room(s): #" + channel_names);
-            Send("JOIN #" + channel_names);
+            success = Send("JOIN #" + channel_names);
+
+            return success;
         }
 
         /// <summary>
@@ -876,12 +887,17 @@ namespace TwitchLibrary.Clients.IRC
 
         /// <summary>
         /// Leave a series of channel rooms.
-        /// </summary>        
-        public void Part(params string[] channels)
+        /// </summary>    
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Part(params string[] channels)
         {
+            bool success = false;
+
             string channel_names = string.Join(",#", channels).ToLower();
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Leaving room(s): #" + channel_names);
-            Send("PART #" + channel_names.ToLower());
+            success = Send("PART #" + channel_names.ToLower());
+
+            return success;
         }
 
         /// <summary>
@@ -898,9 +914,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         /// <param name="message">The message to be sent.</param>
         /// <param name="format">An object array that contains zero or more object to format.</param>
-        protected void Send(string message, params object[] format)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected bool Send(string message, params object[] format)
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Send proccess starting...");
+
+            bool success = false;
 
             message = string.Format(message, format).RemovePadding();
             if (!CanSendMessage(message))
@@ -908,7 +927,7 @@ namespace TwitchLibrary.Clients.IRC
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Send process aborted");
                 Log.BlankLine();
 
-                return;
+                return success;
             }
 
             try
@@ -916,6 +935,8 @@ namespace TwitchLibrary.Clients.IRC
                 byte[] bytes = encoding.GetBytes(message + "\r\n");
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Flush();
+
+                success = true;
 
                 Log.PrintLine(debug_prefix + "Message sent to Irc",
                               debug_prefix + Log.FormatColumns(nameof(message), message));
@@ -933,6 +954,8 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             Log.BlankLine();
+
+            return success;
         }
 
         /// <summary>
@@ -940,9 +963,12 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         /// <param name="message">The message to be sent.</param>
         /// <param name="format">An object array that contains zero or more object to format.</param>
-        protected async void SendAsync(string message, params object[] format)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected async Task<bool> SendAsync(string message, params object[] format)
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Asyn send proccess starting...");
+
+            bool success = false;
 
             message = string.Format(message, format).RemovePadding();
             if (!CanSendMessage(message))
@@ -950,7 +976,7 @@ namespace TwitchLibrary.Clients.IRC
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Async send process aborted");
                 Log.BlankLine();
 
-                return;
+                return success;
             }
 
             try
@@ -958,6 +984,8 @@ namespace TwitchLibrary.Clients.IRC
                 byte[] bytes = encoding.GetBytes(message + "\r\n");
                 await stream.WriteAsync(bytes, 0, bytes.Length);
                 stream.Flush();
+
+                success = true;
 
                 Log.PrintLine(debug_prefix + "Message asynchronously sent to Irc",
                               debug_prefix + Log.FormatColumns(nameof(message), message));
@@ -975,6 +1003,8 @@ namespace TwitchLibrary.Clients.IRC
             }
 
             Log.BlankLine();
+
+            return success;
         }
 
         /// <summary>

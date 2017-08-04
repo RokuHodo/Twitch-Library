@@ -18,8 +18,8 @@ namespace TwitchLibrary.Helpers.Paging.Streams
 
         public PagingStreamFollows(int _limit, int _offset, StreamType _stream_type) : base(25)
         {            
-            limit = _limit;
-            offset = _offset;
+            limit       = _limit;
+            offset      = _offset;
             stream_type = _stream_type;
         }
 

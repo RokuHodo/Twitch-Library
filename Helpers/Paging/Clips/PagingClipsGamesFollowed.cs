@@ -9,21 +9,21 @@ namespace TwitchLibrary.Helpers.Paging.Clips
 {
     public class PagingClipsGamesFollowed : PagingLimit, ITwitchPaging
     {
-        public bool trending;
+        public bool     trending;
         
-        public string cursor;
+        public string   cursor;
 
         public PagingClipsGamesFollowed() : base(10)
         {
-            trending = false;
-            cursor = string.Empty;
+            trending    = false;
+            cursor      = string.Empty;
         }
 
         public PagingClipsGamesFollowed(bool _trending, int _limit, string _cursor) : base(10)
         {
-            trending = _trending;
-            limit = _limit;            
-            cursor = _cursor;
+            trending    = _trending;
+            limit       = _limit;            
+            cursor      = _cursor;
         }
 
         /// <summary>

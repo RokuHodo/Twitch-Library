@@ -42,15 +42,15 @@ namespace TwitchLibrary.API
 {
     public partial class TwitchApi : ITwitchRequest
     {
-        protected string client_id;
-        protected string oauth_token;
+        protected string        client_id;
+        protected string        oauth_token;
 
-        protected RestClient twitch_api_client;
-        protected RestClient uploads_api_client;
+        protected RestClient    twitch_api_client;
+        protected RestClient    uploads_api_client;
 
         public TwitchApi(string _client_id, string _oauth_token = "")
         {
-            client_id = _client_id;
+            client_id   = _client_id;
             oauth_token = _oauth_token;
                   
             // generic twitch api endpoints

@@ -12,8 +12,8 @@ namespace TwitchLibrary.Helpers.Paging.Streams
 
         public PagingFeaturedStreams(int _limit, int _offset) : base(25)
         {
-            limit = _limit;
-            offset = _offset;            
+            limit   = _limit;
+            offset  = _offset;            
         }
     }
 }

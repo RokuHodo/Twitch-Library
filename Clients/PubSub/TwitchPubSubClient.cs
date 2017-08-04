@@ -13,17 +13,11 @@ using TwitchLibrary.Events.Clients.PubSub;
 using TwitchLibrary.Extensions;
 using TwitchLibrary.Extensions.Events;
 using TwitchLibrary.Models.Clients.PubSub.Message;
-using TwitchLibrary.Models.Clients.PubSub.Message.Data.Bits;
-using TwitchLibrary.Models.Clients.PubSub.Message.Data.Subscriptions;
-using TwitchLibrary.Models.Clients.PubSub.Message.Data.Whisper;
 using TwitchLibrary.Models.Clients.PubSub.Request;
-using TwitchLibrary.Models.Clients.PubSub.Response;
 
 // imported .dll's
 using Newtonsoft.Json;
 using WebSocketSharp;
-
-// TODO: (PubSub)
 
 namespace TwitchLibrary.Clients.PubSub
 {
@@ -69,7 +63,7 @@ namespace TwitchLibrary.Clients.PubSub
         /// <summary>
         /// Raised when the client successfully disconnects from the socket.
         /// </summary>
-        public event EventHandler<MessageTypeEventArgs>                     OnRecconect;
+        public event EventHandler<TypeEventArgs>                            OnRecconect;
 
         /// <summary>
         /// Raised when the client successfully reconnected to the socket.
@@ -94,37 +88,37 @@ namespace TwitchLibrary.Clients.PubSub
         /// <summary>
         /// Raised when a PONG has been recieved from the socket in response to a successful PING.
         /// </summary>
-        public event EventHandler<MessageTypeEventArgs>                     OnPong;
+        public event EventHandler<TypeEventArgs>                            OnPong;
 
         /// <summary>
         /// Raised when a user has cheered with bits.
         /// </summary>
-        public event EventHandler<BitsReceivedEventArgs>                    OnBits;
+        public event EventHandler<BitsEventArgs>                            OnBits;
 
         /// <summary>
         /// Raised when a MESSAGE has been received through the socket.
         /// </summary>
-        public event EventHandler<MessageReceivedEventArgs>                 OnMessage;
+        public event EventHandler<Events.Clients.PubSub.MessageEventArgs>   OnMessage;
 
         /// <summary>
         /// Raised when a user has subscribed to a channel.
         /// </summary>
-        public event EventHandler<SubscriptionReceivedEventArgs>            OnSubscription;
+        public event EventHandler<SubscriberEventArgs>                      OnSubscription;
 
         /// <summary>
         /// Raised when a whisper has been received by a user.
         /// </summary>
-        public event EventHandler<WhisperReceivedEventArgs>                 OnWhisper;
+        public event EventHandler<WhisperEventArgs>                         OnWhisper;
+
+        /// <summary>
+        /// Raised when a user buys a product through another channel.
+        /// </summary>
+        public event EventHandler<CommerceEventArgs>                        OnCommerce;
 
         /// <summary>
         /// Raised when a RESPONSE has been receieved through the socket.
         /// </summary>
-        public event EventHandler<ResponseReceivedEventArgs>                OnResponse;
-
-        /// <summary>
-        /// Raised when an unsupported MESSAGE type has been receieved through the socket.
-        /// </summary>
-        public event EventHandler<UnsupportedMessageTypeReceivedEventArgs>  OnUnsupportedMessageType;
+        public event EventHandler<ResponseEventArgs>                        OnResponse;
 
         #endregion
 
@@ -132,17 +126,17 @@ namespace TwitchLibrary.Clients.PubSub
 
         public TwitchPubSubClient(string _oauth_token, string _id = "")
         {
-            auto_reconnect = true;
-            reconnecting = false;
+            auto_reconnect          = true;
+            reconnecting            = false;
 
-            id = _id;
-            oauth_token = _oauth_token;                       
+            id                      = _id;
+            oauth_token             = _oauth_token;                       
 
-            web_socket = new WebSocket(WEB_SOCKET);
-            web_socket.OnOpen += new EventHandler(OnWebSocketSharpOpen);
-            web_socket.OnClose += new EventHandler<CloseEventArgs>(OnWebSocketSharpClose);
-            web_socket.OnMessage += new EventHandler<MessageEventArgs>(OnWebSocketSharpMessage);
-            web_socket.OnError += new EventHandler<ErrorEventArgs>(OnWebSocketSharpError);
+            web_socket =            new WebSocket(WEB_SOCKET);
+            web_socket.OnOpen       += new EventHandler(OnWebSocketSharpOpen);
+            web_socket.OnClose      += new EventHandler<CloseEventArgs>(OnWebSocketSharpClose);
+            web_socket.OnMessage    += new EventHandler<WebSocketSharp.MessageEventArgs>(OnWebSocketSharpMessage);
+            web_socket.OnError      += new EventHandler<ErrorEventArgs>(OnWebSocketSharpError);
         }
 
         #endregion
@@ -428,77 +422,99 @@ namespace TwitchLibrary.Clients.PubSub
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The event parameters.</param>
-        private async void OnWebSocketSharpMessage(object sender, MessageEventArgs e)
+        private async void OnWebSocketSharpMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
             Log.Header(TimeStamp.TimeLong, "Message Data Recieved from PubSub socket. Processing Starting...");
 
             #region Fake messages
-            /*
-            PubSubMessage fake_message = new PubSubMessage
-            {
-                type = PubSubType.MESSAGE.ToString(),
-                data = new PubSubMessageData
-                {
-                    topic = string.Empty,
-                    message = string.Empty
-                }
-            };
+
+            //PubSubMessage fake_message = new PubSubMessage
+            //{
+            //    type = PubSubType.MESSAGE.ToString(),
+            //    data = new PubSubMessageData
+            //    {
+            //        topic = string.Empty,
+            //        message = string.Empty
+            //    }
+            //};
 
             // NOTE: (PubSub) Bits event cannot be tested first hand, so this fake object has been created to mimic a response assuming the documentation is correct
             // fake_message.data.topic = "channel-bits-events-v1.44322889";
             // fake_message.data.message = "{\"data\":{\"user_name\":\"dallasnchains\",\"channel_name\":\"dallas\",\"user_id\":\"129454141\",\"channel_id\":\"44322889\",\"chat_message\":\"cheer10000 New badge hype!\",\"bits_used\":10000,\"total_bits_used\":25000,\"context\":\"cheer\",\"badge_entitlement\":{\"new_version\":25000,\"previous_version\":10000}},\"version\":\"1.0\",\"message_type\":\"bits_event\",\"message_id\":\"8145728a4-35f0-4cf7-9dc0-f2ef24de1eb6\"}"
 
             // NOTE: (PubSub) Subscription event cannot be tested first hand, so this fake object has been created to mimic a response assuming the documentation is correct
-            PubSubSubscriptionsMessage fake_sub_message = new PubSubSubscriptionsMessage
-            {
-                user_name = "dallas",
-                display_name = "dallas",
-                channel_name = "twitch",
-                user_id = "44322889",
-                channel_id = "12826",
-                time = DateTime.Parse("2015-12-19T16:39:57-08:00"),
-                sub_plan = "1000",
-                sub_plan_name = "Mr_Woodchuck - Channel Subscription (mr_woodchuck)",
-                months = 9,
-                context = "resub",
-                sub_message = new PubSubSubscriptionsSubMessage
-                {
-                    message = "A Twitch baby is born! KappaHD",
-                    emotes = new List<PubSubEmotes>
-                    {
-                        new PubSubEmotes
-                        {
-                            start = 7,
-                            end = 23,
-                            id = "2867"
-                        }
-                    }
-                }
-            };
+            //PubSubSubscriptionsMessage fake_sub_message = new PubSubSubscriptionsMessage
+            //{
+            //    user_name = "dallas",
+            //    display_name = "dallas",
+            //    channel_name = "twitch",
+            //    user_id = "44322889",
+            //    channel_id = "12826",
+            //    time = DateTime.Parse("2015-12-19T16:39:57-08:00"),
+            //    sub_plan = "1000",
+            //    sub_plan_name = "Mr_Woodchuck - Channel Subscription (mr_woodchuck)",
+            //    months = 9,
+            //    context = "resub",
+            //    sub_message = new PubSubSubscriptionsSubMessage
+            //    {
+            //        message = "A Twitch baby is born! KappaHD",
+            //        emotes = new List<PubSubEmotes>
+            //        {
+            //            new PubSubEmotes
+            //            {
+            //                start = 7,
+            //                end = 23,
+            //                id = "2867"
+            //            }
+            //        }
+            //    }
+            //};
 
-            fake_message.data.topic = "channel-subscribe-events-v1.44322889";
-            fake_message.data.message = JsonConvert.SerializeObject(fake_sub_message);
+            //PubSubCommerceMessage fake_commerce_message = new PubSubCommerceMessage
+            //{
+            //    user_name = "dallas",
+            //    display_name = "dallas",
+            //    channel_name = "twitch",
+            //    user_id = "44322889",
+            //    channel_id = "12826",
+            //    time = DateTime.Parse("2015-12-19T16:39:57-08:00"),
+            //    item_image_url = "url here",
+            //    item_description = "This is a friendly description!",
+            //    supports_channel = true,
+            //    purchase_message = new PubSubCommercePurchaseMessage
+            //    {
+            //        message = "A Twitch game is born! Kappa",
+            //        emotes = new List<PubSubEmotes>()
+            //        {
+            //            new PubSubEmotes()
+            //            {
+            //                start = 23,
+            //                end = 7,
+            //                id = "2867"
+            //            }
+            //        }
+            //    }
+            //};
 
-            string fake_message_string = JsonConvert.SerializeObject(fake_message);
+            //fake_message.data.topic = "channel-commerce-events-v1.44322889";
+            //fake_message.data.message = JsonConvert.SerializeObject(fake_commerce_message);
 
-            PubSubMessageType _type = await fake_message_string.TryDeserializeObjectAsync<PubSubMessageType>();
-            */
+            //string fake_message_string = JsonConvert.SerializeObject(fake_message);
+
             #endregion
 
-            PubSubMessageType message_type = await e.Data.TryDeserializeObjectAsync<PubSubMessageType>();            
-            Enum.TryParse(message_type.type, true, out PubSubType type);
+            PubSubMessage pub_sub_message = await e.Data.TryDeserializeObjectAsync<PubSubMessage>();                          //FOR SHIPPING
+            //PubSubMessage pub_sub_message = await fake_message_string.TryDeserializeObjectAsync<PubSubMessage>();       //FOR TESTING
+            Enum.TryParse(pub_sub_message.type, true, out PubSubType type);
             switch (type)
             {
                 case PubSubType.PONG:
                     {
                         Log.PrintLine("PONG recieved from PubSub");
+
                         pending_pong_timer.Enabled = false;
 
-                        OnPong.Raise(this, new MessageTypeEventArgs
-                        {
-                            data = e.Data,
-                            type = type
-                        });
+                        OnPong.Raise(this, new TypeEventArgs(e.Data, type));
                     }
                     break;
                 case PubSubType.RECONNECT:
@@ -510,38 +526,23 @@ namespace TwitchLibrary.Clients.PubSub
                             ReconnectAsync();
                         }
 
-                        OnRecconect.Raise(this, new MessageTypeEventArgs
-                        {
-                            data = e.Data,
-                            type = type
-                        });
+                        OnRecconect.Raise(this, new TypeEventArgs(e.Data, type));
                     }
                     break;
                 case PubSubType.RESPONSE:
                     {
                         Log.PrintLine("RESPONSE recieved from PubSub");
-                        // LibraryDebug.PrintObject(e.Data);
 
-                        PubSubResponse response = await e.Data.TryDeserializeObjectAsync<PubSubResponse>();
-                        OnResponse.Raise(this, new ResponseReceivedEventArgs
-                        {
-                            data = e.Data,
-                            response = response
-                        });
+                        OnResponse.Raise(this, new ResponseEventArgs(e.Data));
                     }
                     break;
                 case PubSubType.MESSAGE:
                     {
                         Log.PrintLine("MESSAGE recieved from PubSub");
 
-                        PubSubMessage message = await e.Data.TryDeserializeObjectAsync<PubSubMessage>();
-                        OnMessage.Raise(this, new MessageReceivedEventArgs
-                        {
-                            data = e.Data,
-                            message = message
-                        });
+                        OnMessage.Raise(this, new Events.Clients.PubSub.MessageEventArgs(e.Data, pub_sub_message));
 
-                        string topic = message.data.topic.TextBefore(".");
+                        string topic = pub_sub_message.data.topic.TextBefore(".");
 
                         switch (topic)
                         {
@@ -549,39 +550,28 @@ namespace TwitchLibrary.Clients.PubSub
                                 {
                                     Log.PrintLine("Whisper message recieved from PubSub");
 
-                                    PubSubWhisperMessage whisper_message = JsonConvert.DeserializeObject<PubSubWhisperMessage>(message.data.message);
-                                    PubSubWhisperMessageData whisper_message_data = JsonConvert.DeserializeObject<PubSubWhisperMessageData>(whisper_message.data);
-
-                                    OnWhisper.Raise(this, new WhisperReceivedEventArgs
-                                    {
-                                        data = e.Data,
-                                        whisper_message = whisper_message,
-                                        whisper_message_data = whisper_message_data
-                                    });
+                                    OnWhisper.Raise(this, new WhisperEventArgs(e.Data, pub_sub_message));
                                 }
                                 break;
                             case "channel-bits-events-v1":
                                 {
                                     Log.PrintLine("Bits message recieved from PubSub");
-                                    PubSubBitsMessage bits_message = JsonConvert.DeserializeObject<PubSubBitsMessage>(message.data.message);
 
-                                    OnBits.Raise(this, new BitsReceivedEventArgs
-                                    {
-                                        data = e.Data,
-                                        bits_message = bits_message
-                                    });
+                                    OnBits.Raise(this, new BitsEventArgs(e.Data, pub_sub_message));
                                 }
                                 break;
                             case "channel-subscribe-events-v1":
                                 {
                                     Log.PrintLine("Subscription message recieved from PubSub");
-                                    PubSubSubscriptionsMessage subscription_message = JsonConvert.DeserializeObject<PubSubSubscriptionsMessage>(message.data.message);
 
-                                    OnSubscription.Raise(this, new SubscriptionReceivedEventArgs
-                                    {
-                                        data = e.Data,
-                                        subscription_message = subscription_message
-                                    });
+                                    OnSubscription.Raise(this, new SubscriberEventArgs(e.Data, pub_sub_message));
+                                }
+                                break;
+                            case "channel-commerce-events-v1":
+                                {
+                                    Log.PrintLine("Commerce message recieved from PubSub");
+
+                                    OnCommerce.Raise(this, new CommerceEventArgs(e.Data, pub_sub_message));
                                 }
                                 break;
                         }
@@ -591,12 +581,6 @@ namespace TwitchLibrary.Clients.PubSub
                     {
                         Log.Error("Unsuported PubSub type recieved",
                                            Log.FormatColumns(nameof(type), type.ToString()));
-
-                        OnUnsupportedMessageType.Raise(this, new UnsupportedMessageTypeReceivedEventArgs
-                        {
-                            data = e.Data,
-                            type = type
-                        });
                     }
                     break;
             }

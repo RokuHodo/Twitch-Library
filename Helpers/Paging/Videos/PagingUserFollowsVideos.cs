@@ -18,9 +18,9 @@ namespace TwitchLibrary.Helpers.Paging.Videos
 
         public PagingUserFollowsVideos(int _limit, int _offset, BroadcastType[] _broadcast_type) : base(10)
         {
-            limit = _limit;
-            offset = _offset;            
-            broadcast_type = _broadcast_type;
+            limit           = _limit;
+            offset          = _offset;            
+            broadcast_type  = _broadcast_type;
         }
 
         /// <summary>

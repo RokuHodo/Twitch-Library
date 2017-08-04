@@ -9,21 +9,21 @@ namespace TwitchLibrary.Helpers.Paging.Users
 {
     public class PagingUserFollows : PagingLimitOffset, ITwitchPaging
     {
-        public Direction direction;
-        public SortBy sort_by;
+        public Direction    direction;
+        public SortBy       sort_by;
 
         public PagingUserFollows() : base(25)
         {
-            direction = Direction.DESC;
-            sort_by = SortBy.CREATED_AT;
+            direction   = Direction.DESC;
+            sort_by     = SortBy.CREATED_AT;
         }
 
         public PagingUserFollows(int _limit, int _offset, Direction _direction, SortBy _sortby) : base(25)
         {
-            limit = _limit;
-            offset = _offset;
-            direction = _direction;
-            sort_by = _sortby;
+            limit       = _limit;
+            offset      = _offset;
+            direction   = _direction;
+            sort_by     = _sortby;
         }
 
         /// <summary>

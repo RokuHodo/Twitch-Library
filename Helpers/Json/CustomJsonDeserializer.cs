@@ -17,12 +17,11 @@ namespace TwitchLibrary.Helpers.Json
         /// </summary>
         public type Deserialize<type>(IRestResponse response)
         {
-            return JsonConvert.DeserializeObject<type>(response.Content,
-                                                       new JsonSerializerSettings
-                                                       {
-                                                           NullValueHandling = NullValueHandling.Ignore,
-                                                           DateTimeZoneHandling = DateTimeZoneHandling.Local
-                                                       });
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            settings.DateTimeZoneHandling = DateTimeZoneHandling.Local;
+
+            return JsonConvert.DeserializeObject<type>(response.Content, settings);
         }
     }
 }

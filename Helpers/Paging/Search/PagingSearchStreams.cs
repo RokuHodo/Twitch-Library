@@ -18,9 +18,9 @@ namespace TwitchLibrary.Helpers.Paging.Search
 
         public PagingSearchStreams(bool _hls, int _limit, int _offset) : base(25)
         {
-            hls = _hls;
-            limit = _limit;
-            offset = _offset;            
+            hls     = _hls;
+            limit   = _limit;
+            offset  = _offset;            
         }
 
         /// <summary>

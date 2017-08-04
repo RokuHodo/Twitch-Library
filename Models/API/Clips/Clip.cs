@@ -1,8 +1,6 @@
 ﻿// standard namespaces
 using System;
 
-using TwitchLibrary.Enums.Helpers.Paging;
-
 // imported .dll's
 using Newtonsoft.Json;
 

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Net.Sockets;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwitchLibrary.Clients.IRC
+﻿namespace TwitchLibrary.Clients.IRC
 {
     public class IrcUser
     {

@@ -2,7 +2,7 @@
 using System;
 
 // project namespaces
-using TwitchLibrary.Models.Messages.IRC;
+using TwitchLibrary.Models.Clients.IRC;
 
 namespace TwitchLibrary.Events.Clients.IRC
 {
