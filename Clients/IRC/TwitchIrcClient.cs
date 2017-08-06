@@ -56,7 +56,7 @@ namespace TwitchLibrary.Clients.IRC
         /// </summary>
         public bool                                         request_membership;
 
-        // TODO: (IRC) Implement follower service and OnNewFollower
+        // TODO: (IrcClient) Implement follower service and OnNewFollower
         // public event EventHandler<OnNewFollowerEventArgs>   OnUserFollowed;                                        
 
         /// <summary>

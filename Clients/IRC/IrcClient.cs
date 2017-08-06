@@ -40,6 +40,8 @@ namespace TwitchLibrary.Clients.IRC
 
         private IrcUser                                 irc_user;
 
+        private Mutex                                   state_mutex;
+
         // Protected
 
         protected string                                debug_prefix;
@@ -159,6 +161,9 @@ namespace TwitchLibrary.Clients.IRC
                 throw new ArgumentException(Error.EXCEPTION_ARGUMENT_EMPTY, nameof(_irc_user.nick));
             }
 
+            state_mutex     = new Mutex();
+            SetState(TwitchClientState.Disconnected);
+
             auto_pong       = true;
             reconnecting    = false;
 
@@ -171,13 +176,11 @@ namespace TwitchLibrary.Clients.IRC
             encoding        = Encoding.UTF8;
 
             names           = new Dictionary<string, List<string>>();
-
-            state           = TwitchClientState.Disconnected;
         }
 
         #endregion
 
-        #region Connection methods
+        #region Connection methods        
 
         /// <summary>
         /// Connects to the IRC.
@@ -186,15 +189,13 @@ namespace TwitchLibrary.Clients.IRC
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Connection process starting...");
 
-            if (!CanConnect())
+            if (!SetState(TwitchClientState.Connecting))
             {
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Connection process aborted");
                 Log.BlankLine();
 
                 return;
             }
-
-            state = TwitchClientState.Connecting;
 
             try
             {
@@ -220,7 +221,7 @@ namespace TwitchLibrary.Clients.IRC
                 socket.Close();
                 socket.Dispose();
 
-                state = TwitchClientState.Disconnected;
+                SetState(TwitchClientState.Disconnected);
             }
         }
 
@@ -231,15 +232,13 @@ namespace TwitchLibrary.Clients.IRC
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Async connection process starting...");
 
-            if (!CanConnect())
+            if (!SetState(TwitchClientState.Connecting))
             {
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Async connection process aborted");
                 Log.BlankLine();
 
                 return;
             }
-
-            state = TwitchClientState.Connecting;
 
             Log.PrintLine(debug_prefix + "Asynchronously connecting to socket...",
                           debug_prefix + Log.FormatColumns(nameof(host), host),
@@ -274,7 +273,7 @@ namespace TwitchLibrary.Clients.IRC
                                               debug_prefix + "Async connection process aborted");
                 Log.BlankLine();
 
-                state = TwitchClientState.Disconnected;
+                SetState(TwitchClientState.Disconnected);
             }
         }
 
@@ -292,44 +291,7 @@ namespace TwitchLibrary.Clients.IRC
 
             Send("PASS oauth:" + irc_user.pass);
             Send("NICK " + irc_user.nick);
-        }
-
-        /// <summary>
-        /// Checks to see if it is safe to connect to the IRC.
-        /// </summary>
-        private bool CanConnect()
-        {
-            bool result = false;
-
-            string error = debug_prefix + "Cannot connect to " + host.Wrap("\"", "\"") +", {0}";
-
-            switch (state)
-            {
-                case TwitchClientState.Connected:
-                    {
-                        Log.Warning(string.Format(error, "already connected"));
-                    }
-                    break;
-                case TwitchClientState.Connecting:
-                    {
-                        Log.Warning(string.Format(error, "already connecting"));
-                    }
-                    break;
-                case TwitchClientState.Disconnecting:
-                    {
-                        Log.Warning(string.Format(error, "currently disconnecting"));
-                    }
-                    break;
-                case TwitchClientState.Disconnected:
-                default:
-                    {
-                        result = true;
-                    }
-                    break;
-            }
-
-            return result;
-        }
+        }                
 
         /// <summary>
         /// Disconnects from the IRC.
@@ -338,15 +300,13 @@ namespace TwitchLibrary.Clients.IRC
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Disconnection process starting...");
 
-            if (!CanDisconnect())
+            if (!SetState(TwitchClientState.Disconnecting))
             {
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Disconnection process aborted");
                 Log.BlankLine();
 
                 return;
             }
-
-            state = TwitchClientState.Disconnecting;
 
             try
             {
@@ -360,7 +320,7 @@ namespace TwitchLibrary.Clients.IRC
             }
             catch(Exception exception)
             {
-                state = TwitchClientState.Connected;
+                SetState(TwitchClientState.Connected);
 
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Failed to disconnect from socket",
                                               debug_prefix + Error.NORMAL_EXCEPTION,
@@ -377,15 +337,13 @@ namespace TwitchLibrary.Clients.IRC
         {
             Log.Header(TimeStamp.TimeLong, debug_prefix + "Async disconnection process starting...");
 
-            if (!CanDisconnect())
+            if (!SetState(TwitchClientState.Disconnecting))
             {
                 Log.Error(TimeStamp.TimeLong, debug_prefix + "Async disconnection process aborted");
                 Log.BlankLine();
 
                 return;
             }
-
-            state = TwitchClientState.Disconnecting;
 
             Log.PrintLine(debug_prefix + "Asynchronously disconnecting from socket...");
 
@@ -411,7 +369,7 @@ namespace TwitchLibrary.Clients.IRC
                                               debug_prefix + "Disconnection process aborted");
                 Log.BlankLine();
 
-                state = TwitchClientState.Connected;
+                SetState(TwitchClientState.Connected);
             }
         }
 
@@ -453,8 +411,8 @@ namespace TwitchLibrary.Clients.IRC
             socket.Close();
             socket.Dispose();
 
-            state = TwitchClientState.Disconnected;
-                      
+            SetState(TwitchClientState.Disconnected);
+
             if (reconnecting)
             {
                 if (async)
@@ -492,11 +450,155 @@ namespace TwitchLibrary.Clients.IRC
 
                 Log.BlankLine();
             }
+        }        
+
+        /// <summary>
+        /// Reconnect to the IRC.
+        /// </summary>
+        public void Reconnect()
+        {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Reconnection process starting...");
+
+            if (!SetState(state, true))
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Resconnection process aborted");
+                Log.BlankLine();
+
+                return;
+            }
+
+            reconnecting = true;
+
+            state_mutex.WaitOne();
+            if (state == TwitchClientState.Connected)
+            {
+                Disconnect();
+            }
+            else
+            {
+                Connect();
+            }
+            state_mutex.ReleaseMutex();
+        }
+
+        /// <summary>
+        /// Asynchronously reconnect to the IRC.
+        /// </summary>
+        public void ReconnectAsync()
+        {
+            Log.Header(TimeStamp.TimeLong, debug_prefix + "Async reconnection process starting...");
+
+            if (!CanReconnect())
+            {
+                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async resconnection process aborted");
+                Log.BlankLine();
+
+                return;
+            }
+
+            reconnecting = true;
+
+            state_mutex.WaitOne();
+            if (state == TwitchClientState.Connected)
+            {
+                DisconnectAsync();
+            }
+            else
+            {
+                ConnectAsync();
+            }
+            state_mutex.ReleaseMutex();
+        }
+
+        #endregion
+
+        #region State changes
+
+        /// <summary>
+        /// Safely changes the state of the client.
+        /// </summary>
+        /// <param name="transition_state">
+        /// The state to change the current state to.
+        /// This transition state is meaningless when attempting a reconnect becasue the state is actually changed by Connect() or Disconnect().
+        /// </param>
+        /// <param name="attempting_reconnect">Flag that determines if the client is trying to reconnect.</param>
+        /// <returns></returns>
+        private bool SetState(TwitchClientState transition_state, bool attempting_reconnect = false)
+        {
+            bool change_state = false;
+
+            state_mutex.WaitOne();
+            switch (transition_state)
+            {
+                case TwitchClientState.Connecting:
+                    {
+                        change_state = attempting_reconnect ? CanReconnect() : CanConnect();
+                    }
+                    break;
+                case TwitchClientState.Disconnecting:
+                    {
+                        change_state = attempting_reconnect ? CanReconnect() : CanDisconnect();
+                    }
+                    break;
+                case TwitchClientState.Connected:
+                case TwitchClientState.Disconnected:
+                    {
+                        change_state = attempting_reconnect ? CanReconnect() : true;
+                    }
+                    break;
+            }
+
+            if (change_state)
+            {
+                state = transition_state;
+            }
+            state_mutex.ReleaseMutex();
+
+            return change_state;
+        }
+
+        /// <summary>
+        /// Checks to see if it is safe to connect to the IRC.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool CanConnect()
+        {
+            bool result = false;
+
+            string error = debug_prefix + "Cannot connect to " + host.Wrap("\"", "\"") + ", {0}";
+
+            switch (state)
+            {
+                case TwitchClientState.Connected:
+                    {
+                        Log.Warning(string.Format(error, "already connected"));
+                    }
+                    break;
+                case TwitchClientState.Connecting:
+                    {
+                        Log.Warning(string.Format(error, "already connecting"));
+                    }
+                    break;
+                case TwitchClientState.Disconnecting:
+                    {
+                        Log.Warning(string.Format(error, "currently disconnecting"));
+                    }
+                    break;
+                case TwitchClientState.Disconnected:
+                default:
+                    {
+                        result = true;
+                    }
+                    break;
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Checks to see if it is safe to disconnect from the Twitch IRC.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CanDisconnect()
         {
             bool result = false;
@@ -532,62 +634,9 @@ namespace TwitchLibrary.Clients.IRC
         }
 
         /// <summary>
-        /// Reconnect to the IRC.
-        /// </summary>
-        public void Reconnect()
-        {
-            Log.Header(TimeStamp.TimeLong, debug_prefix + "Reconnection process starting...");
-
-            if (!CanReconnect())
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Resconnection process aborted");
-                Log.BlankLine();
-
-                return;
-            }
-
-            reconnecting = true;
-
-            if(state == TwitchClientState.Connected)
-            {
-                Disconnect();
-            }
-            else
-            {
-                Connect();
-            }
-        }
-
-        /// <summary>
-        /// Asynchronously reconnect to the IRC.
-        /// </summary>
-        public void ReconnectAsync()
-        {
-            Log.Header(TimeStamp.TimeLong, debug_prefix + "Async reconnection process starting...");
-
-            if (!CanReconnect())
-            {
-                Log.Error(TimeStamp.TimeLong, debug_prefix + "Async resconnection process aborted");
-                Log.BlankLine();
-
-                return;
-            }
-
-            reconnecting = true;
-
-            if (state == TwitchClientState.Connected)
-            {
-                DisconnectAsync();
-            }
-            else
-            {
-                ConnectAsync();
-            }
-        }
-
-        /// <summary>
         /// Checks to see if it is safe to reconnect to the Twitch IRC.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CanReconnect()
         {
             bool result = false;
@@ -712,7 +761,7 @@ namespace TwitchLibrary.Clients.IRC
             {
                 case "001":
                     {
-                        state = TwitchClientState.Connected;
+                        SetState(TwitchClientState.Connected);
 
                         Log.Success(debug_prefix + "Successfully connected to " + host.Wrap("\"", "\""));                        
 
